@@ -10,6 +10,7 @@ namespace Kernel {
         size_t pages() const;
     };
 
+    // Implements buddy page allocator.
     class PageAllocator : public Singleton<PageAllocator> {
     public:
         PageAllocator();
