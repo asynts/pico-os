@@ -9,6 +9,10 @@ namespace Kernel {
         static Thread create(Callback callback);
 
         size_t id() const;
+        bool is_running() const;
+
+        [[noreturn]]
+        void run_on_this_core();
     };
 
     class Scheduler : public Singleton<Scheduler> {

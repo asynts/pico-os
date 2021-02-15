@@ -5,7 +5,7 @@ namespace Kernel {
     public:
         SerialPort();
 
-        size_t read(Bytes);
-        size_t write(ReadonlyBytes);
+        Result<size_t> read(Bytes);
+        Result<size_t> write(ReadonlyBytes);
     };
 }
