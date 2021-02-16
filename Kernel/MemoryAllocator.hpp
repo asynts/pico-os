@@ -6,7 +6,7 @@ namespace Kernel {
     public:
         MemoryAllocator();
 
-        flatptr_t allocate(size_t);
+        flatptr_t allocate(usize);
 
         void deallocate(flatptr_t);
     };

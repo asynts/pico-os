@@ -3,11 +3,11 @@
 namespace Kernel {
     class PageRange {
     public:
-        PageRange(flatptr_t base, size_t order);
+        PageRange(flatptr_t base, usize order);
 
-        size_t order() const;
-        size_t size() const;
-        size_t pages() const;
+        usize order() const;
+        usize size() const;
+        usize pages() const;
     };
 
     // Implements buddy page allocator.
@@ -15,7 +15,7 @@ namespace Kernel {
     public:
         PageAllocator();
 
-        Optional<PageRange> allocate(size_t order);
+        Optional<PageRange> allocate(usize order);
 
         void deallocate(PageRange range);
     };
