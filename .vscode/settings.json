@@ -1,4 +1,9 @@
 {
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
+    "cmake.buildDirectory": "${workspaceFolder}/Build/IntelliSense",
+    "files.exclude": {
+        ".git/": true,
+        "Build/": true,
+    },
 }
