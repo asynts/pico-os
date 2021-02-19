@@ -8,7 +8,11 @@ set(CMAKE_CXX_STANDARD 20)
 
 pico_sdk_init()
 
-add_executable(Kernel Kernel/main.cpp)
-target_link_libraries(Kernel pico_stdlib)
+include_directories(.)
+
+file(GLOB_RECURSE KERNEL_SOURCES Kernel/*.cpp Std/*.cpp)
+
+add_executable(Kernel ${KERNEL_SOURCES})
+target_link_libraries(Kernel pico_stdlib pico_malloc)
 
 pico_add_extra_outputs(Kernel)
