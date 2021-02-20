@@ -29,3 +29,23 @@ constexpr void* operator new[](usize count, void* ptr)
 {
     return ptr;
 }
+
+template<typename T>
+constexpr T&& move(T &&value)
+{
+    return static_cast<T&&>(value);
+}
+
+template<typename T>
+constexpr T&& forward(T &&value)
+{
+    return static_cast<T&&>(value);
+}
+
+template<typename T, typename U = T>
+constexpr T exchange(T& obj, U&& new_value)
+{
+    T old_value = move(obj);
+    obj = forward<U>(new_value);
+    return old_value;
+}
