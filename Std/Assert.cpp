@@ -6,10 +6,4 @@ namespace Std {
     {
         Kernel::DebugDevice::the().crash(filename, line);
     }
-
-    void assert_that(bool condition, const char *filename, usize line)
-    {
-        if (!condition)
-            crash(filename, line);
-    }
 }

@@ -49,3 +49,9 @@ constexpr T exchange(T& obj, U&& new_value)
     obj = forward<U>(new_value);
     return old_value;
 }
+
+template<typename T>
+constexpr T max(T a, T b)
+{
+    return a >= b ? a : b;
+}
