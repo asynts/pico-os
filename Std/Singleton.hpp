@@ -24,6 +24,7 @@ namespace Std {
                 return *reinterpret_cast<T*>(instance);
 
             new (instance) T;
+            initialized = true;
 
             mutex_exit(&singleton_mutex);
 
