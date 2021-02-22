@@ -32,5 +32,5 @@ fi
 
 echo "Writing image to Raspberry Pi Pico."
 
-sudo dd if="$1" of="$PICO_DEVICE" conv=fsync status=none
+sudo dd if="$1" of="$PICO_DEVICE" conv=fsync bs=4M status=none
 exit $?

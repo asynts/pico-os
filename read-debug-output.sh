@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -m
 
 for i in {1..20}
 do
@@ -20,4 +21,8 @@ fi
 echo "Reading output from device:"
 
 echo -ne '\033[1;36m'
-sudo cat /dev/ttyACM0 | awk 'NF > 0'
+sudo cat /dev/ttyACM0 | awk 'NF > 0' &
+
+echo "connect" | sudo tee /dev/ttyACM0 > /dev/null
+
+fg %1 > /dev/null
