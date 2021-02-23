@@ -15,7 +15,6 @@ namespace Std {
         }
         ~Vector()
         {
-            printf("Erasing %zu items.\n", m_size);
             for (usize i=0; i<m_size; ++i)
                 m_data[i].~T();
 
@@ -61,10 +60,8 @@ namespace Std {
             usize new_capacity = round_to_power_of_two(capacity);
             assert(new_capacity > capacity && new_capacity > m_capacity);
 
-            printf("Allocating space for %zu items.\n", new_capacity);
             T *new_data = reinterpret_cast<T*>(new u8[new_capacity * sizeof(T)]);
 
-            printf("Moving %zu items over.\n", m_size);
             for (usize i=0; i<m_size; ++i)
                 new (new_data + i) T { move(m_data[i]) };
 

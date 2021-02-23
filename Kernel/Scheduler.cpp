@@ -1,20 +1,25 @@
-#include <pico/time.h>
-#include <pico/printf.h>
+#include <hardware/structs/scb.h>
 
 #include <Kernel/Scheduler.hpp>
 
-namespace Kernel {
+extern "C" {
+    Kernel::Task *current_task = nullptr;
 
-static repeating_timer_t scheduler_timer;
-static bool scheduler_callback(repeating_timer_t*)
-{
-    return true;
+    void schedule_next_task()
+    {
+        panic("Yay! schedule_next_task got called!");
+    }
+
+    void isr_systick()
+    {
+        scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
+    }
 }
+
+namespace Kernel {
 
 Scheduler::Scheduler()
 {
-    if (!add_repeating_timer_ms(100, scheduler_callback, nullptr, &scheduler_timer))
-        panic("Can not setup scheduler timer.");
 }
 
 }

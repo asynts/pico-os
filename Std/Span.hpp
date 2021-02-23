@@ -21,6 +21,12 @@ namespace Std {
         {
         }
 
+        void clear()
+        {
+            set_data(nullptr);
+            set_size(0);
+        }
+
         const T* data() const { return m_data; }
         T* data() { return m_data; }
 

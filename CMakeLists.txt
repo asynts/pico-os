@@ -16,7 +16,7 @@ pico_sdk_init()
 
 include_directories(.)
 
-file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Std/*.cpp)
+file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Kernel/*.S Std/*.cpp)
 
 add_executable(Kernel ${KERNEL_SOURCES})
 target_link_libraries(Kernel pico_stdlib pico_printf pico_malloc pico_time)
