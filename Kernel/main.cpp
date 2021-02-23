@@ -3,6 +3,8 @@
 #include <pico/printf.h>
 #include <string.h>
 
+#include <Kernel/Scheduler.hpp>
+
 void wait_for_host()
 {
     char buffer[16] = {0};
@@ -14,6 +16,8 @@ void wait_for_host()
 int main() {
     stdio_init_all();
     wait_for_host();
+
+    Kernel::Scheduler::the();
 
     gpio_init(25);
     gpio_set_dir(25, true);
