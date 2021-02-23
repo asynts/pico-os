@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <Kernel/Scheduler.hpp>
+#include <Std/Vector.hpp>
 
 void wait_for_host()
 {
@@ -18,6 +19,14 @@ int main() {
     wait_for_host();
 
     Kernel::Scheduler::the();
+
+    {
+        Std::Vector<int> vector;
+        vector.append(42);
+        vector.append(13);
+        vector.append(1);
+        vector.append(2);
+    }
 
     gpio_init(25);
     gpio_set_dir(25, true);
