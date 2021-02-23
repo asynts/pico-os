@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.19.5)
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 include(CMake/pico_sdk_import.cmake)
 
 project(Pico C CXX ASM)

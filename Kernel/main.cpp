@@ -8,7 +8,6 @@ void wait_for_host()
     char buffer[16] = {0};
     fgets(buffer, sizeof(buffer), stdin);
     if (strcmp(buffer, "connect\r\n") != 0)
-        // FIXME: For some reason panic doesn't use printf?
         panic("Expected connection sequence, received '%s'", buffer);
 }
 
