@@ -4,6 +4,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+add_compile_options(-fdiagnostics-color=always)
+
 include(CMake/pico_sdk_import.cmake)
 
 project(Pico C CXX ASM)

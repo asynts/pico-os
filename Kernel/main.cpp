@@ -20,14 +20,6 @@ int main() {
 
     Kernel::Scheduler::the();
 
-    {
-        Std::Vector<int> vector;
-        vector.append(42);
-        vector.append(13);
-        vector.append(1);
-        vector.append(2);
-    }
-
     gpio_init(25);
     gpio_set_dir(25, true);
 

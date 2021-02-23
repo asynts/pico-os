@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/Forward.hpp>
+#include <Std/Span.hpp>
 
 namespace Std {
     template<typename T>
@@ -39,6 +40,17 @@ namespace Std {
 
             ++m_size;
         }
+
+        const T* data() const { return m_data; }
+        T* data() { return m_data; }
+
+        usize size() { return m_size; }
+
+        Span<const T> span() const { return { data(), size() }; }
+        Span<T> span() { return { data(), size() }; }
+
+        SpanIterator<const T> iter() const { return span(); }
+        SpanIterator<T> iter() { return span(); }
 
     private:
         void ensure_capacity(usize capacity)
