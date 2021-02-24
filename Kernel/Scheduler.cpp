@@ -1,4 +1,5 @@
 #include <hardware/structs/scb.h>
+#include <hardware/structs/systick.h>
 
 #include <Kernel/Scheduler.hpp>
 
@@ -7,7 +8,6 @@ extern "C" {
 
     void schedule_next_task()
     {
-        panic("Yay! schedule_next_task got called!");
     }
 
     void isr_systick()
@@ -20,6 +20,13 @@ namespace Kernel {
 
 Scheduler::Scheduler()
 {
+    current_task = new Task { .top_of_stack = nullptr };
+
+    systick_hw->rvr = 10 * 1000;
+
+    systick_hw->csr = 1 << M0PLUS_SYST_CSR_CLKSOURCE_LSB
+                    | 1 << M0PLUS_SYST_CSR_TICKINT_LSB
+                    | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
 }
 
 }
