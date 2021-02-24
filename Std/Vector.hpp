@@ -45,6 +45,9 @@ namespace Std {
 
         usize size() { return m_size; }
 
+        const T& operator[](usize index) const { return m_data[index]; }
+        T& operator[](usize index) { return m_data[index]; }
+
         Span<const T> span() const { return { data(), size() }; }
         Span<T> span() { return { data(), size() }; }
 

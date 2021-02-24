@@ -3,56 +3,67 @@
 .thumb
 
 .extern current_task
-.extern schedule_next_task
+.extern prepare_next_task
 
 .text
 
+// void isr_pendsv(void)
 .global isr_pendsv
 .type isr_pendsv,%function
 .thumb_func
 isr_pendsv:
+    // If there is no task running, skip saving.
+    ldr r1, =current_task
+    cmp r1, #0
+    beq 1f
+
     // Obtain the stack pointer of the current task.
     mrs r0, psp
     isb
 
     // Save registers to stack of current task.
-
-    // FIXME: Verify that registers are pushed low to high.
-    stm r0!, {r4-r7}
+    subs r0, r0, #36
+    stmia r0!, {r4-r7}
     mov r1, r8
     mov r2, r9
     mov r3, r10
     mov r4, r11
     mov r5, lr
-    stm r0!, {r1-r5}
+    stmia r0!, {r1-r5}
 
     // Update the stack pointer for this process.
     ldr r1, =current_task
-    ldr r2, [r1, #0]
-    str r0, [r2]
+    str r0, [r1]
 
+1:
     // Ask the kernel for the next task.
-    stm sp!, {r1}
-    bl schedule_next_task
-    ldm sp!, {r1}
+    mov r1, lr
+    push {r1}
+    bl prepare_next_task
+    pop {r1}
+    mov lr, r1
 
+    // If there is no task being scheduled, return.
+    ldr r1, =current_task
+    cmp r1, #0
+    bne 2f
+    bx lr
+
+2:
     // Obtain the stack pointer of the next task.
-    ldr r2, [r1, #0]
-    ldr r0, [r2]
+    ldr r0, [r1]
 
     // Restore registers from stack of next task.
-
-    // FIXME: Verify that registers are pushed low to high.
-    ldm r0!, {r4-r7}
-    ldm r0!, {r1-r3}
+    subs r0, r0, #36
+    ldmia r0!, {r1-r5}
     mov r8, r1
     mov r9, r2
     mov r10, r3
-    ldm r0!, {r1-r2}
-    mov r11, r1
-    mov lr, r2
+    mov r11, r4
+    mov lr, r5
+    ldmia r0!, {r4-r7}
 
     // Hand over execution to next task.
     msr psp, r0
     isb
-    bx r14
+    bx lr

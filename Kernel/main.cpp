@@ -14,21 +14,38 @@ void wait_for_host()
         panic("Expected connection sequence, received '%s'", buffer);
 }
 
+[[noreturn]]
+void blink_task(void)
+{
+    gpio_init(25);
+    gpio_set_dir(25, true);
+
+    for(;;) {
+        gpio_xor_mask(1 << 25);
+        sleep_ms(100);
+    }
+}
+
+[[noreturn]]
+void message_task(void)
+{
+    usize index = 0;
+    for(;;) {
+        printf("Message #%d\n", index++);
+        sleep_ms(150);
+    }
+}
+
 int main() {
     stdio_init_all();
     wait_for_host();
 
     Kernel::Scheduler::the();
 
-    gpio_init(25);
-    gpio_set_dir(25, true);
+    Kernel::Scheduler::the().create_task(blink_task);
+    Kernel::Scheduler::the().create_task(message_task);
 
-    for (;;) {
-        gpio_xor_mask(1 << 25);
-        sleep_ms(100);
-        gpio_xor_mask(1 << 25);
-        sleep_ms(100);
-    }
+    Kernel::Scheduler::the().loop();
 }
 
 // Note. I patched the pico-sdk and made _exit a weak symbol.
