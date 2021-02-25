@@ -11,4 +11,4 @@ then
     exit 1
 fi
 
-sudo cat /dev/ttyACM0
+sudo socat stdio /dev/ttyACM0

@@ -5,4 +5,4 @@ set -e
 # a Raspberry Pi Pico device via SWD.  Before running this script,
 # the device needs to be plugged in.
 
-sudo openocd -f interface/picoprobe.cfg -f target/rp2040.cfg
+sudo openocd -f interface/picoprobe.cfg -f target/rp2040.cfg -s tcl

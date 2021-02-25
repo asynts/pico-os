@@ -1,40 +1,42 @@
-#include <pico/stdlib.h>
+#include <hardware/gpio.h>
 #include <pico/stdio.h>
 #include <pico/printf.h>
-#include <string.h>
+#include <pico/sync.h>
 
 #include <Kernel/Scheduler.hpp>
-#include <Std/Vector.hpp>
+
+// FIXME: This should be in the Pico SDK!
+__attribute__((weak))
+void __nop()
+{
+    asm volatile("nop");
+}
 
 [[noreturn]]
-void blink_task(void)
+void blink_task()
 {
     gpio_init(25);
     gpio_set_dir(25, true);
 
     for(;;) {
+        printf("Blink!\n");
         gpio_xor_mask(1 << 25);
-        sleep_ms(100);
-    }
-}
 
-[[noreturn]]
-void message_task(void)
-{
-    usize index = 0;
-    for(;;) {
-        printf("Message #%d\n", index++);
-        sleep_ms(150);
+        // FIXME: We want to be able to set a timer in a task and regain control
+        //        when it runs out.
+        for (usize i = 0; i < 1000000; ++i)
+            __nop();
     }
 }
 
 int main() {
     stdio_init_all();
 
+    printf("Booting...\n");
+
     Kernel::Scheduler::the();
 
     Kernel::Scheduler::the().create_task(blink_task);
-    Kernel::Scheduler::the().create_task(message_task);
 
     Kernel::Scheduler::the().loop();
 }
