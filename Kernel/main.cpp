@@ -6,14 +6,6 @@
 #include <Kernel/Scheduler.hpp>
 #include <Std/Vector.hpp>
 
-void wait_for_host()
-{
-    char buffer[16] = {0};
-    fgets(buffer, sizeof(buffer), stdin);
-    if (strcmp(buffer, "connect\r\n") != 0)
-        panic("Expected connection sequence, received '%s'", buffer);
-}
-
 [[noreturn]]
 void blink_task(void)
 {
@@ -38,7 +30,6 @@ void message_task(void)
 
 int main() {
     stdio_init_all();
-    wait_for_host();
 
     Kernel::Scheduler::the();
 
@@ -57,5 +48,5 @@ void _exit(int)
     gpio_put(25, true);
 
     for(;;)
-        asm("wfi");
+        __wfi();
 }

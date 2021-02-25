@@ -17,9 +17,14 @@ isr_pendsv:
     cmp r1, #0
     beq 1f
 
+    // FIXME: Maybe I have to dereference current_task twice? But why?
+
     // Obtain the stack pointer of the current task.
     mrs r0, psp
     isb
+
+    // FIXME: Somehow there is a scenario where (current_task != nullptr)
+    //        and (psp != nullptr) but still (*psp) is a hardfault.
 
     // Save registers to stack of current task.
     subs r0, r0, #36

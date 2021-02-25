@@ -20,8 +20,4 @@ file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Kernel/*.S Std/*
 
 add_executable(Kernel ${KERNEL_SOURCES})
 target_link_libraries(Kernel pico_stdlib pico_printf pico_malloc pico_time)
-
-pico_enable_stdio_usb(Kernel 1)
-pico_enable_stdio_uart(Kernel 0)
-
 pico_add_extra_outputs(Kernel)
