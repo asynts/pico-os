@@ -2,6 +2,7 @@
 #include <pico/stdio.h>
 #include <pico/printf.h>
 #include <pico/sync.h>
+#include <hardware/structs/systick.h>
 
 #include <Kernel/Scheduler.hpp>
 
@@ -20,6 +21,8 @@ void blink_task()
 
     for(;;) {
         gpio_xor_mask(1 << 25);
+
+        printf("Blink!, btw. systick_hw->cvr=%zu, systick_hw->csr=%zb\n", systick_hw->cvr, systick_hw->csr);
 
         // FIXME: We want to be able to set a timer in a task and regain control
         //        when it runs out.
@@ -43,14 +46,12 @@ void message_task()
 int main() {
     stdio_init_all();
 
-    printf("Booting...\n");
+    printf("\nBOOT\n");
 
     Kernel::Scheduler::the();
 
-    Kernel::Task *blink_task_ptr = Kernel::Scheduler::the().create_task(blink_task);
-    printf("blink_task_ptr: %p\n", blink_task_ptr);
-    Kernel::Task *message_task_ptr = Kernel::Scheduler::the().create_task(message_task);
-    printf("message_task_ptr: %p\n", message_task_ptr);
+    Kernel::Scheduler::the().create_task(blink_task);
+    Kernel::Scheduler::the().create_task(message_task);
 
     Kernel::Scheduler::the().loop();
 }

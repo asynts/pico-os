@@ -15,7 +15,6 @@ define rebuild
     load
     monitor reset init
 end
-rebuild
 EOD
 
 arm-none-eabi-gdb -q -ix $gdb_script_file

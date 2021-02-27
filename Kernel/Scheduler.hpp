@@ -27,6 +27,11 @@ namespace Kernel
             return pointer;
         }
 
+        void align_stack_to(usize align)
+        {
+            m_stack -= reinterpret_cast<u32>(m_stack) % align;
+        }
+
         u8* stack() { return m_stack; }
         void set_stack(u8 *stack) { m_stack = stack; }
 
