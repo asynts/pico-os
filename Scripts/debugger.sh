@@ -8,7 +8,7 @@ set -e
 gdb_script_file=$(mktemp)
 cat > $gdb_script_file <<EOD
 file Kernel.elf
-target remote localhost:3333
+target extended-remote localhost:3333
 
 define rebuild
     shell ninja
