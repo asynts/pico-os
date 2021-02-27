@@ -10,6 +10,10 @@ namespace Kernel
 
     struct Task {
     public:
+        explicit Task(u8 *stack)
+            : m_stack(stack)
+        {
+        }
         Task()
         {
             m_stack = new u8[0x1000] + 0x1000;
@@ -24,6 +28,7 @@ namespace Kernel
         }
 
         u8* stack() { return m_stack; }
+        void set_stack(u8 *stack) { m_stack = stack; }
 
     private:
         u8 *m_stack;
@@ -33,13 +38,13 @@ namespace Kernel
     public:
         Scheduler();
 
-        void create_task(void (*callback)(void));
+        Task* create_task(void (*callback)(void));
 
         void loop();
         u8* prepare_next_task(u8 *stack);
 
     private:
         Vector<Task*> m_tasks;
-        usize m_next_task_index = 0;
+        usize m_current_task_index = 0;
     };
 }

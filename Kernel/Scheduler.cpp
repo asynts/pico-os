@@ -6,13 +6,6 @@
 #include <Kernel/Scheduler.hpp>
 
 extern "C" {
-    bool scheduler_enabled = false;
-    Kernel::Task *scheduler_current_task = nullptr;
-
-    // Implemented in Assembly.
-    [[noreturn]]
-    void scheduler_loop();
-
     u8* scheduler_prepare_next_task(u8 *stack)
     {
         return Kernel::Scheduler::the().prepare_next_task(stack);
@@ -22,17 +15,6 @@ extern "C" {
     {
         scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
     }
-
-    void isr_hardfault()
-    {
-        for(;;) {
-            gpio_init(25);
-            gpio_set_dir(25, true);
-            gpio_put(25, true);
-
-            __wfi();
-        }
-    }
 }
 
 namespace Kernel {
@@ -40,6 +22,8 @@ namespace Kernel {
 Scheduler::Scheduler()
 {
     printf("Initializing Scheduler...\n");
+
+    m_tasks.append(new Task { nullptr });
 
     // FIXME: Configure SysTick properly.
 
@@ -50,7 +34,7 @@ Scheduler::Scheduler()
                     | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
 }
 
-void Scheduler::create_task(void (*callback)(void))
+Task* Scheduler::create_task(void (*callback)(void))
 {
     Task *task = new Task;
 
@@ -66,6 +50,8 @@ void Scheduler::create_task(void (*callback)(void))
     task->push_onto_stack<u32>(0); // r8
 
     m_tasks.append(task);
+
+    return task;
 }
 
 u8* Scheduler::prepare_next_task(u8 *stack)
@@ -73,7 +59,12 @@ u8* Scheduler::prepare_next_task(u8 *stack)
     if (m_tasks.size() == 0)
         return stack;
 
-    return m_tasks[m_next_task_index++ % m_tasks.size()]->stack();
+    m_tasks[m_current_task_index]->set_stack(stack);
+
+    if (++m_current_task_index >= m_tasks.size())
+        m_current_task_index = 0;
+
+    return m_tasks[m_current_task_index]->stack();
 }
 
 void Scheduler::loop()

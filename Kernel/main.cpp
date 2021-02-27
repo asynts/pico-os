@@ -19,11 +19,22 @@ void blink_task()
     gpio_set_dir(25, true);
 
     for(;;) {
-        printf("Blink!\n");
         gpio_xor_mask(1 << 25);
 
         // FIXME: We want to be able to set a timer in a task and regain control
         //        when it runs out.
+        for (usize i = 0; i < 1000000; ++i)
+            __nop();
+    }
+}
+
+[[noreturn]]
+void message_task()
+{
+    usize index = 0;
+    for(;;) {
+        printf("Message #%zu\n", index++);
+
         for (usize i = 0; i < 1000000; ++i)
             __nop();
     }
@@ -36,12 +47,14 @@ int main() {
 
     Kernel::Scheduler::the();
 
-    Kernel::Scheduler::the().create_task(blink_task);
+    Kernel::Task *blink_task_ptr = Kernel::Scheduler::the().create_task(blink_task);
+    printf("blink_task_ptr: %p\n", blink_task_ptr);
+    Kernel::Task *message_task_ptr = Kernel::Scheduler::the().create_task(message_task);
+    printf("message_task_ptr: %p\n", message_task_ptr);
 
     Kernel::Scheduler::the().loop();
 }
 
-// Note. I patched the pico-sdk and made _exit a weak symbol.
 extern "C"
 void _exit(int)
 {
