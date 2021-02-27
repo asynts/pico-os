@@ -6,4 +6,5 @@
         ".git/": true,
         "Build/": true,
     },
+    "editor.snippetSuggestions": "none",
 }
