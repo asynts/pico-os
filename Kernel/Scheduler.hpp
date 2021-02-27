@@ -17,14 +17,13 @@ namespace Kernel
         Task()
         {
             m_stack = new u8[0x1000] + 0x1000;
+            align_stack_to(8);
         }
 
         template<typename T>
-        T* push_onto_stack(T value)
+        u32* push_onto_stack(T value)
         {
-            T *pointer = reinterpret_cast<T*>(m_stack -= sizeof(T));
-            *pointer = move(value);
-            return pointer;
+            return push_onto_stack<u32>(u32(value));
         }
 
         void align_stack_to(usize align)
@@ -52,4 +51,12 @@ namespace Kernel
         Vector<Task*> m_tasks;
         usize m_current_task_index = 0;
     };
+
+    template<>
+    inline u32* Task::push_onto_stack(u32 value)
+    {
+        u32 *pointer = reinterpret_cast<u32*>(m_stack -= sizeof(u32));
+        *pointer = value;
+        return pointer;
+    }
 }

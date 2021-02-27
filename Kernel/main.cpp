@@ -13,7 +13,11 @@ void __nop()
     asm volatile("nop");
 }
 
-[[noreturn]]
+void returning_task()
+{
+    printf("Hi, I am the task that returns!\n");
+}
+
 void blink_task()
 {
     gpio_init(25);
@@ -31,7 +35,6 @@ void blink_task()
     }
 }
 
-[[noreturn]]
 void message_task()
 {
     usize index = 0;
@@ -46,12 +49,13 @@ void message_task()
 int main() {
     stdio_init_all();
 
-    printf("\nBOOT\n");
+    printf("\n\033[1mBOOT\033[0m\n");
 
     Kernel::Scheduler::the();
 
-    Kernel::Scheduler::the().create_task(blink_task);
-    Kernel::Scheduler::the().create_task(message_task);
+    Kernel::Scheduler::the().create_task(returning_task);
+    // Kernel::Scheduler::the().create_task(blink_task);
+    // Kernel::Scheduler::the().create_task(message_task);
 
     Kernel::Scheduler::the().loop();
 }
