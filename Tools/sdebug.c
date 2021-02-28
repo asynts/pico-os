@@ -22,6 +22,10 @@ int main() {
     cfsetospeed(&tty, B115200);
     cfsetispeed(&tty, B115200);
 
+    // Convert CRLF to LF.
+    tty.c_iflag = IGNCR;
+    // tty.c_oflag = ONLRET;
+
     // Apply modified TTY configuration.
     if (tcsetattr(fd, TCSANOW, &tty) < 0) {
         perror("tcsetattr");
