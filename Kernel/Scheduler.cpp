@@ -6,8 +6,9 @@
 #include <Kernel/Scheduler.hpp>
 
 extern "C" {
-    void scheduler_entry()
+    void scheduler_entry(void (*callback)())
     {
+        callback();
         panic("Task returned to scheduler_entry!");
     }
 
@@ -41,14 +42,6 @@ Task* Scheduler::create_task(void (*callback)(void))
 {
     Task *task = new Task;
 
-    // Frame record for scheduler.
-    task->push_onto_stack(0); // lr
-    task->push_onto_stack(0); // alignment
-
-    // Frame record for callback.
-    task->push_onto_stack(scheduler_entry); // lr
-    task->push_onto_stack(0); // alignment
-
     // Now we have to align the stack to an eight byte boundary.
     u32 xpsr_frame_align;
     if (u32(task->stack()) % 8 != 0) {
@@ -64,13 +57,13 @@ Task* Scheduler::create_task(void (*callback)(void))
 
     // This is the context that will be restored by the hardware when returning in PendSV.
     task->push_onto_stack(xpsr_thumb_mode | xpsr_frame_align); // xpsr
-    task->push_onto_stack(callback); // return address
-    task->push_onto_stack(scheduler_entry); // lr
+    task->push_onto_stack(scheduler_entry); // return address
+    task->push_onto_stack(0); // lr
     task->push_onto_stack(0); // r12
     task->push_onto_stack(0); // r3
     task->push_onto_stack(0); // r2
     task->push_onto_stack(0); // r1
-    task->push_onto_stack(0); // r0
+    task->push_onto_stack(callback); // r0
 
     // This is the context that will be restored in PendSV.
     task->push_onto_stack(0); // r7
