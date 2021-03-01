@@ -6,7 +6,7 @@ int creat(const char *path, mode_t mode)
     abort();
 }
 
-int close(int fd)
+int _close(int fd)
 {
     abort();
 }

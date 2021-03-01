@@ -25,3 +25,5 @@ target_link_libraries(Kernel pico_stdlib)
 pico_enable_stdio_uart(Kernel 1)
 
 pico_add_extra_outputs(Kernel)
+
+add_subdirectory(Userland)

@@ -3,7 +3,3 @@
 add_custom_target(sdebug ALL
     COMMAND cc -Wall -Wextra -std=c11 ${CMAKE_CURRENT_SOURCE_DIR}/sdebug.c -o ${CMAKE_CURRENT_BINARY_DIR}/sdebug
     SOURCES sdebug.c)
-
-add_custom_target(shell-mockup ALL
-    COMMAND cc -Wall -Wextra -std=c11 -lreadline ${CMAKE_CURRENT_SOURCE_DIR}/shell-mockup.c -o ${CMAKE_CURRENT_BINARY_DIR}/shell-mockup
-    SOURCES shell-mockup.c)
