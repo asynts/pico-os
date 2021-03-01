@@ -18,6 +18,8 @@ pico_sdk_init()
 
 include_directories(.)
 
+add_subdirectory(Userland)
+
 file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Std/*.cpp)
 
 add_executable(Kernel ${KERNEL_SOURCES})
@@ -26,4 +28,4 @@ pico_enable_stdio_uart(Kernel 1)
 
 pico_add_extra_outputs(Kernel)
 
-add_subdirectory(Userland)
+target_link_libraries(Kernel ShellEmbedded)

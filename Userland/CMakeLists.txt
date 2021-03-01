@@ -8,3 +8,10 @@ target_link_libraries(LibC INTERFACE c LibC_)
 
 add_executable(Shell Shell.c)
 target_link_libraries(Shell LibC)
+
+add_custom_target(ShellEmbedded.o ALL
+    COMMAND arm-none-eabi-ld -r -b binary -L ${CMAKE_CURRENT_BINARY_DIR} Shell.elf -o ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.o
+    DEPENDS Shell)
+
+add_library(ShellEmbedded OBJECT IMPORTED GLOBAL)
+set_property(TARGET ShellEmbedded PROPERTY IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.o)
