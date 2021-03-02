@@ -1,44 +1,58 @@
+MEMORY {
+    rom (rx) : ORIGIN = 0x00000000, LENGTH = 64K
+    ram (rw) : ORIGIN = 0x10000000, LENGTH = 64K
+}
+
 ENTRY(_start);
 
 SECTIONS
 {
-    /* These sections will remain in FLASH. They will be accessed relative to PC. */
     .text : {
-        . = ALIGN(4);
         *(.init)
-        . = ALIGN(4);
-        *(.text)
-        . = ALIGN(4);
+        *(.text*)
         *(.fini)
-    }
-    .rodata : {
-        . = ALIGN(4);
-        *(.rodata)
+        *(.rodata*)
 
-        . = ALIGN(4);
-        SORT(CONSTRUCTORS)
-    }
+        /* This is needed for unwinding at runtime, we should be able to purge this somehow. */
+        *(.eh_frame)
 
-    /* These sections will be copied into RAM. They will be accessed relative to SB. */
+        /* These sections contain workarounds for missing processor features. */
+        *(.glue*)
+
+        __preinit_array_start = .;
+        KEEP(*(.preinit_array*))
+        __preinit_array_end = .;
+
+        __init_array_start = .;
+        KEEP(*(.init_array*))
+        __init_array_end = .;
+
+        __fini_array_start = .;
+        KEEP(*(.fini_array*))
+        __fini_array_end = .;
+    } > rom
     .data : {
-        . = ALIGN(4);
-        *(.data)
-    }
-    .bss : {
-        . = ALIGN(4);
+        *(.data*)
         *(.noinit)
-
+    } > ram
+    .bss : {
         __bss_start__ = .;
-
-        . = ALIGN(4);
-        *(.bss)
-
+        *(.bss*)
         __bss_end__ = .;
+    } > ram
+    /DISCARD/ : {
+        /* Debugging information */
+        *(.comment)
+        *(.ARM*)
+        *(.debug*)
+
+        /* Why are these sections even emitted? They are not releavant for the Cortex-M0+. */
+        *(.vfp11_veneer)
+        *(.v4_bx)
+
+        /* Why are these sections even emitted? We are linking statically?! */
+        *(.iplt)
+        *(.rel.iplt)
+        *(.igot.plt)
     }
-
-    . = ALIGN(8);
-    . += 0x1000;
-    . = ALIGN(8);
-
-    _stack_top = .;
 }

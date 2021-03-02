@@ -12,9 +12,16 @@ extern "C" {
 
 void load_and_execute_shell()
 {
-    auto *elf_header = reinterpret_cast<Elf32_Ehdr*>(_binary_Shell_elf_start);
-    auto *program_header = reinterpret_cast<Elf32_Phdr*>(_binary_Shell_elf_start + elf_header->e_phoff);
-    auto *section_header = reinterpret_cast<Elf32_Shdr*>(_binary_Shell_elf_start + elf_header->e_shoff);
+    auto *header = reinterpret_cast<Elf32_Ehdr*>(_binary_Shell_elf_start);
+    auto *sections = reinterpret_cast<Elf32_Shdr*>(_binary_Shell_elf_start + header->e_shoff);
+
+    char *strings = reinterpret_cast<char*>(_binary_Shell_elf_start + sections[header->e_shstrndx].sh_offset);
+
+    // We can do this because we only have one segment which has virtual and physical address zero.
+    void (*entry)() = reinterpret_cast<void(*)()>(_binary_Shell_elf_start + header->e_entry);
+
+    for (usize index = 0; index < header->e_shnum; ++index)
+        printf("Got section '%s'.\n", strings + sections[index].sh_name);
 }
 
 int main() {
