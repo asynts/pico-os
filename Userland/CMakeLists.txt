@@ -10,6 +10,8 @@ target_link_libraries(LibC INTERFACE c LibC_)
 add_executable(Shell Shell.c)
 target_link_libraries(Shell LibC)
 target_compile_options(Shell PRIVATE -fpie)
+target_link_options(Shell PRIVATE -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x)
+set_target_properties(Shell PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x)
 
 add_custom_target(ShellEmbedded.1.o ALL
     COMMAND arm-none-eabi-ld -r -b binary -L ${CMAKE_CURRENT_BINARY_DIR} Shell.elf -o ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.1.o
