@@ -12,9 +12,9 @@ extern "C" {
 
 void load_and_execute_shell()
 {
-    auto *header = reinterpret_cast<Elf32_Ehdr*>(_binary_Shell_elf_start);
-
-    // FIXME
+    auto *elf_header = reinterpret_cast<Elf32_Ehdr*>(_binary_Shell_elf_start);
+    auto *program_header = reinterpret_cast<Elf32_Phdr*>(_binary_Shell_elf_start + elf_header->e_phoff);
+    auto *section_header = reinterpret_cast<Elf32_Shdr*>(_binary_Shell_elf_start + elf_header->e_shoff);
 }
 
 int main() {
