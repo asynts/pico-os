@@ -42,12 +42,27 @@ void load_and_execute_shell()
     }
     assert(heap_segment != nullptr);
 
+    u8 *stack = new u8[0x2000] + 0x2000;
+    assert(u32(stack) % 8 == 0);
+    printf("Allocated stack in RAM at %p.\n", stack);
+
     // We can compute the entry point address like this because the readonly segment starts at V0x00000000.
     auto *entry = reinterpret_cast<void(*)()>(_binary_Shell_elf_start + segments[0].p_offset + header->e_entry);
 
-    // FIXME: I've manually checked the computation and it should be correct to my understanding. I believe p_offset isn't
-    //        what I think it is. -> The documentation clearly states that this offset is taken from the start of the file!
-    entry();
+    // FIXME: Setup PIC register. (SB)
+
+    // Switch to process stack pointer and execute unprivileged.
+    asm volatile(
+        "msr psp, %0;"
+        "isb;"
+        "movs r0, #0b11;"
+        "msr control, r0;"
+        "isb;"
+        "blx %1;"
+        :
+        : "r"(stack), "r"(entry));
+
+    panic("Process returned, it should not.\n");
 }
 
 int main() {
