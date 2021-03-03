@@ -3,7 +3,6 @@ file(GLOB_RECURSE LIBC_SOURCES CONFIGURE_DEPENDS LibC/*.c)
 add_custom_target(Shell.elf ALL
     COMMAND arm-none-eabi-gcc -std=c11 -fpic -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf
         -mcpu=cortex-m0 -Og
-        -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x -Xlinker --orphan-handling=warn
         -I${CMAKE_CURRENT_SOURCE_DIR}/LibC
         ${LIBC_SOURCES}
         ${CMAKE_CURRENT_SOURCE_DIR}/Shell.c)
