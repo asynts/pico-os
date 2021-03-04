@@ -5,6 +5,8 @@ set -e
 # use this script, the device has to be plugged in and /Scripts/picoprobe.sh
 # has to be run.
 
+gdb=/usr/local/arm-none-os-eabi/bin/arm-none-os-eabi-gdb
+
 gdb_script_file=$(mktemp)
 cat > $gdb_script_file <<EOD
 file Kernel.elf
@@ -17,4 +19,4 @@ define rebuild
 end
 EOD
 
-arm-none-eabi-gdb -q -ix $gdb_script_file
+$gdb -q -ix $gdb_script_file
