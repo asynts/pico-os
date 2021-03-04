@@ -1,7 +1,21 @@
 ### Helpful Documentation
 
+#### Stuff that I already looked at:
+
   - ARM ABI (https://github.com/ARM-software/abi-aa/releases)
   - ELF(5) man page (https://man7.org/linux/man-pages/man5/elf.5.html)
+
+#### Stuff that I want to look at:
+
+  - Blog about linkers (https://www.airs.com/blog/archives/38)
+
+### Software
+
+Installed via `pacman`:
+
+~~~none
+pacman -S --needed python-invoke
+~~~
 
 ### Toolchain
 

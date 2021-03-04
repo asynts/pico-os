@@ -6,8 +6,6 @@ endif()
 
 add_compile_options(-fdiagnostics-color=always)
 
-add_subdirectory(Tools)
-
 include(CMake/pico_sdk_import.cmake)
 
 project(Pico C CXX ASM)
