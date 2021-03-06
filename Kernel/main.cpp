@@ -64,6 +64,7 @@ struct LoadedExecutable {
     u32 m_data_base;
     u32 m_bss_base;
 };
+volatile LoadedExecutable *dynamic_load_debugger_hook;
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
@@ -120,31 +121,31 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
         if (__builtin_strcmp(section_name, ".init") == 0) {
             section_address = executable.m_init_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".text") == 0) {
+        } if (__builtin_strcmp(section_name, ".text") == 0) {
             section_address = executable.m_text_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".fini") == 0) {
-            section_address = executable.m_init_base = fini_base + (section.sh_addr - text_segment.p_vaddr);
+        } if (__builtin_strcmp(section_name, ".fini") == 0) {
+            section_address = executable.m_fini_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".rodata") == 0) {
+        } if (__builtin_strcmp(section_name, ".rodata") == 0) {
             section_address = executable.m_rodata_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".ARM.exidx") == 0) {
+        } if (__builtin_strcmp(section_name, ".ARM.exidx") == 0) {
             section_address = executable.m_exidx_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".eh_frame") == 0) {
+        } if (__builtin_strcmp(section_name, ".eh_frame") == 0) {
             section_address = executable.m_frame_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".init_array") == 0) {
+        } if (__builtin_strcmp(section_name, ".init_array") == 0) {
             section_address = executable.m_init_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".fini_array") == 0) {
+        } if (__builtin_strcmp(section_name, ".fini_array") == 0) {
             section_address = executable.m_fini_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".data") == 0) {
+        } if (__builtin_strcmp(section_name, ".data") == 0) {
             section_address = executable.m_data_base = text_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
-        if (__builtin_strcmp(section_name, ".bss") == 0) {
+        } if (__builtin_strcmp(section_name, ".bss") == 0) {
             section_address = executable.m_bss_base = text_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
         } else {
@@ -155,6 +156,9 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
             printf("Found section %s at %p\n", section_name, section_address);
     }
 
+    printf("Finished loading executable, informing debugger\n");
+    dynamic_load_debugger_hook = &executable;
+
     return executable;
 }
 
@@ -163,13 +167,11 @@ void load_and_execute_shell()
     ElfWrapper elf { reinterpret_cast<u8*>(_binary_Shell_elf_start) };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
-    // FIXME: Inform the debugger about the loaded executable.
-    printf("Finished loading executable, informing debugger\n");
+    printf("Handing over execution to new process\n");
+
     __breakpoint();
 
     // FIXME: Setup PIC register. (SB)
-
-    printf("Handing over execution to new process\n");
 
     // Switch to process stack pointer and execute unprivileged.
     asm volatile(
@@ -180,7 +182,7 @@ void load_and_execute_shell()
         "isb;"
         "blx %1;"
         :
-        : "r"(executable.m_stack_top), "r"(executable.m_entry_address));
+        : "r"(executable.m_stack_top), "r"(executable.m_entry));
 
     panic("Process returned, it shouldn't have\n");
 }

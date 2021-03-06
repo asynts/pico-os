@@ -21,8 +21,9 @@ def debugger(c, gdb="/usr/local/arm-none-os-eabi/bin/arm-none-os-eabi-gdb"):
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
     init_script.write(b"""\
-file Kernel.elf
 target extended-remote localhost:3333
+file Kernel.elf
+source ../Scripts/dynamic-loader.py
 
 define rebuild
     shell ninja
@@ -30,7 +31,6 @@ define rebuild
     monitor reset init
 end
 """)
-
     init_script.flush()
 
     c.run(f"{gdb} -q -x {init_script.name}", pty=True)
