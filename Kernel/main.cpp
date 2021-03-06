@@ -47,16 +47,28 @@ private:
 };
 
 struct LoadedExecutable {
-    u32 m_entry_address;
-    u32 m_text_base;
-    u32 m_data_base;
+    u32 m_entry;
+
     u32 m_stack_base;
     u32 m_stack_top;
     u32 m_stack_size;
+
+    u32 m_init_base;
+    u32 m_text_base;
+    u32 m_fini_base;
+    u32 m_rodata_base;
+    u32 m_exidx_base;
+    u32 m_frame_base;
+    u32 m_init_array_base;
+    u32 m_fini_array_base;
+    u32 m_data_base;
+    u32 m_bss_base;
 };
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
+    LoadedExecutable executable;
+
     printf("Loading executable from %p\n", elf.base());
 
     assert(elf.header()->e_phnum == 3);
@@ -87,7 +99,6 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(elf.header()->e_entry >= text_segment.p_vaddr);
     assert(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
     u32 entry_address = text_base + (elf.header()->e_entry - text_segment.p_vaddr);
-
     printf("Putting entry point at %p\n", entry_address);
 
     u32 stack_size = 0x1000;
@@ -95,14 +106,56 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     u32 stack_top = stack_base + stack_top;
     printf("Putting stack top at %p\n", stack_top);
 
-    return {
-        .m_entry_address = entry_address,
-        .m_text_base = text_base,
-        .m_data_base = data_base,
-        .m_stack_base = stack_base,
-        .m_stack_top = stack_top,
-        .m_stack_size = stack_size,
-    };
+    assert(elf.header()->e_shnum < SHN_LORESERVE);
+    assert(elf.header()->e_phnum < PN_XNUM);
+    for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
+        Elf32_Shdr& section = elf.sections()[section_index];
+        const char *section_name = elf.section_name_base() + section.sh_name;
+
+        if (section.sh_type == SHT_NULL)
+            continue;
+
+        bool did_understood_section = false;
+        u32 section_address;
+        if (__builtin_strcmp(section_name, ".init") == 0) {
+            section_address = executable.m_init_base = text_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".text") == 0) {
+            section_address = executable.m_text_base = text_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".fini") == 0) {
+            section_address = executable.m_init_base = fini_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".rodata") == 0) {
+            section_address = executable.m_rodata_base = text_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".ARM.exidx") == 0) {
+            section_address = executable.m_exidx_base = text_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".eh_frame") == 0) {
+            section_address = executable.m_frame_base = text_base + (section.sh_addr - text_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".init_array") == 0) {
+            section_address = executable.m_init_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".fini_array") == 0) {
+            section_address = executable.m_fini_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".data") == 0) {
+            section_address = executable.m_data_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            did_understood_section = true;
+        if (__builtin_strcmp(section_name, ".bss") == 0) {
+            section_address = executable.m_bss_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            did_understood_section = true;
+        } else {
+            printf("Skipped unknown section %s\n", section_name);
+        }
+
+        if (did_understood_section)
+            printf("Found section %s at %p\n", section_name, section_address);
+    }
+
+    return executable;
 }
 
 void load_and_execute_shell()
