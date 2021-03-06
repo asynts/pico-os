@@ -46,150 +46,75 @@ private:
     usize m_offset = 0;
 };
 
-usize compute_size_in_memory(ElfWrapper elf)
+struct LoadedExecutable {
+    u32 m_entry_address;
+    u32 m_text_base;
+    u32 m_data_base;
+    u32 m_stack_base;
+    u32 m_stack_top;
+    u32 m_stack_size;
+};
+
+LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
-    usize size = 0;
+    printf("Loading executable from %p\n", elf.base());
 
-    size += sizeof(Elf32_Ehdr);
+    assert(elf.header()->e_phnum == 3);
+    assert(elf.segments()[0].p_type == PT_ARM_EXIDX);
 
-    for (usize index = 0; index < elf.header()->e_phnum; ++index)
-        size += sizeof(Elf32_Phdr) + elf.segments()[index].p_memsz;
+    Elf32_Phdr& text_segment = elf.segments()[1];
+    assert(text_segment.p_type == PT_LOAD);
+    assert(text_segment.p_flags == PF_R | PF_X);
 
-    for (usize index = 0; index < elf.header()->e_shnum; ++index) {
-        auto& section = elf.sections()[index];
+    Elf32_Phdr& data_segment = elf.segments()[2];
+    assert(data_segment.p_type == PT_LOAD);
+    assert(data_segment.p_flags == PF_R | PF_W);
 
-        size += sizeof(Elf32_Shdr);
+    u32 text_base = elf.base_as_u32() + text_segment.p_offset;
+    printf("Putting text segment at %p (inplace)\n", text_base);
 
-        // These sections are not placed in segments, thus they are not accounted for.
-        if ((section.sh_flags & SHF_ALLOC) == 0)
-            size += section.sh_size;
-    }
+    u8 *data = new u8[data_segment.p_memsz];
+    assert(data != nullptr);
 
-    printf("Computed memory size of binary %p as %zu\n", elf.base(), size);
-    return size;
-}
+    u32 data_base = u32(data);
+    printf("Putting data segment at %p (allocated)\n", data_base);
 
-void patch_executable(ElfWrapper flash_elf, ElfWrapper ram_elf)
-{
-    printf("Constructing binary %p from binary %p\n", ram_elf.base(), flash_elf.base());
+    __builtin_memcpy(data, elf.base() + data_segment.p_offset, data_segment.p_filesz);
 
-    // Copy headers over.
-    ram_elf.append(flash_elf.header(), sizeof(Elf32_Ehdr));
+    assert(data_segment.p_memsz >= data_segment.p_filesz);
+    __builtin_memset(data + data_segment.p_filesz, 0, data_segment.p_memsz - data_segment.p_filesz);
 
-    ram_elf.header()->e_phoff = ram_elf.offset();
-    ram_elf.append(flash_elf.segments(), sizeof(Elf32_Phdr) * flash_elf.header()->e_phnum);
+    assert(elf.header()->e_entry >= text_segment.p_vaddr);
+    assert(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
+    u32 entry_address = text_base + (elf.header()->e_entry - text_segment.p_vaddr);
 
-    ram_elf.header()->e_shoff = ram_elf.offset();
-    ram_elf.append(flash_elf.sections(), sizeof(Elf32_Shdr) * flash_elf.header()->e_shnum);
+    printf("Putting entry point at %p\n", entry_address);
 
-    // Patch segments.
-    for (usize index = 0; index < ram_elf.header()->e_phnum; ++index) {
-        auto &ram_segment = ram_elf.segments()[index];
-        auto &flash_segment = flash_elf.segments()[index];
+    u32 stack_size = 0x1000;
+    u32 stack_base = u32(new u8[stack_size]);
+    u32 stack_top = stack_base + stack_top;
+    printf("Putting stack top at %p\n", stack_top);
 
-        if (flash_segment.p_type == PT_NULL) {
-            printf("Skipping segment %zu\n", index);
-            continue;
-        }
-
-        ram_segment.p_vaddr = ram_elf.base_as_u32() + ram_elf.offset();
-        ram_segment.p_offset = ram_elf.offset();
-
-        printf("Patched segment %zu with vaddr=%p offset=%zu\n", index, ram_segment.p_vaddr, ram_segment.p_offset);
-
-        ram_elf.append(flash_elf.base() + flash_segment.p_offset, flash_segment.p_filesz);
-
-        assert(flash_segment.p_memsz >= flash_segment.p_filesz);
-        ram_elf.consume(flash_segment.p_memsz - flash_segment.p_filesz);
-
-        // Patch entry point if it falls into this segment.
-        if (flash_elf.header()->e_entry >= flash_segment.p_vaddr &&
-            flash_elf.header()->e_entry <= flash_segment.p_vaddr + flash_segment.p_memsz)
-        {
-            ram_elf.header()->e_entry = ram_segment.p_vaddr + (flash_elf.header()->e_entry - flash_segment.p_vaddr);
-            printf("Patched entry point in segment %zu from %p to %p\n", index, flash_elf.header()->e_entry, ram_elf.header()->e_entry);
-        }
-    }
-
-    // Patch sections.
-    for (usize section_index = 0; section_index < ram_elf.header()->e_shnum; ++section_index) {
-        auto &ram_section = ram_elf.sections()[section_index];
-        auto &flash_section = flash_elf.sections()[section_index];
-
-        const char *flash_section_name = flash_elf.section_name_base() + flash_section.sh_name;
-
-        if (flash_section.sh_type == SHT_NULL) {
-            printf("Skipping section '%s'\n", flash_section_name);
-            continue;
-        }
-
-        if (flash_section.sh_flags & SHF_ALLOC) {
-            printf("Searching for section '%s'\n", flash_section_name);
-
-            i32 offset_from_segment = -1;
-            usize segment_index;
-            for (segment_index = 0; segment_index < flash_elf.header()->e_phnum; ++segment_index) {
-                auto &flash_segment = flash_elf.segments()[segment_index];
-
-                if (flash_segment.p_type == PT_NULL)
-                    continue;
-
-                if (flash_section.sh_offset >= flash_segment.p_offset &&
-                    flash_section.sh_offset <= flash_segment.p_offset + flash_segment.p_filesz)
-                {
-                    offset_from_segment = flash_section.sh_offset - flash_segment.p_offset;
-                    break;
-                }
-            }
-            assert(offset_from_segment >= 0);
-
-            printf("Found section '%s' in segment %zu with offset %zu\n",
-                flash_section_name,
-                segment_index,
-                offset_from_segment);
-
-            auto &ram_segment = ram_elf.segments()[segment_index];
-            auto &flash_segment = flash_elf.segments()[segment_index];
-
-            ram_section.sh_addr = ram_segment.p_vaddr + offset_from_segment;
-            ram_section.sh_offset = ram_segment.p_offset + offset_from_segment;
-
-            printf("Patched section '%s' with addr=%p offset=%zu\n",
-                flash_section_name,
-                ram_section.sh_addr,
-                ram_section.sh_offset);
-        } else {
-            printf("Section '%s' is non-allocating, loading seperately.\n", flash_section_name);
-            assert((flash_section.sh_flags & SHF_ALLOC) == 0);
-
-            ram_section.sh_offset = ram_elf.offset();
-            ram_section.sh_addr = ram_elf.base_as_u32() + ram_elf.offset();
-
-            ram_elf.append(flash_elf.base() + flash_section.sh_offset, flash_section.sh_size);
-        }
-    }
+    return {
+        .m_entry_address = entry_address,
+        .m_text_base = text_base,
+        .m_data_base = data_base,
+        .m_stack_base = stack_base,
+        .m_stack_top = stack_top,
+        .m_stack_size = stack_size,
+    };
 }
 
 void load_and_execute_shell()
 {
-    ElfWrapper flash_elf { reinterpret_cast<u8*>(_binary_Shell_elf_start) };
-    ElfWrapper ram_elf { new u8[compute_size_in_memory(flash_elf)] };
-
-    patch_executable(flash_elf, ram_elf);
-
-    u8 *stack = new u8[0x2000] + 0x2000;
-    assert(u32(stack) % 8 == 0);
-    printf("Allocated stack in RAM at %p\n", stack);
-
-    // FIXME: What about the heap?
-
-    printf("Finished loading executable\n");
+    ElfWrapper elf { reinterpret_cast<u8*>(_binary_Shell_elf_start) };
+    LoadedExecutable executable = load_executable_into_memory(elf);
 
     // FIXME: Inform the debugger about the loaded executable.
+    printf("Finished loading executable, informing debugger\n");
+    __breakpoint();
 
     // FIXME: Setup PIC register. (SB)
-
-    __breakpoint();
 
     printf("Handing over execution to new process\n");
 
@@ -202,7 +127,7 @@ void load_and_execute_shell()
         "isb;"
         "blx %1;"
         :
-        : "r"(stack), "r"(ram_elf.header()->e_entry));
+        : "r"(executable.m_stack_top), "r"(executable.m_entry_address));
 
     panic("Process returned, it shouldn't have\n");
 }
