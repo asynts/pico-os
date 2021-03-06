@@ -6,9 +6,9 @@ class DynamicLoaderBreakpoint(gdb.Breakpoint):
     def __init__(self):
         super().__init__(
             spec=self._symbol_name,
-            type=gdb.BP_HARDWARE_WATCHPOINT ,
+            type=gdb.BP_WATCHPOINT,
             wp_class=gdb.WP_WRITE,
-            internal=False,
+            internal=True,
             temporary=False,
             qualified=False)
 

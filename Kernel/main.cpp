@@ -50,7 +50,6 @@ struct LoadedExecutable {
     u32 m_entry;
 
     u32 m_stack_base;
-    u32 m_stack_top;
     u32 m_stack_size;
 
     u32 m_init_base;
@@ -99,8 +98,8 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 
     assert(elf.header()->e_entry >= text_segment.p_vaddr);
     assert(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
-    u32 entry_address = text_base + (elf.header()->e_entry - text_segment.p_vaddr);
-    printf("Putting entry point at %p\n", entry_address);
+    executable.m_entry = text_base + (elf.header()->e_entry - text_segment.p_vaddr);
+    printf("Putting entry point at %p\n", executable.m_entry);
 
     u32 stack_size = 0x1000;
     u32 stack_base = u32(new u8[stack_size]);
@@ -137,16 +136,16 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
             section_address = executable.m_frame_base = text_base + (section.sh_addr - text_segment.p_vaddr);
             did_understood_section = true;
         } if (__builtin_strcmp(section_name, ".init_array") == 0) {
-            section_address = executable.m_init_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            section_address = executable.m_init_array_base = data_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
         } if (__builtin_strcmp(section_name, ".fini_array") == 0) {
-            section_address = executable.m_fini_array_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            section_address = executable.m_fini_array_base = data_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
         } if (__builtin_strcmp(section_name, ".data") == 0) {
-            section_address = executable.m_data_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            section_address = executable.m_data_base = data_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
         } if (__builtin_strcmp(section_name, ".bss") == 0) {
-            section_address = executable.m_bss_base = text_base + (section.sh_addr - data_segment.p_vaddr);
+            section_address = executable.m_bss_base = data_base + (section.sh_addr - data_segment.p_vaddr);
             did_understood_section = true;
         } else {
             printf("Skipped unknown section %s\n", section_name);
@@ -155,6 +154,10 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
         if (did_understood_section)
             printf("Found section %s at %p\n", section_name, section_address);
     }
+
+    executable.m_stack_size = 0x1000;
+    executable.m_stack_base = u32(new u8[executable.m_stack_size]);
+    printf("Allocated stack at %p with size %zu\n", executable.m_stack_base, executable.m_stack_size);
 
     printf("Finished loading executable, informing debugger\n");
     dynamic_load_debugger_hook = &executable;
@@ -182,7 +185,7 @@ void load_and_execute_shell()
         "isb;"
         "blx %1;"
         :
-        : "r"(executable.m_stack_top), "r"(executable.m_entry));
+        : "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_entry));
 
     panic("Process returned, it shouldn't have\n");
 }
