@@ -12,7 +12,7 @@ def picoprobe(c):
     c.sudo("openocd -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True)
 
 @invoke.task
-def debugger(c, gdb="/usr/local/arm-none-os-eabi/bin/arm-none-os-eabi-gdb"):
+def debugger(c, gdb="arm-none-eabi-gdb"):
     """
     This script connects to the debugger interface exposed by picoprobe.
     Before using this script, picoprobe has to be run.
