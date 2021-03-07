@@ -55,7 +55,14 @@ struct LoadedExecutable {
     u32 m_text_base;
     u32 m_data_base;
 };
-volatile LoadedExecutable *dynamic_load_debugger_hook;
+
+// This function solely exists to be intercepted by the debugger.
+[[gnu::noinline]]
+void inform_debugger_about_executable(LoadedExecutable& executable)
+{
+    [[maybe_unused]]
+    LoadedExecutable& volatile sink = executable;
+}
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
@@ -103,7 +110,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     printf("Allocated stack at %p with size %zu\n", executable.m_stack_base, executable.m_stack_size);
 
     printf("Finished loading executable, informing debugger\n");
-    dynamic_load_debugger_hook = &executable;
+    inform_debugger_about_executable(executable);
 
     return executable;
 }

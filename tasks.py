@@ -3,16 +3,21 @@ import os
 import tempfile
 
 @invoke.task
-def picoprobe(c):
+def picoprobe(c, debug=False):
     """
     This script connects to a picoprobe device that is used for debugging.
     Before using this script, the device needs to be plugged in.
     """
 
-    c.sudo("openocd -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True)
+    if debug:
+        debug_flags = "--debug=3"
+    else:
+        debug_flags = ""
+
+    c.sudo(f"openocd {debug_flags} -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True)
 
 @invoke.task
-def debugger(c, gdb="arm-none-eabi-gdb"):
+def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
     """
     This script connects to the debugger interface exposed by picoprobe.
     Before using this script, picoprobe has to be run.
@@ -20,8 +25,8 @@ def debugger(c, gdb="arm-none-eabi-gdb"):
 
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
-    init_script.write(b"""\
-target extended-remote localhost:3333
+    init_script.write(f"""\
+target extended-remote localhost:{port}
 file Kernel.elf
 source ../Scripts/dynamic-loader.py
 
@@ -30,7 +35,7 @@ define rebuild
     load
     monitor reset init
 end
-""")
+""".encode())
     init_script.flush()
 
     c.run(f"{gdb} -q -x {init_script.name}", pty=True)
