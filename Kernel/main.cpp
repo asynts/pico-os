@@ -49,8 +49,11 @@ private:
 struct LoadedExecutable {
     u32 m_entry;
 
-    u32 m_text_base;
-    u32 m_data_base;
+    u32 m_readonly_base;
+    u32 m_writable_base;
+
+    u32 m_stack_base;
+    u32 m_stack_size;
 };
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
@@ -70,14 +73,14 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(data_segment.p_type == PT_LOAD);
     assert(data_segment.p_flags == PF_R | PF_W);
 
-    executable.m_text_base = elf.base_as_u32() + text_segment.p_offset;
-    printf("Putting text segment at %p (inplace)\n", executable.m_text_base);
+    executable.m_readonly_base = elf.base_as_u32() + text_segment.p_offset;
+    printf("Putting readonly segment at %p (inplace)\n", executable.m_readonly_base);
 
     u8 *data = new u8[data_segment.p_memsz];
     assert(data != nullptr);
 
-    executable.m_data_base = u32(data);
-    printf("Putting data segment at %p (allocated)\n", executable.m_data_base);
+    executable.m_writable_base = u32(data);
+    printf("Putting writable segment at %p (allocated)\n", executable.m_writable_base);
 
     __builtin_memcpy(data, elf.base() + data_segment.p_offset, data_segment.p_filesz);
 
@@ -86,8 +89,47 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 
     assert(elf.header()->e_entry >= text_segment.p_vaddr);
     assert(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
-    executable.m_entry = executable.m_text_base + (elf.header()->e_entry - text_segment.p_vaddr);
+    executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - text_segment.p_vaddr);
     printf("Putting entry point at %p\n", executable.m_entry);
+
+    u32 text_section_address = 0;
+    u32 data_section_address = 0;
+    u32 stack_section_address = 0;
+    for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
+        Elf32_Shdr& section = elf.sections()[section_index];
+
+        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
+            executable.m_stack_base = executable.m_writable_base + section.sh_addr;
+            executable.m_stack_size = 0x10000;
+
+            stack_section_address = executable.m_stack_base;
+            continue;
+        }
+
+        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
+            data_section_address = executable.m_writable_base + section.sh_addr;
+            continue;
+        }
+
+        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".text") == 0) {
+            text_section_address = executable.m_readonly_base + section.sh_addr;
+            continue;
+        }
+    }
+    assert(text_section_address != 0);
+    assert(data_section_address != 0);
+    assert(stack_section_address != 0);
+
+    printf("Found text segment at %p in readonly segment\n", text_section_address);
+    printf("Found data segment at %p in readonly segment\n", data_section_address);
+    printf("Found stack segment at %p in readonly segment\n", stack_section_address);
+
+    printf("Load commands:\n"
+           "  symbol-file\n"
+           "  add-symbol-file Userland/Shell.elf -s .text %p -s .data %p -s .stack %p\n",
+        text_section_address,
+        data_section_address,
+        stack_section_address);
 
     return executable;
 }
@@ -104,15 +146,16 @@ void load_and_execute_shell()
     // Switch to process stack pointer and execute unprivileged.
     asm volatile(
         "movs r0, #0;"
-        "msr psp, r0;"
+        "msr psp, %1;"  // FIXME: We really want to put zero here to indicate the end of the stack frame!
         "isb;"
         "movs r0, #0b11;"
         "msr control, r0;"
         "isb;"
+        "movs r0, %1;"
         "bkpt #0;"
         "blx %0;"
         :
-        : "r"(executable.m_entry)
+        : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size)
         : "r0");
 
     panic("Process returned, it shouldn't have\n");

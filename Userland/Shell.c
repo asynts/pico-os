@@ -10,7 +10,41 @@
 #include <assert.h>
 #include <malloc.h>
 
-int main() {
+// START stuff
+#include <stdint.h>
+#include <stdlib.h>
+
+extern void *__bss_start__;
+extern void *__bss_end__;
+extern void _fini();
+extern void _init();
+extern int main(int argc, char **argv);
+
+// The _start symbol provided by newlib makes a few false assumptions about the
+// environment it runs in, specifically, we don't have an MMU and thus can't
+// provide __bss_start__ and similar symbols.
+void _override_start(uint32_t stack_top)
+{
+    asm volatile("mov sp, %0;"
+                 "mov r3, %0;"
+                 "blx _stack_init;"
+        :
+        : "r"(stack_top));
+
+    memset(__bss_start__, 0, __bss_end__ - __bss_start__);
+
+    // FIXME: We crash in here, i think it tries to obtain a lock of some kind.
+    atexit(_fini);
+
+    // FIXME: Is it correct that we call _init instead of __libc_init_array?
+    _init();
+
+    int retval = main(0, NULL);
+    exit(retval);
+}
+// END stuff
+
+int main(int argc, char **argv) {
     for(;;) {
         char *buffer = readline("\033[1m> \033[0m");
         assert(buffer != NULL);

@@ -29,9 +29,13 @@ def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
 target extended-remote localhost:{port}
 file Kernel.elf
 
+define dis_here
+    x/20i ($pc -20)
+end
+
 define si_and_dis
     si
-    x/20i ($pc - 20)
+    dis_here
 end
 
 define rebuild

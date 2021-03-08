@@ -1,4 +1,4 @@
-ENTRY(_start);
+ENTRY(_override_start);
 
 /* FIXME: Keep debugging information! */
 
@@ -35,8 +35,9 @@ SECTIONS
         __bss_start__ = .;
         *(.bss*)
         __bss_end__ = .;
-
-        . += 0x10000;
+    } :data
+    .stack : {
+        . += 0x10100;
         __stack = .;
     } :data
 
