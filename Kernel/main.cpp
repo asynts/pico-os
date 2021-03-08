@@ -49,20 +49,9 @@ private:
 struct LoadedExecutable {
     u32 m_entry;
 
-    u32 m_stack_base;
-    u32 m_stack_size;
-
     u32 m_text_base;
     u32 m_data_base;
 };
-
-// This function solely exists to be intercepted by the debugger.
-[[gnu::noinline]]
-void inform_debugger_about_executable(LoadedExecutable& executable)
-{
-    [[maybe_unused]]
-    LoadedExecutable& volatile sink = executable;
-}
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
@@ -100,18 +89,6 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     executable.m_entry = executable.m_text_base + (elf.header()->e_entry - text_segment.p_vaddr);
     printf("Putting entry point at %p\n", executable.m_entry);
 
-    u32 stack_size = 0x1000;
-    u32 stack_base = u32(new u8[stack_size]);
-    u32 stack_top = stack_base + stack_top;
-    printf("Putting stack top at %p\n", stack_top);
-
-    executable.m_stack_size = 0x1000;
-    executable.m_stack_base = u32(new u8[executable.m_stack_size]);
-    printf("Allocated stack at %p with size %zu\n", executable.m_stack_base, executable.m_stack_size);
-
-    printf("Finished loading executable, informing debugger\n");
-    inform_debugger_about_executable(executable);
-
     return executable;
 }
 
@@ -122,20 +99,21 @@ void load_and_execute_shell()
 
     printf("Handing over execution to new process\n");
 
-    __breakpoint();
-
     // FIXME: Setup PIC register. (SB)
 
     // Switch to process stack pointer and execute unprivileged.
     asm volatile(
-        "msr psp, %0;"
+        "movs r0, #0;"
+        "msr psp, r0;"
         "isb;"
         "movs r0, #0b11;"
         "msr control, r0;"
         "isb;"
-        "blx %1;"
+        "bkpt #0;"
+        "blx %0;"
         :
-        : "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_entry));
+        : "r"(executable.m_entry)
+        : "r0");
 
     panic("Process returned, it shouldn't have\n");
 }

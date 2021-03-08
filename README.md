@@ -4,6 +4,7 @@
 
   - ARM ABI (https://github.com/ARM-software/abi-aa/releases)
   - ELF(5) man page (https://man7.org/linux/man-pages/man5/elf.5.html)
+  - Ian Lance Taylor: Linkers (https://www.airs.com/blog/archives/38)
 
 #### Stuff that I want to look at:
 

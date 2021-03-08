@@ -28,7 +28,11 @@ def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
     init_script.write(f"""\
 target extended-remote localhost:{port}
 file Kernel.elf
-source ../Scripts/dynamic-loader.py
+
+define si_and_dis
+    si
+    x/20i ($pc - 20)
+end
 
 define rebuild
     shell ninja
