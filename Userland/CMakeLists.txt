@@ -1,8 +1,10 @@
 file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c Shell.c)
 
 add_custom_target(Shell.elf ALL
-    COMMAND arm-none-eabi-gcc -std=gnu11 -fpic -mcpu=cortex-m0 -Og -g -specs=nosys.specs
+    COMMAND arm-none-eabi-gcc -std=gnu11 -fpic -mcpu=cortex-m0 -Og -g -specs=nosys.specs -static
     -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
+    -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
+    --sysroot /usr/local/arm-none-eabi
     ${SHELL_SOURCES}
     -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf)
 

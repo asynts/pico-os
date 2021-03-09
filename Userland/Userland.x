@@ -35,6 +35,7 @@ SECTIONS
         __bss_start__ = .;
         *(.bss*)
         __bss_end__ = .;
+        end = .;
     } :data
     .stack : {
         . += 0x10100;
