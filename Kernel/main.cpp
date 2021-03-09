@@ -52,9 +52,20 @@ struct LoadedExecutable {
     u32 m_readonly_base;
     u32 m_writable_base;
 
+    u32 m_data_base;
+    u32 m_text_base;
+
     u32 m_stack_base;
     u32 m_stack_size;
 };
+
+// FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
+volatile LoadedExecutable *volatile executable_for_debugger;
+[[gnu::noinline]]
+void inform_debugger_about_executable()
+{
+    asm volatile("nop");
+}
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
@@ -92,44 +103,35 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - text_segment.p_vaddr);
     printf("Putting entry point at %p\n", executable.m_entry);
 
-    u32 text_section_address = 0;
-    u32 data_section_address = 0;
-    u32 stack_section_address = 0;
     for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
         Elf32_Shdr& section = elf.sections()[section_index];
 
         if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
             executable.m_stack_base = executable.m_writable_base + section.sh_addr;
             executable.m_stack_size = 0x10000;
-
-            stack_section_address = executable.m_stack_base;
             continue;
         }
 
         if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
-            data_section_address = executable.m_writable_base + section.sh_addr;
+            executable.m_data_base = executable.m_writable_base + section.sh_addr;
             continue;
         }
 
         if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".text") == 0) {
-            text_section_address = executable.m_readonly_base + section.sh_addr;
+            executable.m_text_base = executable.m_readonly_base + section.sh_addr;
             continue;
         }
     }
-    assert(text_section_address != 0);
-    assert(data_section_address != 0);
-    assert(stack_section_address != 0);
+    assert(executable.m_text_base);
+    assert(executable.m_data_base);
+    assert(executable.m_stack_base);
 
-    printf("Found text segment at %p in readonly segment\n", text_section_address);
-    printf("Found data segment at %p in readonly segment\n", data_section_address);
-    printf("Found stack segment at %p in readonly segment\n", stack_section_address);
+    printf("Found text segment at %p in readonly segment\n", executable.m_text_base);
+    printf("Found data segment at %p in readonly segment\n", executable.m_data_base);
+    printf("Found stack segment at %p in readonly segment\n", executable.m_stack_base);
 
-    printf("Load commands:\n"
-           "  symbol-file\n"
-           "  add-symbol-file Userland/Shell.elf -s .text %p -s .data %p -s .stack %p\n",
-        text_section_address,
-        data_section_address,
-        stack_section_address);
+    executable_for_debugger = &executable;
+    inform_debugger_about_executable();
 
     return executable;
 }

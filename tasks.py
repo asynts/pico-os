@@ -25,6 +25,7 @@ def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
 
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
+    # FIXME: This is really ugly.
     init_script.write(f"""\
 target extended-remote localhost:{port}
 file Kernel.elf
@@ -43,6 +44,8 @@ define rebuild
     load
     monitor reset init
 end
+
+source ../Scripts/dynamic-loader.py
 """.encode())
     init_script.flush()
 
