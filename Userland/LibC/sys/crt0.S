@@ -5,11 +5,15 @@
 // [[noreturn]]
 // void _override_start(u32 stack_top)
 .global _override_start
+.thumb_func
 _override_start:
     // Initialize stack.
-    mov sp, r0                  // FIXME: This is a HardFault?
+    mov sp, r0
     mov r3, r0
     bl _stack_init
+
+    // FIXME: Oops. __bss_start__ and __bss_end__ are relative symbols here? Anyways, the
+    //        arguments for memset are wrong.
 
     // Clear bss section.
     ldr r0, =__bss_start__

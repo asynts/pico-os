@@ -143,10 +143,9 @@ void load_and_execute_shell()
 
     // FIXME: Setup PIC register. (SB)
 
-    // Switch to process stack pointer and execute unprivileged.
     asm volatile(
         "movs r0, #0;"
-        "msr psp, %1;"  // FIXME: We really want to put zero here to indicate the end of the stack frame!
+        "msr psp, r0;"
         "isb;"
         "movs r0, #0b11;"
         "msr control, r0;"
