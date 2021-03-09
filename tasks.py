@@ -4,11 +4,6 @@ import tempfile
 
 @invoke.task
 def picoprobe(c, debug=False):
-    """
-    This script connects to a picoprobe device that is used for debugging.
-    Before using this script, the device needs to be plugged in.
-    """
-
     if debug:
         debug_flags = "--debug=3"
     else:
@@ -18,17 +13,13 @@ def picoprobe(c, debug=False):
 
 @invoke.task
 def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
-    """
-    This script connects to the debugger interface exposed by picoprobe.
-    Before using this script, picoprobe has to be run.
-    """
-
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
     # FIXME: This is really ugly.
     init_script.write(f"""\
 target extended-remote localhost:{port}
-file Kernel.elf
+exec-file Kernel.1.elf
+symbol-file Kernel.2.elf
 
 define dis_here
     x/20i ($pc -20)
@@ -53,11 +44,6 @@ source ../Scripts/dynamic-loader.py
 
 @invoke.task
 def messages(c):
-    """
-    This script connects to the serial interface exposed by picoprobe.  Before
-    using this script, picoprobe has to be run.
-    """
-
     if not os.path.exists("/dev/ttyACM0"):
         print("Can not find serial device '/dev/ttyACM0'.")
         exit(1)

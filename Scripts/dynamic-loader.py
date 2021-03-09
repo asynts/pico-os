@@ -21,7 +21,10 @@ class DynamicLoaderBreakpoint(gdb.Breakpoint):
         data_base = hex(executable["m_data_base"])
         stack_base = hex(executable["m_stack_base"])
 
-        gdb.execute(f"add-symbol-file Userland/Shell.elf -s .text {text_base} -s .data {data_base} -s .stack {stack_base}")
+        # FIXME: This will remove Kernel.elf symbols, if we don't do this, gdb bails because the .text sections overlap.
+        gdb.execute("symbol-file")
+
+        gdb.execute(f"add-symbol-file Userland/Shell.1.elf -s .text {text_base} -s .data {data_base} -s .stack {stack_base}")
 
         return False
 

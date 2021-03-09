@@ -7,9 +7,9 @@
 #include <elf.h>
 
 extern "C" {
-    extern u8 _binary_Shell_elf_start[];
-    extern u8 _binary_Shell_elf_end[];
-    extern u8 _binary_Shell_elf_size[];
+    extern u8 embedded_shell_binary_start[];
+    extern u8 embedded_shell_binary_end[];
+    extern u8 embedded_shell_binary_size[];
 }
 
 class ElfWrapper {
@@ -60,11 +60,14 @@ struct LoadedExecutable {
 };
 
 // FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
-volatile LoadedExecutable *volatile executable_for_debugger;
-[[gnu::noinline]]
-void inform_debugger_about_executable()
+extern "C"
 {
-    asm volatile("nop");
+    volatile LoadedExecutable *volatile executable_for_debugger;
+    [[gnu::noinline]]
+    void inform_debugger_about_executable()
+    {
+        asm volatile("nop");
+    }
 }
 
 LoadedExecutable load_executable_into_memory(ElfWrapper elf)
@@ -138,7 +141,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 
 void load_and_execute_shell()
 {
-    ElfWrapper elf { reinterpret_cast<u8*>(_binary_Shell_elf_start) };
+    ElfWrapper elf { reinterpret_cast<u8*>(embedded_shell_binary_start) };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
     printf("Handing over execution to new process\n");
