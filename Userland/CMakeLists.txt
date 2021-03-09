@@ -1,4 +1,4 @@
-file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c Shell.c)
+file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
 
 add_custom_target(Shell.elf ALL
     COMMAND arm-none-eabi-gcc -std=gnu11 -fpic -mcpu=cortex-m0 -Og -g -specs=nosys.specs -static
