@@ -25,8 +25,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         char *buffer = arg2.pointer<char>();
         usize *buffer_size = arg3.pointer<usize>();
 
-        printf("syscall: readline(%i, %p, %zu)", fd, buffer, *buffer_size);
-        stdio_flush();
+        printf("syscall: readline(%i, %p, %zu)\n", fd, buffer, *buffer_size);
 
         assert(fd == STDIN_FILENO);
 
@@ -36,14 +35,22 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         if (*buffer_size < __builtin_strlen(command) + 1) {
             *buffer_size = __builtin_strlen(command) + 1;
 
-            printf(" = -ERANGE\n");
             return -ERANGE;
         }
 
         *buffer_size = __builtin_strlen(command) + 1;
         __builtin_memcpy(buffer, command, *buffer_size);
 
-        printf(" = -ESUCCESS\n");
+        return -ESUCCESS;
+    }
+
+    if (syscall == _SC_dmesg) {
+        char *message = arg1.pointer<char>();
+
+        printf("syscall: dmesg(%p)\n", message);
+
+        printf("dmesg: %s\n", message);
+
         return -ESUCCESS;
     }
 

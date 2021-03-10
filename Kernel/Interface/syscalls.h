@@ -4,3 +4,4 @@
 #define ERANGE 1
 
 #define _SC_readline 1
+#define _SC_dmesg 2
