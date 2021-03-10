@@ -1,4 +1,4 @@
-ENTRY(_override_start);
+ENTRY(_start);
 
 /* FIXME: Keep debugging information! */
 

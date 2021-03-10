@@ -1,18 +1,20 @@
 file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
 
 add_custom_target(Shell.1.elf ALL
-    COMMAND arm-none-eabi-gcc -std=gnu11 -fpic -mcpu=cortex-m0 -Og -g -specs=nosys.specs -static
-    -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
-    -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
-    --sysroot /usr/local/arm-none-eabi
-    ${SHELL_SOURCES}
-    -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf)
+    COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
+        -std=gnu11 -Og -g -static -nostdlib
+        -fropi -frwpi
+        -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
+        -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
+        ${SHELL_SOURCES}
+        -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf)
 
 add_custom_target(Shell.2.elf ALL
     COMMAND arm-none-eabi-objcopy
         --strip-unneeded
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf
-        ${CMAKE_CURRENT_BINARY_DIR}/Shell.2.elf)
+        ${CMAKE_CURRENT_BINARY_DIR}/Shell.2.elf
+    DEPENDS Shell.1.elf)
 
 add_custom_target(ShellEmbedded.1.o ALL
     COMMAND arm-none-eabi-ld -r -b binary
@@ -33,3 +35,4 @@ add_custom_target(ShellEmbedded.2.o ALL
 
 add_library(ShellEmbedded OBJECT IMPORTED GLOBAL)
 set_property(TARGET ShellEmbedded PROPERTY IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.2.o)
+add_definitions(ShellEmbedded ShellEmbedded.2.o)

@@ -6,12 +6,12 @@ DIR* opendir(const char *path)
     abort();
 }
 
-int closedir(DIR *dirp)
+struct dirent* readdir(DIR *dirp)
 {
     abort();
 }
 
-struct dirent* readdir(DIR *dirp)
+int closedir(DIR *dirp)
 {
     abort();
 }

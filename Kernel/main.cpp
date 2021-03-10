@@ -77,13 +77,13 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     printf("Loading executable from %p\n", elf.base());
 
     assert(elf.header()->e_phnum == 3);
-    assert(elf.segments()[0].p_type == PT_ARM_EXIDX);
+    assert(elf.segments()[2].p_type == PT_ARM_EXIDX);
 
-    Elf32_Phdr& text_segment = elf.segments()[1];
+    Elf32_Phdr& text_segment = elf.segments()[0];
     assert(text_segment.p_type == PT_LOAD);
     assert(text_segment.p_flags == PF_R | PF_X);
 
-    Elf32_Phdr& data_segment = elf.segments()[2];
+    Elf32_Phdr& data_segment = elf.segments()[1];
     assert(data_segment.p_type == PT_LOAD);
     assert(data_segment.p_flags == PF_R | PF_W);
 
@@ -155,11 +155,12 @@ void load_and_execute_shell()
         "movs r0, #0b11;"
         "msr control, r0;"
         "isb;"
-        "movs r0, %1;"
+        "mov r0, %1;"
+        "mov sb, %2;"
         "bkpt #0;"
         "blx %0;"
         :
-        : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size)
+        : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
         : "r0");
 
     panic("Process returned, it shouldn't have\n");
