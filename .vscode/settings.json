@@ -7,4 +7,7 @@
         "Build/": true,
     },
     "editor.snippetSuggestions": "none",
+    "files.associations": {
+        "fcntl.h": "c"
+    },
 }

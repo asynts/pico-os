@@ -2,9 +2,10 @@ file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
 
 add_custom_target(Shell.1.elf ALL
     COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
-        -std=gnu11 -Og -g -static -nostdlib
+        -std=gnu11 -Og -g -static -nostdlib -fcolor-diagnostics
         -fropi -frwpi
         -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
+        -I ${CMAKE_SOURCE_DIR}/Kernel/Interface
         -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
         ${SHELL_SOURCES}
         -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf)

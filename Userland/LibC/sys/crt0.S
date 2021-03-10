@@ -24,3 +24,17 @@ _start:
     movs r1, #0
     bl main
     bl exit
+
+// void _syscall(u32 syscall, u32 arg1, u32 arg2, u32 arg3)
+.global _syscall
+.thumb_func
+_syscall:
+    svc #0
+    bx lr
+
+// u32 _static_base()
+.global _static_base
+.thumb_func
+_static_base:
+    mov r0, sb
+    bx lr
