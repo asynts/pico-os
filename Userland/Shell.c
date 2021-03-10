@@ -15,6 +15,9 @@ int main(int argc, char **argv) {
         char *buffer = readline("\033[1m> \033[0m");
         assert(buffer != NULL);
 
+        if (strchr(buffer, '\n'))
+            *strchr(buffer, '\n') = 0;
+
         char *saveptr = NULL;
         char *program = strtok_r(buffer, " ", &saveptr);
         assert(program != NULL);
@@ -22,8 +25,10 @@ int main(int argc, char **argv) {
         if (strcmp(program, "echo") == 0) {
             const char *prefix = "";
 
-            for (const char *argument; (argument = strtok_r(NULL, " ", &saveptr)); )
+            for (const char *argument; (argument = strtok_r(NULL, " ", &saveptr)); ) {
                 printf("%s%s", prefix, argument);
+                prefix = " ";
+            }
             printf("\n");
         } else if (strcmp(program, "ls") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);

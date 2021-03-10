@@ -51,7 +51,12 @@ char* strtok_r(char *str, const char *delim, char **saveptr)
 
 int strcmp(const char *lhs, const char *rhs)
 {
-    abort();
+    while(*lhs && *lhs == *rhs) {
+        ++lhs;
+        ++rhs;
+    }
+
+    return *lhs - *rhs;
 }
 
 void* memset(void *dest, int ch, size_t count)
@@ -60,4 +65,13 @@ void* memset(void *dest, int ch, size_t count)
         ((char*)dest)[index] = ch;
 
     return dest;
+}
+
+size_t strlen(const char *str)
+{
+    size_t length = 0;
+    while (*str++)
+        ++length;
+
+    return length;
 }
