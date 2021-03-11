@@ -6,6 +6,7 @@
 #include <Std/Debug.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
+#include <Kernel/MemoryFilesystem.hpp>
 
 void load_and_execute_shell()
 {
@@ -48,6 +49,7 @@ int main()
     initialize_uart_debug();
     dbgprintf("\033[1mBOOT\033[0m\n");
 
+    Kernel::MemoryFilesystem::the();
     Kernel::ConsoleDevice::the();
 
     load_and_execute_shell();

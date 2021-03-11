@@ -52,7 +52,7 @@ namespace Kernel {
     private:
         friend Singleton<ConsoleDevice>;
         ConsoleDevice()
-            : Device(0, 0)
+            : Device(1, 0)
         {
         }
     };
