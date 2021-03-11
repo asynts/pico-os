@@ -1,8 +1,9 @@
-#include <pico/stdio.h>
-#include <pico/printf.h>
 #include <pico/sync.h>
+#include <hardware/uart.h>
+#include <hardware/gpio.h>
 
 #include <Std/Forward.hpp>
+#include <Std/Debug.hpp>
 #include <Kernel/DynamicLoader.hpp>
 
 void load_and_execute_shell()
@@ -10,9 +11,7 @@ void load_and_execute_shell()
     ElfWrapper elf { reinterpret_cast<u8*>(embedded_shell_binary_start) };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
-    printf("Handing over execution to new process\n");
-
-    // FIXME: Setup PIC register. (SB)
+    dbgprintf("Loading process stack and static base, debugger hook\n");
 
     asm volatile(
         "movs r0, #0;"
@@ -32,10 +31,21 @@ void load_and_execute_shell()
     panic("Process returned, it shouldn't have\n");
 }
 
-int main() {
-    stdio_init_all();
+void initialize_uart_debug()
+{
+    uart_init(uart0, 115200);
+    gpio_set_function(0, GPIO_FUNC_UART);
+    gpio_set_function(1, GPIO_FUNC_UART);
 
-    printf("\033[1mBOOT\033[0m\n");
+    // FIXME: For some reason there is a 0xff symbol send when the connection is opened.
+    char ch = uart_getc(uart0);
+    assert(ch == 0xff);
+}
+
+int main()
+{
+    initialize_uart_debug();
+    dbgprintf("\033[1mBOOT\033[0m\n");
 
     load_and_execute_shell();
 

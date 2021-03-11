@@ -1,7 +1,6 @@
 #include <Std/Forward.hpp>
+#include <Std/Debug.hpp>
 #include <Kernel/Interface/syscalls.h>
-#include <pico/printf.h>
-#include <pico/stdio.h>
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
@@ -26,14 +25,15 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         char *buffer = arg2.pointer<char>();
         usize *size = arg3.pointer<usize>();
 
-        printf("syscall: readline(%i, %p, %zu)\n", fd, buffer, *size);
-
         assert(fd == STDIN_FILENO);
 
         usize index = 0;
         while (index < *size)
         {
-            if ((buffer[index++] = getchar()) == '\n')
+            char ch = buffer[index++] = uart_getc(uart0);
+            uart_putc(uart0, ch);
+
+            if (ch == '\n')
             {
                 buffer[index++] = 0;
                 *size = index;
@@ -47,9 +47,9 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
     if (syscall == _SC_dmesg) {
         char *message = arg1.pointer<char>();
 
-        printf("syscall: dmesg(%p)\n", message);
+        // dbgprintf("syscall: dmesg(%p)\n", message);
 
-        printf("dmesg: %s\n", message);
+        dbgprintf("dmesg: %s\n", message);
 
         return -ESUCCESS;
     }
@@ -61,12 +61,9 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         assert(fd == STDOUT_FILENO);
 
-        printf("\033[33m");
-        size_t retval = fwrite(buffer, 1, size, stdout);
-        fflush(stdout);
-        assert(retval == size);
-        printf("\033[0m");
-        stdio_flush();
+        dbgprintf("\033[33m");
+        uart_write_blocking(uart0, (uint8_t*)buffer, size);
+        dbgprintf("\033[0m");
 
         return -ESUCCESS;
     }

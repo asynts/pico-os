@@ -1,6 +1,5 @@
 #include <elf.h>
 #include <Std/Forward.hpp>
-#include <pico/printf.h>
 
 extern "C" {
     extern u8 embedded_shell_binary_start[];
