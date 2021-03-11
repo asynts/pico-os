@@ -44,9 +44,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         assert(fd == STDOUT_FILENO);
 
-        dbgprintf("\033[33m");
         uart_write_blocking(uart0, (uint8_t*)buffer, count);
-        dbgprintf("\033[0m");
 
         return count;
     }

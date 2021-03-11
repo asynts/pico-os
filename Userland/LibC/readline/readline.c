@@ -21,10 +21,23 @@ char* readline(const char *prompt)
 
         char ch = buffer[index++];
 
+        if (ch == 0x7f) {
+            if (index == 0)
+                continue;
+
+            printf("\e[1D \e[1D");
+            buffer[index -= 2] = 0;
+            continue;
+        }
+
         putchar(ch);
 
-        if (ch == '\n')
+        if (ch == '\n') {
+            assert(index < buffer_size);
+            buffer[index] = 0;
+
             return buffer;
+        }
     }
 
     abort();
