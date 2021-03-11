@@ -1,8 +1,10 @@
 #pragma once
 
 #include <stdarg.h>
-#include <pico/printf.h>
 #include <hardware/uart.h>
+
+extern "C"
+int vsnprintf(char *buffer, usize size, const char *format, va_list ap);
 
 inline void dbgprintf(const char *format, ...)
 {
@@ -15,4 +17,3 @@ inline void dbgprintf(const char *format, ...)
 
     uart_write_blocking(uart0, (uint8_t*)buffer, __builtin_strlen(buffer));
 }
-
