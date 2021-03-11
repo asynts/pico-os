@@ -20,7 +20,9 @@ int main(int argc, char **argv) {
 
         char *saveptr = NULL;
         char *program = strtok_r(buffer, " ", &saveptr);
-        assert(program != NULL);
+
+        if (program == NULL)
+            continue;
 
         if (strcmp(program, "echo") == 0) {
             const char *prefix = "";
