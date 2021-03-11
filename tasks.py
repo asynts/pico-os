@@ -37,6 +37,10 @@ define rebuild
 end
 
 source ../Scripts/dynamic-loader.py
+
+set history save on
+set history size unlimited
+set history remove-duplicates 1
 """.encode())
     init_script.flush()
 
