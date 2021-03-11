@@ -13,20 +13,19 @@ char* readline(const char *prompt)
     size_t buffer_size = 256;
     char *buffer = malloc(buffer_size);
 
-    int retval = sys$readline(STDIN_FILENO, buffer, &buffer_size);
+    size_t index = 0;
+    while (index < buffer_size)
+    {
+        int retval = sys$read(STDIN_FILENO, buffer + index, 1);
+        assert(retval == 1);
 
-    if (retval < 0) {
-        if (retval == -ERANGE) {
-            buffer = realloc(buffer, buffer_size);
-            int retval = sys$readline(STDIN_FILENO, buffer, &buffer_size);
-            assert(retval >= 0);
+        char ch = buffer[index++];
 
+        putchar(ch);
+
+        if (ch == '\n')
             return buffer;
-        }
-
-        free(buffer);
-        return NULL;
     }
 
-    return realloc(buffer, buffer_size);
+    abort();
 }

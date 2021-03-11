@@ -7,4 +7,5 @@
         "Build/": true,
     },
     "editor.snippetSuggestions": "none",
+    "C_Cpp.autoAddFileAssociations": false,
 }

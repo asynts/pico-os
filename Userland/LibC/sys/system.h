@@ -3,6 +3,6 @@
 #include <stddef.h>
 #include <syscalls.h>
 
-int sys$readline(int fd, void *buffer, size_t *size);
 int sys$dmesg(const char *message);
-size_t sys$write(int fd, const void *buffer, size_t size);
+ssize_t sys$write(int fd, const void *buffer, size_t count);
+ssize_t sys$read(int fd, void *buffer, size_t count);

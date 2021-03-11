@@ -20,52 +20,35 @@ private:
 extern "C"
 isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3)
 {
-    if (syscall == _SC_readline) {
+    if (syscall == _SC_read) {
         i32 fd = arg1.fd();
         char *buffer = arg2.pointer<char>();
-        usize *size = arg3.pointer<usize>();
+        usize count = arg3.size();
+
+        // dbgprintf("syscall: read(%i, %p, %zu)\n", fd, buffer, count);
 
         assert(fd == STDIN_FILENO);
 
-        usize index = 0;
-        while (index < *size)
-        {
-            char ch = buffer[index++] = uart_getc(uart0);
-            uart_putc(uart0, ch);
+        for (usize index = 0; index < count; ++index)
+            buffer[index] = uart_getc(uart0);
 
-            if (ch == '\n')
-            {
-                buffer[index++] = 0;
-                *size = index;
-                return -ESUCCESS;
-            }
-        }
-
-        panic("sys$readline: line to long for buffer");
-    }
-
-    if (syscall == _SC_dmesg) {
-        char *message = arg1.pointer<char>();
-
-        // dbgprintf("syscall: dmesg(%p)\n", message);
-
-        dbgprintf("dmesg: %s\n", message);
-
-        return -ESUCCESS;
+        return count;
     }
 
     if (syscall == _SC_write) {
         i32 fd = arg1.fd();
         const char *buffer = arg2.pointer<const char>();
-        usize size = arg3.size();
+        usize count = arg3.size();
+
+        // dbgprintf("syscall: write(%i, %p, %zu)\n", fd, buffer, count);
 
         assert(fd == STDOUT_FILENO);
 
         dbgprintf("\033[33m");
-        uart_write_blocking(uart0, (uint8_t*)buffer, size);
+        uart_write_blocking(uart0, (uint8_t*)buffer, count);
         dbgprintf("\033[0m");
 
-        return -ESUCCESS;
+        return count;
     }
 
     panic("Unknown system call %i", syscall);

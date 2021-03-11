@@ -30,8 +30,6 @@ int printf(const char *format, ...)
                 continue;
             }
 
-            // FIXME: We hit this location somehow?
-            sys$dmesg(format);
             abort();
         }
 
