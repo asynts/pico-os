@@ -49,4 +49,4 @@ def messages(c):
         exit(1)
 
     c.sudo("stty -F /dev/ttyACM0 115200 igncr")
-    c.sudo("cat /dev/ttyACM0", pty=True)
+    c.sudo("tio /dev/ttyACM0", pty=True)

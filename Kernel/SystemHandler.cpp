@@ -18,8 +18,6 @@ private:
     u32 m_value;
 };
 
-static bool did_handout_first_line = false;
-
 extern "C"
 isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3)
 {
@@ -32,24 +30,18 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         assert(fd == STDIN_FILENO);
 
-        if (did_handout_first_line)
-            __breakpoint();
-        else
-            did_handout_first_line = true;
-
-        // FIXME: Read commands from console.
-        const char *command = "echo Hello, world!\n";
-
-        if (*size < __builtin_strlen(command) + 1) {
-            *size = __builtin_strlen(command) + 1;
-
-            return -ERANGE;
+        usize index = 0;
+        while (index < *size)
+        {
+            if ((buffer[index++] = getchar()) == '\n')
+            {
+                buffer[index++] = 0;
+                *size = index;
+                return -ESUCCESS;
+            }
         }
 
-        *size = __builtin_strlen(command) + 1;
-        __builtin_memcpy(buffer, command, *size);
-
-        return -ESUCCESS;
+        panic("sys$readline: line to long for buffer");
     }
 
     if (syscall == _SC_dmesg) {
@@ -71,8 +63,10 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         printf("\033[33m");
         size_t retval = fwrite(buffer, 1, size, stdout);
+        fflush(stdout);
         assert(retval == size);
         printf("\033[0m");
+        stdio_flush();
 
         return -ESUCCESS;
     }

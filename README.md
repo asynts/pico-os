@@ -18,6 +18,10 @@ Installed via `pacman`:
 pacman -S --needed python-invoke
 ~~~
 
+Some packages have to be manually build from AUR:
+
+- TIO to connect to serial device (http://tio.github.io/)
+
 ### Toolchain
 
 I generally use the arm-none-eabi toolchain provided by Arch Linux.

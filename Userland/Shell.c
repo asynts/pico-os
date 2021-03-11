@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv) {
     for(;;) {
-        char *buffer = readline("\033[1m> \033[0m");
+        char *buffer = readline("> ");
         assert(buffer != NULL);
 
         if (strchr(buffer, '\n'))
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
             int retval = close(fd);
             assert(retval == 0);
         } else {
-            printf("\033[1mError: unknown command '%s'\033[0m\n", program);
+            printf("Error: unknown command '%s'\n", program);
         }
 
         free(buffer);

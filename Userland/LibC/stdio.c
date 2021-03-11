@@ -56,5 +56,6 @@ int putchar(int ch)
 int puts(const char *str)
 {
     sys$write(STDOUT_FILENO, str, strlen(str));
+    putchar('\n');
     return 0;
 }

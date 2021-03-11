@@ -4,9 +4,12 @@
 #include <malloc.h>
 #include <assert.h>
 #include <sys/system.h>
+#include <stdio.h>
 
 char* readline(const char *prompt)
 {
+    printf("%s", prompt);
+
     size_t buffer_size = 256;
     char *buffer = malloc(buffer_size);
 
