@@ -36,6 +36,9 @@ namespace Std {
         void set_data(T *data) { m_data = data; }
         void set_size(usize size) { m_size = size; }
 
+        T& operator[](isize index) { return m_data[index]; }
+        const T& operator[](isize index) const { return m_data[index]; }
+
         Span<const T> span() const { return *this; }
         Span<T> span() { return *this; }
 
@@ -100,4 +103,6 @@ namespace Std {
     template<typename T>
     SpanIterator<T> Span<T>::iter() { return *this; }
 
+    using Bytes = Span<u8>;
+    using ReadonlyBytes = Span<const u8>;
 }

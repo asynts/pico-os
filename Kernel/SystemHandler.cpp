@@ -1,6 +1,7 @@
 #include <Std/Forward.hpp>
 #include <Std/Debug.hpp>
 #include <Kernel/Interface/syscalls.h>
+#include <Kernel/ConsoleDevice.hpp>
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
@@ -29,9 +30,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         assert(fd == STDIN_FILENO);
 
-        for (usize index = 0; index < count; ++index)
-            buffer[index] = uart_getc(uart0);
-
+        Kernel::ConsoleDevice::the().read({ (u8*)buffer, count });
         return count;
     }
 
@@ -44,8 +43,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         assert(fd == STDOUT_FILENO);
 
-        uart_write_blocking(uart0, (uint8_t*)buffer, count);
-
+        Kernel::ConsoleDevice::the().write({ (u8*)buffer, count });
         return count;
     }
 
