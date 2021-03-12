@@ -3,7 +3,7 @@ import os
 import tempfile
 
 @invoke.task
-def picoprobe(c, debug=False):
+def probe(c, debug=False):
     if debug:
         debug_flags = "--debug=3"
     else:
@@ -12,7 +12,7 @@ def picoprobe(c, debug=False):
     c.sudo(f"openocd {debug_flags} -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True)
 
 @invoke.task
-def debugger(c, gdb="arm-none-eabi-gdb", port=3333):
+def dbg(c, gdb="arm-none-eabi-gdb", port=3333):
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
     # FIXME: This is really ugly.
@@ -47,7 +47,7 @@ set history remove-duplicates 1
     c.run(f"{gdb} -q -x {init_script.name}", pty=True)
 
 @invoke.task
-def messages(c):
+def tty(c):
     if not os.path.exists("/dev/ttyACM0"):
         print("Can not find serial device '/dev/ttyACM0'.")
         exit(1)
