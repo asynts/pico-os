@@ -36,6 +36,14 @@ namespace Std {
         void set_data(T *data) { m_data = data; }
         void set_size(usize size) { m_size = size; }
 
+        void copy_to(Span<typename RemoveConst<T>::Type> other) const
+        {
+            assert(other.size() >= size());
+
+            for (usize index = 0; index < size(); ++index)
+                other[index] = (*this)[index];
+        }
+
         T& operator[](isize index) { return m_data[index]; }
         const T& operator[](isize index) const { return m_data[index]; }
 

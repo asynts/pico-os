@@ -8,20 +8,20 @@ namespace Std {
     public:
         Optional()
         {
-            m_valid = false;
+            m_is_valid = false;
         }
         Optional(T value)
         {
             new (m_value) T { value };
-            m_valid = true;
+            m_is_valid = true;
         }
 
-        bool valid() const { return m_valid; }
+        bool is_valid() const { return m_is_valid; }
 
         T value() { return *reinterpret_cast<T*>(m_value); }
         T value_or(T default_)
         {
-            if (valid())
+            if (is_valid())
                 return value();
             else
                 return default_;
@@ -29,6 +29,6 @@ namespace Std {
 
     private:
         u8 m_value[sizeof(T)];
-        bool m_valid;
+        bool m_is_valid;
     };
 }

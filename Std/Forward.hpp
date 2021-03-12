@@ -63,7 +63,22 @@ constexpr T max(T a, T b)
     return a >= b ? a : b;
 }
 
+template<typename T>
+constexpr T min(T a, T b)
+{
+    return a <= b ? a : b;
+}
+
 inline usize round_to_power_of_two(usize value)
 {
     return 1 << (32 - __builtin_clz(value));
 }
+
+template<typename T>
+struct RemoveConst {
+    using Type = T;
+};
+template<typename T>
+struct RemoveConst<const T> {
+    using Type = T;
+};
