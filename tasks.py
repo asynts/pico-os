@@ -36,6 +36,8 @@ define rebuild
     monitor reset init
 end
 
+set confirm off
+
 source ../Scripts/dynamic-loader.py
 
 set history save on

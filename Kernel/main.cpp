@@ -8,6 +8,8 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/MemoryFilesystem.hpp>
 
+#include <pico/stdio.h>
+
 void load_and_execute_shell()
 {
     ElfWrapper elf { reinterpret_cast<u8*>(embedded_shell_binary_start) };
@@ -35,9 +37,8 @@ void load_and_execute_shell()
 
 void initialize_uart_debug()
 {
-    uart_init(uart0, 115200);
-    gpio_set_function(0, GPIO_FUNC_UART);
-    gpio_set_function(1, GPIO_FUNC_UART);
+    // FIXME: I really don't know that the SDK does exactly, but this is necessary to make assertions work.
+    stdio_init_all();
 
     // FIXME: For some reason there is a 0xff symbol send when the connection is opened.
     char ch = uart_getc(uart0);
@@ -51,6 +52,10 @@ int main()
 
     Kernel::MemoryFilesystem::the();
     Kernel::ConsoleDevice::the();
+
+    Kernel::iterate_directory(Kernel::MemoryFilesystem::the().root(), [](Kernel::DirectoryEntry& entry) {
+        dbgprintf("'%s' (inode %u)\n", entry.m_name, entry.m_inode);
+    });
 
     load_and_execute_shell();
 

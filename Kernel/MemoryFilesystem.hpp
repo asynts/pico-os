@@ -22,6 +22,10 @@ namespace Kernel {
     constexpr usize directory_entries_per_block = block_size / sizeof(DirectoryEntry);
     static_assert(block_size % sizeof(DirectoryEntry) == 0);
 
+    constexpr u32 device_invalid = 0;
+    constexpr u32 device_ram = 1;
+    constexpr u32 device_flash = 2;
+
     struct File {
         u32 m_inode;
         u32 m_mode;
@@ -46,26 +50,26 @@ namespace Kernel {
     public:
         File& root() { return *m_root; }
 
-        File& inode_to_pointer(usize inode)
+        File& lookup_inode(usize inode)
         {
             // FIXME
             assert(inode == 2);
             return root();
         }
 
-        File& create_file(File& directory, StringView filename, u32 mode)
+        File& create_file(File& directory, StringView filename, u32 mode, u32 device)
         {
             assert(directory.is_directory());
             assert(directory.directory_size() < directory_entries_per_block);
 
             File& file = *new File;
-            file.m_device_id = 0;
+            file.m_device_id = device;
             file.m_inode = m_next_inode++;
             file.m_mode = mode;
             file.m_size = 0;
             file.m_direct_blocks[0] = new u8[block_size];
 
-            DirectoryEntry& entry = *reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0] + directory.directory_size() * sizeof(DirectoryEntry));
+            DirectoryEntry& entry = *reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0] + directory.m_size);
             entry.m_inode = file.m_inode;
             filename.copy_to({ entry.m_name, sizeof(entry.m_name) });
             directory.m_size += sizeof(DirectoryEntry);
@@ -77,48 +81,46 @@ namespace Kernel {
         friend Singleton<MemoryFilesystem>;
         MemoryFilesystem()
         {
-            static_assert(0x200 % sizeof(DirectoryEntry) == 0);
-            DirectoryEntry *entries = reinterpret_cast<DirectoryEntry*>(new u8[0x200]);
+            DirectoryEntry *entries = reinterpret_cast<DirectoryEntry*>(new u8[block_size]);
 
             entries[0].m_inode = 2;
             __builtin_strcpy(entries[0].m_name, ".");
 
-            entries[0].m_inode = 2;
-            __builtin_strcpy(entries[0].m_name, "..");
+            entries[1].m_inode = 2;
+            __builtin_strcpy(entries[1].m_name, "..");
 
             m_root = new File;
+            m_root->m_device_id = device_ram;
             m_root->m_inode = 2;
             m_root->m_mode = S_IFDIR;
             m_root->m_size = sizeof(DirectoryEntry) * 2;
-            m_root->m_device_id = 0;
             m_root->m_direct_blocks[0] = reinterpret_cast<u8*>(entries);
 
             m_next_inode = 3;
 
-            auto& bin_dir = create_file(root(), "bin", S_IFDIR);
-
-            // FIXME: Hook up file with flash. m_device should indicate FLASH.
-            auto& shell_file = create_file(bin_dir, "Shell.elf", S_IFREG);
+            auto& bin_dir = create_file(root(), "bin", S_IFDIR, device_ram);
+            auto& shell_file = create_file(bin_dir, "Shell.elf", S_IFREG, device_flash);
         }
 
         File *m_root;
         u32 m_next_inode;
     };
 
-    template<typename Callback>
-    void iterate_directory(File& directory, Callback&& callback = []{})
+    template<typename Callback = decltype([](DirectoryEntry&){})>
+    void iterate_directory(File& directory, Callback&& callback = {})
     {
         assert(directory.is_directory());
 
         for (usize index = 0; index < directory.directory_size(); ++index)
         {
-            DirectoryEntry *entry = directory.m_direct_blocks[0] + index * sizeof(DirectoryEntry);
+            DirectoryEntry *entry = reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0] + index * sizeof(DirectoryEntry));
             callback(*entry);
         }
     }
 
-    template<typename Callback>
-    File& iterate_path(StringView path, File& root, Callback&& callback = []{})
+    // FIXME: Verify that this works as intendet.
+    template<typename Callback = decltype([](File&){})>
+    File& iterate_path(StringView path, File& root, Callback&& callback = {})
     {
         callback(root);
 
@@ -134,12 +136,13 @@ namespace Kernel {
         StringView filename = path.trim(end);
 
         File *file = nullptr;
-        iterate_directory(root, [&](DirectoryEntry& entry){
+        iterate_directory(root, [&](DirectoryEntry& entry) {
+            dbgprintf("Looking at '%'\n", entry.m_name);
             if (entry.name() == filename)
-                file = MemoryFilesystem::the().inode_to_pointer(entry.m_inode);
+                file = &MemoryFilesystem::the().lookup_inode(entry.m_inode);
         });
         assert(file != nullptr);
 
-        return iterate_path(path.substr(end, *file, move(callback)));
+        return iterate_path(path.substr(end), *file, move(callback));
     }
 }
