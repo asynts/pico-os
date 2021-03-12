@@ -52,9 +52,7 @@ namespace Kernel {
 
         File& lookup_inode(usize inode)
         {
-            // FIXME
-            assert(inode == 2);
-            return root();
+            return *m_inodes.lookup(inode).must();
         }
 
         File& create_file(File& directory, StringView filename, u32 mode, u32 device)
@@ -68,10 +66,11 @@ namespace Kernel {
             file.m_mode = mode;
             file.m_size = 0;
             file.m_direct_blocks[0] = new u8[block_size];
+            m_inodes.append(file.m_inode, &file);
 
             DirectoryEntry& entry = *reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0] + directory.m_size);
             entry.m_inode = file.m_inode;
-            filename.copy_to({ entry.m_name, sizeof(entry.m_name) });
+            filename.strcpy_to({ entry.m_name, sizeof(entry.m_name) });
             directory.m_size += sizeof(DirectoryEntry);
 
             return file;
@@ -95,12 +94,15 @@ namespace Kernel {
             m_root->m_mode = S_IFDIR;
             m_root->m_size = sizeof(DirectoryEntry) * 2;
             m_root->m_direct_blocks[0] = reinterpret_cast<u8*>(entries);
+            m_inodes.append(2, m_root);
 
             m_next_inode = 3;
 
             auto& bin_dir = create_file(root(), "bin", S_IFDIR, device_ram);
             auto& shell_file = create_file(bin_dir, "Shell.elf", S_IFREG, device_flash);
         }
+
+        Map<u32, File*> m_inodes;
 
         File *m_root;
         u32 m_next_inode;
@@ -137,7 +139,6 @@ namespace Kernel {
 
         File *file = nullptr;
         iterate_directory(root, [&](DirectoryEntry& entry) {
-            dbgprintf("Looking at '%'\n", entry.m_name);
             if (entry.name() == filename)
                 file = &MemoryFilesystem::the().lookup_inode(entry.m_inode);
         });

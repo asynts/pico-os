@@ -26,6 +26,11 @@ namespace Std {
             else
                 return default_;
         }
+        T must()
+        {
+            assert(is_valid());
+            return value();
+        }
 
     private:
         u8 m_value[sizeof(T)];

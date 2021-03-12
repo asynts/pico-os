@@ -53,9 +53,8 @@ int main()
     Kernel::MemoryFilesystem::the();
     Kernel::ConsoleDevice::the();
 
-    Kernel::iterate_directory(Kernel::MemoryFilesystem::the().root(), [](Kernel::DirectoryEntry& entry) {
-        dbgprintf("'%s' (inode %u)\n", entry.m_name, entry.m_inode);
-    });
+    auto& shell_file = Kernel::iterate_path("/bin/Shell.elf", Kernel::MemoryFilesystem::the().root());
+    dbgprintf("'/bin/Shell.elf' got inode %u\n", shell_file.m_inode);
 
     load_and_execute_shell();
 

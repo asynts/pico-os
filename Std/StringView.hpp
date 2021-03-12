@@ -31,7 +31,7 @@ public:
 
     StringView substr(usize index)
     {
-        index = max(index, size());
+        assert(index <= size());
         return { data() + index, size() - index };
     }
 
@@ -41,9 +41,23 @@ public:
         return { data(), size };
     }
 
+    void strcpy_to(Span<char> other) const
+    {
+        assert(other.size() >= size() + 1);
+
+        __builtin_memcpy(other.data(), data(), size());
+        other.data()[size()] = 0;
+    }
+
     int operator<=>(StringView rhs) const
     {
-        return __builtin_strcmp(data(), rhs.data());
+        if (size() < rhs.size())
+            return -1;
+
+        if (size() > rhs.size())
+            return 1;
+
+        return __builtin_memcmp(data(), rhs.data(), size());
     }
 
     // FIXME: The compiler should be able to deduce this?
@@ -51,6 +65,9 @@ public:
     {
         return (*this <=> rhs) == 0;
     }
+
+private:
+    void copy_to(Span<char> other) const;
 };
 
 }
