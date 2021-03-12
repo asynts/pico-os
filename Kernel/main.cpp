@@ -4,6 +4,7 @@
 
 #include <Std/Forward.hpp>
 #include <Std/Debug.hpp>
+#include <Std/Format.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/MemoryFilesystem.hpp>
@@ -52,9 +53,6 @@ int main()
 
     Kernel::MemoryFilesystem::the();
     Kernel::ConsoleDevice::the();
-
-    auto& shell_file = Kernel::iterate_path("/bin/Shell.elf", Kernel::MemoryFilesystem::the().root());
-    dbgprintf("'/bin/Shell.elf' got inode %u\n", shell_file.m_inode);
 
     load_and_execute_shell();
 

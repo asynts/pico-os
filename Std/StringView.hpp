@@ -3,11 +3,17 @@
 #include <Std/Span.hpp>
 #include <Std/Optional.hpp>
 
+#include <assert.h>
+
 namespace Std {
 
 class StringView : public Span<const char> {
 public:
     StringView()
+    {
+    }
+    StringView(Span<const char> span)
+        : Span<const char>(span)
     {
     }
     StringView(const char *cstring)

@@ -43,7 +43,7 @@ namespace Std {
         const T* data() const { return m_data; }
         T* data() { return m_data; }
 
-        usize size() { return m_size; }
+        usize size() const { return m_size; }
 
         const T& operator[](usize index) const { return m_data[index]; }
         T& operator[](usize index) { return m_data[index]; }

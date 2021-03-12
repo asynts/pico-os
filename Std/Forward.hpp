@@ -44,7 +44,7 @@ constexpr T&& move(T &&value)
 }
 
 template<typename T>
-constexpr T&& forward(T &&value)
+constexpr T&& forward(T&& value)
 {
     return static_cast<T&&>(value);
 }

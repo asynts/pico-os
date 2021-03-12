@@ -47,6 +47,8 @@ namespace Std {
         T& operator[](isize index) { return m_data[index]; }
         const T& operator[](isize index) const { return m_data[index]; }
 
+        operator Span<const T>() const { return span(); }
+
         Span<const T> span() const { return *this; }
         Span<T> span() { return *this; }
 
@@ -91,7 +93,6 @@ namespace Std {
 
             return *this;
         }
-
         SpanIterator operator++(int)
         {
             SpanIterator copy = *this;
@@ -102,6 +103,10 @@ namespace Std {
         bool operator==(SpanIterator<T> other) const
         {
             return this->data() == other.data();
+        }
+        bool operator!=(SpanIterator<T> other) const
+        {
+            return this->data() != other.data();
         }
     };
 
