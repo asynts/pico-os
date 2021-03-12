@@ -1,5 +1,4 @@
 #include <Std/Forward.hpp>
-#include <Std/Debug.hpp>
 #include <Kernel/Interface/syscalls.h>
 #include <Kernel/ConsoleDevice.hpp>
 
@@ -26,8 +25,6 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         char *buffer = arg2.pointer<char>();
         usize count = arg3.size();
 
-        // dbgprintf("syscall: read(%i, %p, %zu)\n", fd, buffer, count);
-
         assert(fd == STDIN_FILENO);
 
         Kernel::ConsoleDevice::the().read({ (u8*)buffer, count });
@@ -38,8 +35,6 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         i32 fd = arg1.fd();
         const char *buffer = arg2.pointer<const char>();
         usize count = arg3.size();
-
-        // dbgprintf("syscall: write(%i, %p, %zu)\n", fd, buffer, count);
 
         assert(fd == STDOUT_FILENO);
 

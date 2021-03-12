@@ -1,5 +1,5 @@
 #include <Kernel/DynamicLoader.hpp>
-#include <Std/Debug.hpp>
+#include <Std/Format.hpp>
 #include <assert.h>
 
 // FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
@@ -18,7 +18,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
     LoadedExecutable executable;
 
-    dbgprintf("Loading executable from %p\n", elf.base());
+    dbgln("Loading executable from %", elf.base());
 
     assert(elf.header()->e_phnum == 3);
     assert(elf.segments()[2].p_type == PT_ARM_EXIDX);
@@ -32,13 +32,13 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(data_segment.p_flags == PF_R | PF_W);
 
     executable.m_readonly_base = elf.base_as_u32() + text_segment.p_offset;
-    dbgprintf("Putting readonly segment at %p (inplace)\n", executable.m_readonly_base);
+    dbgln("Putting readonly segment at % (inplace)", executable.m_readonly_base);
 
     u8 *data = new u8[data_segment.p_memsz];
     assert(data != nullptr);
 
     executable.m_writable_base = u32(data);
-    dbgprintf("Putting writable segment at %p (allocated)\n", executable.m_writable_base);
+    dbgln("Putting writable segment at % (allocated)", executable.m_writable_base);
 
     __builtin_memcpy(data, elf.base() + data_segment.p_offset, data_segment.p_filesz);
 
@@ -48,7 +48,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(elf.header()->e_entry >= text_segment.p_vaddr);
     assert(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
     executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - text_segment.p_vaddr);
-    dbgprintf("Putting entry point at %p\n", executable.m_entry);
+    dbgln("Putting entry point at %", executable.m_entry);
 
     for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
         Elf32_Shdr& section = elf.sections()[section_index];
@@ -73,9 +73,9 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(executable.m_data_base);
     assert(executable.m_stack_base);
 
-    dbgprintf("Found text segment at %p in readonly segment\n", executable.m_text_base);
-    dbgprintf("Found data segment at %p in writable segment\n", executable.m_data_base);
-    dbgprintf("Found stack segment at %p in readonly segment\n", executable.m_stack_base);
+    dbgln("Found text segment at % in readonly segment", executable.m_text_base);
+    dbgln("Found data segment at % in writable segment", executable.m_data_base);
+    dbgln("Found stack segment at % in readonly segment", executable.m_stack_base);
 
     executable_for_debugger = &executable;
     inform_debugger_about_executable();

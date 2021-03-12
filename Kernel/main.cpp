@@ -3,7 +3,6 @@
 #include <hardware/gpio.h>
 
 #include <Std/Forward.hpp>
-#include <Std/Debug.hpp>
 #include <Std/Format.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
@@ -16,7 +15,7 @@ void load_and_execute_shell()
     ElfWrapper elf { reinterpret_cast<u8*>(embedded_shell_binary_start) };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
-    dbgprintf("Loading process stack and static base, debugger hook\n");
+    dbgln("Loading process stack and static base, debugger hook");
 
     asm volatile(
         "movs r0, #0;"
@@ -49,7 +48,7 @@ void initialize_uart_debug()
 int main()
 {
     initialize_uart_debug();
-    dbgprintf("\033[1mBOOT\033[0m\n");
+    dbgln("\e[1mBOOT\e[0m");
 
     Kernel::MemoryFilesystem::the();
     Kernel::ConsoleDevice::the();

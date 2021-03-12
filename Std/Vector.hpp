@@ -3,6 +3,8 @@
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
 
+#include <assert.h>
+
 namespace Std {
     template<typename T>
     class Vector {

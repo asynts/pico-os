@@ -4,12 +4,29 @@
 #include <Std/StringView.hpp>
 #include <Std/Array.hpp>
 #include <Std/Vector.hpp>
+#include <Std/Concepts.hpp>
 
 namespace Std {
     class StringBuilder;
 
     template<typename T>
-    void format_arg(StringBuilder&, T value);
+    struct Formatter {
+    };
+
+    template<typename T>
+    requires Concepts::Integral<T>
+    struct Formatter<T> {
+        static void format(StringBuilder&, T);
+    };
+
+    template<typename T>
+    struct Formatter<T*> {
+        static void format(StringBuilder& builder, T *value)
+        {
+            static_assert(sizeof(T*) == 4);
+            return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
+        }
+    };
 
     using FormatFunction = void(*)(StringBuilder&, const void*);
 
@@ -40,7 +57,7 @@ namespace Std {
                 &parameters,
                 [](StringBuilder& builder, const void *value)
                 {
-                    format_arg(builder, *reinterpret_cast<const Parameters*>(value));
+                    Formatter<Parameters>::format(builder, *reinterpret_cast<const Parameters*>(value));
                 },
             }... }
         {
@@ -92,4 +109,16 @@ namespace Std {
             }
         }
     }
+
+    void dbgln_raw(StringView);
+
+    template<typename... Parameters>
+    void dbgln(StringView fmtstr, const Parameters&... parameters)
+    {
+        StringBuilder builder;
+        vformat(builder, fmtstr, VariadicFormatParams { parameters... });
+        dbgln_raw(builder.view());
+    }
 }
+
+using Std::dbgln;
