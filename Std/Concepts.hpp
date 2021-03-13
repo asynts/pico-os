@@ -11,6 +11,15 @@ namespace Std {
     struct IsSame<T, T> {
         static constexpr bool value = true;
     };
+
+    template<typename T>
+    struct RemoveConst {
+        using Type = T;
+    };
+    template<typename T>
+    struct RemoveConst<const T> {
+        using Type = T;
+    };
 }
 
 namespace Std::Concepts {
