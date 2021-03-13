@@ -26,7 +26,12 @@ public:
     }
     ~BufferStream()
     {
-        fclose(m_file);
+        if (m_file)
+            fclose(m_file);
+    }
+    BufferStream(BufferStream&& other)
+    {
+        m_file = std::exchange(other.m_file, nullptr);
     }
 
     void write_bytes(std::span<const uint8_t> bytes)
@@ -80,9 +85,9 @@ private:
     FILE *m_file;
 };
 
-class ELF {
+class ElfGenerator {
 public:
-    ELF()
+    ElfGenerator()
     {
         m_stream.seek(sizeof(Elf32_Ehdr));
 
@@ -111,7 +116,7 @@ public:
         return m_sections.emplace_back(shdr);
     }
 
-    BufferStream& finalize()
+    BufferStream finalize() &&
     {
         assert(!m_finalized);
         m_finalized = true;
@@ -123,7 +128,7 @@ public:
         encode_header(section_offset, shstrtab_section_index);
 
         m_stream.seek(0);
-        return m_stream;
+        return std::move(m_stream);
     }
 
 private:
@@ -219,12 +224,12 @@ std::span<const uint8_t> mmap_file(std::filesystem::path path)
 }
 
 int main() {
-    ELF elf;
-    elf.append_section(".embedded.binary", mmap_file("Userland/Shell.elf"));
+    ElfGenerator elf_generator;
+    elf_generator.append_section(".embedded.binary", mmap_file("Userland/Shell.elf"));
 
-    BufferStream& elf_binary = elf.finalize();
+    BufferStream elf_binary = std::move(elf_generator).finalize();
 
-    int output_fd = open("Shell.embedded.elf", O_WRONLY);
+    int output_fd = creat("Shell.embedded.elf", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(output_fd >= 0);
 
     elf_binary.copy_to(output_fd);
