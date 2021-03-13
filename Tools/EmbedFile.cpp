@@ -12,7 +12,29 @@
 #include <sys/stat.h>
 #include <elf.h>
 #include <unistd.h>
+#include <bsd/string.h>
 #include <assert.h>
+
+static std::span<const uint8_t> mmap_file(int fd)
+{
+    struct stat statbuf;
+
+    int retval = fstat(fd, &statbuf);
+    assert(retval == 0);
+
+    void *pointer = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    assert(pointer != MAP_FAILED);
+
+    return { (const uint8_t*)pointer, (size_t)statbuf.st_size };
+}
+
+static std::span<const uint8_t> mmap_file(std::filesystem::path path)
+{
+    int fd = open(path.c_str(), O_RDONLY);
+    assert(fd >= 0);
+
+    return mmap_file(fd);
+}
 
 class BufferStream {
 public:
@@ -34,16 +56,20 @@ public:
         m_file = std::exchange(other.m_file, nullptr);
     }
 
-    void write_bytes(std::span<const uint8_t> bytes)
+    size_t write_bytes(std::span<const uint8_t> bytes)
     {
+        size_t offset = this->offset();
+
         size_t retval = fwrite(bytes.data(), 1, bytes.size(), m_file);
         assert(retval == bytes.size_bytes());
+
+        return offset;
     }
 
     template<typename T>
-    void write_object(const T& value)
+    size_t write_object(const T& value)
     {
-        write_bytes({ (const uint8_t*)&value, sizeof(value) });
+        return write_bytes({ (const uint8_t*)&value, sizeof(value) });
     }
 
     size_t offset()
@@ -79,6 +105,12 @@ public:
 
         retval = copy_file_range(fileno(m_file), nullptr, fd, nullptr, size, 0);
         assert(retval == size);
+    }
+
+    std::span<const uint8_t> map_into_memory()
+    {
+        seek(0);
+        return mmap_file(fileno(m_file));
     }
 
 private:
@@ -207,32 +239,95 @@ private:
     std::ostringstream m_shstrtab;
 };
 
-std::span<const uint8_t> mmap_file(std::filesystem::path path)
-{
-    int fd = open(path.c_str(), O_RDONLY);
-    assert(fd >= 0);
+// FIXME: Get this from <Kernel/Interface/inode.h>
+struct IndexNode {
+    uint32_t m_inode;
+    uint32_t m_mode;
+    uint32_t m_size;
+    uint32_t m_device_id;
+    uint8_t *m_direct_blocks[1];
+    uint8_t **m_indirect_blocks[4];
+};
 
-    struct stat statbuf;
+struct RegistryEntry {
+    char m_name[256];
+    IndexNode *m_inode;
+};
 
-    int retval = fstat(fd, &statbuf);
-    assert(retval == 0);
+constexpr size_t FLASH_DEVICE_ID = 2;
+constexpr size_t BLOCK_SIZE = 0x1000;
+constexpr size_t REFERENCES_PER_BLOCK = BLOCK_SIZE / 4;
 
-    void *pointer = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    assert(pointer != MAP_FAILED);
+class FileSystemGenerator {
+public:
+    void add_file(std::filesystem::path path, uint32_t address, uint32_t size)
+    {
+        const uint32_t max_address = address + size;
 
-    return { (const uint8_t*)pointer, (size_t)statbuf.st_size };
-}
+        IndexNode inode;
+        inode.m_inode = m_next_inode++;
+        inode.m_mode = S_IFREG;
+        inode.m_size = size;
+        inode.m_device_id = FLASH_DEVICE_ID;
+
+        inode.m_direct_blocks[0] = reinterpret_cast<uint8_t*>(address);
+        assert(sizeof(inode.m_direct_blocks) / sizeof(*inode.m_direct_blocks));
+        address += BLOCK_SIZE;
+
+        size_t indirect_block_index = 0;
+        while (address < max_address) {
+            uint8_t *indirect_block[REFERENCES_PER_BLOCK];
+
+            for (size_t index = 0; index < REFERENCES_PER_BLOCK; ++index) {
+                if (address >= max_address) {
+                    indirect_block[index] = nullptr;
+                } else {
+                    indirect_block[index] = reinterpret_cast<uint8_t*>(address);
+                    address += BLOCK_SIZE;
+                }
+            }
+
+            size_t indirect_block_address = m_metadata_stream.write_bytes({ (const uint8_t*)indirect_block, BLOCK_SIZE });
+            inode.m_indirect_blocks[indirect_block_index++] = (uint8_t**)indirect_block_address;
+        }
+
+        RegistryEntry entry;
+        strlcpy(entry.m_name, path.c_str(), sizeof(entry.m_name));
+        entry.m_inode = (IndexNode*)m_metadata_stream.write_object(inode);
+
+        m_index_stream.write_object((uint32_t)m_metadata_stream.write_object(entry));
+    }
+
+    void finalize(ElfGenerator& elf_generator) &&
+    {
+        elf_generator.append_section(".embedded.metadata", m_metadata_stream.map_into_memory());
+        elf_generator.append_section(".embedded.index", m_index_stream.map_into_memory());
+    }
+
+private:
+    size_t m_next_inode = 3;
+
+    BufferStream m_metadata_stream;
+    BufferStream m_index_stream;
+};
 
 int main() {
     ElfGenerator elf_generator;
-    elf_generator.append_section(".embedded.binary", mmap_file("Userland/Shell.elf"));
 
-    BufferStream elf_binary = std::move(elf_generator).finalize();
+    // FIXME: Move this into FileSystemGenerator.
+    Elf32_Shdr binary_shdr = elf_generator.append_section(".embedded.binary", mmap_file("Userland/Shell.elf"));
+
+    FileSystemGenerator fs_generator;
+    fs_generator.add_file("/bin/Shell.elf", binary_shdr.sh_addr, binary_shdr.sh_size);
+
+    std::move(fs_generator).finalize(elf_generator);
+
+    BufferStream binary = std::move(elf_generator).finalize();
 
     int output_fd = creat("Shell.embedded.elf", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(output_fd >= 0);
 
-    elf_binary.copy_to(output_fd);
+    binary.copy_to(output_fd);
 
     int retval = close(output_fd);
     assert(retval == 0);

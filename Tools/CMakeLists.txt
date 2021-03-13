@@ -11,3 +11,4 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-fdiagnostics-color=always)
 
 add_executable(EmbedFile EmbedFile.cpp)
+target_link_libraries(EmbedFile bsd)
