@@ -8,6 +8,8 @@
 
 #include "BufferStream.hpp"
 
+// FIXME: Use BufferStream instead of std::ostringstream.
+
 class ElfGenerator {
 public:
     ElfGenerator()
@@ -20,7 +22,7 @@ public:
         m_sections.push_back(shdr);
     }
 
-    Elf32_Shdr& append_section(std::string_view name, std::span<const uint8_t> data)
+    size_t append_simple_section(std::string_view name, BufferStream& stream)
     {
         Elf32_Shdr shdr;
         shdr.sh_addr = m_stream.offset() - sizeof(Elf32_Ehdr);
@@ -31,12 +33,33 @@ public:
         shdr.sh_link = 0;
         shdr.sh_name = append_section_name(name);
         shdr.sh_offset = m_stream.offset();
-        shdr.sh_size = data.size();
+        shdr.sh_size = stream.size();
         shdr.sh_type = SHT_PROGBITS;
         
-        m_stream.write_bytes(data);
+        m_stream.write_bytes(stream);
 
-        return m_sections.emplace_back(shdr);
+        size_t index = m_sections.size();
+        m_sections.push_back(shdr);
+        return index;
+    }
+
+    size_t create_simple_section(std::string_view name)
+    {
+        Elf32_Shdr shdr;
+        shdr.sh_addr = 0;
+        shdr.sh_addralign = 4;
+        shdr.sh_entsize = 0;
+        shdr.sh_flags = SHF_ALLOC;
+        shdr.sh_info = 0;
+        shdr.sh_link = 0;
+        shdr.sh_name = append_section_name(name);
+        shdr.sh_offset = m_stream.offset();
+        shdr.sh_size = 0;
+        shdr.sh_type = SHT_PROGBITS;
+        
+        size_t index = m_sections.size();
+        m_sections.push_back(shdr);
+        return index;
     }
 
     BufferStream finalize() &&
@@ -63,7 +86,8 @@ private:
         return offset;
     }
 
-    void append_shstrtab_section(size_t& shstrtab_section_index)
+    // FIXME: Use create_simple_section somehow.
+    size_t create_shstrtab_section()
     {
         Elf32_Shdr shdr;
         shdr.sh_addralign = 4;
@@ -80,13 +104,14 @@ private:
         shdr.sh_size = shstrtab.size();
         m_stream.write_bytes({ (const uint8_t*)shstrtab.data(), shstrtab.size() });
 
-        shstrtab_section_index = m_sections.size();
+        size_t index = m_sections.size();
         m_sections.push_back(shdr);
+        return index;
     }
 
     void encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        append_shstrtab_section(shstrtab_section_index);
+        shstrtab_section_index = create_shstrtab_section();
 
         section_offset = m_stream.offset();
 

@@ -62,6 +62,19 @@ public:
         return offset;
     }
 
+    size_t write_bytes(BufferStream& other)
+    {
+        size_t base_offset = this->offset();
+
+        size_t offset = other.offset();
+
+        other.seek(0);
+        other.copy_to(fileno(m_file));
+        other.seek(offset);
+
+        return base_offset;
+    }
+
     template<typename T>
     size_t write_object(const T& value)
     {
@@ -73,6 +86,23 @@ public:
         long offset = ftell(m_file);
         assert(offset >= 0);
         return (size_t)offset;
+    }
+
+    size_t size()
+    {
+        int retval;
+
+        size_t offset = this->offset();
+
+        retval = fseek(m_file, 0, SEEK_END);
+        assert(retval == 0);
+
+        size_t size = this->offset();
+
+        retval = fseek(m_file, offset, SEEK_SET);
+        assert(retval == 0);
+
+        return size;
     }
 
     void seek(size_t offset)

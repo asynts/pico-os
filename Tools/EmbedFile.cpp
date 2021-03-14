@@ -21,21 +21,17 @@
 
 int main() {
     ElfGenerator elf_generator;
+    
+    FileSystemGenerator fs_generator { elf_generator };
+    fs_generator.create_file("/bin/Shell.elf", mmap_file("Userland/Shell.elf"));
+    std::move(fs_generator).finalize();
 
-    // FIXME: Move this into FileSystemGenerator.
-    Elf32_Shdr binary_shdr = elf_generator.append_section(".embedded.binary", mmap_file("Userland/Shell.elf"));
+    BufferStream stream = std::move(elf_generator).finalize();
 
-    FileSystemGenerator fs_generator;
-    fs_generator.add_file("/bin/Shell.elf", binary_shdr.sh_addr, binary_shdr.sh_size);
-
-    std::move(fs_generator).finalize(elf_generator);
-
-    BufferStream binary = std::move(elf_generator).finalize();
-
-    int output_fd = creat("Shell.embedded.elf", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    int output_fd = creat("Shell.embed.elf", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(output_fd >= 0);
 
-    binary.copy_to(output_fd);
+    stream.copy_to(output_fd);
 
     int retval = close(output_fd);
     assert(retval == 0);
