@@ -8,54 +8,57 @@
 
 #include "BufferStream.hpp"
 
-// FIXME: Use BufferStream instead of std::ostringstream.
+// FIXME: remove
+#include <iostream>
 
 class ElfGenerator {
 public:
     ElfGenerator()
     {
+        // We write the elf header in ElfGenerator::finalize
         m_stream.seek(sizeof(Elf32_Ehdr));
 
-        Elf32_Shdr shdr;
-        shdr.sh_type = SHT_NULL;
-        shdr.sh_name = append_section_name("");
-        m_sections.push_back(shdr);
+        create_section("", 0, 0, 0, SHT_NULL);
     }
 
-    size_t append_simple_section(std::string_view name, BufferStream& stream)
+    size_t append_section(
+        std::string_view name,
+        BufferStream& stream,
+        Elf32_Word type = SHT_PROGBITS,
+        Elf32_Word flags = SHF_ALLOC)
     {
-        Elf32_Shdr shdr;
-        shdr.sh_addr = m_stream.offset() - sizeof(Elf32_Ehdr);
-        shdr.sh_addralign = 4;
-        shdr.sh_entsize = 0;
-        shdr.sh_flags = SHF_ALLOC;
-        shdr.sh_info = 0;
-        shdr.sh_link = 0;
-        shdr.sh_name = append_section_name(name);
-        shdr.sh_offset = m_stream.offset();
-        shdr.sh_size = stream.size();
-        shdr.sh_type = SHT_PROGBITS;
-        
+        std::cout << "ElfGenerator::append_section name='" << name << "' size=" << stream.size() << '\n';
+
+        Elf32_Addr address = m_stream.offset() - sizeof(Elf32_Ehdr);
+        Elf32_Off offset = m_stream.offset();
+        Elf32_Word size = stream.size();
+
         m_stream.write_bytes(stream);
 
-        size_t index = m_sections.size();
-        m_sections.push_back(shdr);
-        return index;
+        return create_section(name, address, offset, size, type, flags);
     }
 
-    size_t create_simple_section(std::string_view name)
+    size_t create_section(
+        std::string_view name,
+        Elf32_Addr address,
+        Elf32_Off offset,
+        Elf32_Word size,
+        Elf32_Word type = SHT_PROGBITS,
+        Elf32_Word flags = SHF_ALLOC)
     {
+        std::cout << "ElfGenerator::create_section name='" << name << "' address=" << address << " offset=" << offset << " size=" << size << '\n';
+
         Elf32_Shdr shdr;
         shdr.sh_addr = 0;
         shdr.sh_addralign = 4;
         shdr.sh_entsize = 0;
-        shdr.sh_flags = SHF_ALLOC;
+        shdr.sh_flags = flags;
         shdr.sh_info = 0;
         shdr.sh_link = 0;
         shdr.sh_name = append_section_name(name);
         shdr.sh_offset = m_stream.offset();
         shdr.sh_size = 0;
-        shdr.sh_type = SHT_PROGBITS;
+        shdr.sh_type = type;
         
         size_t index = m_sections.size();
         m_sections.push_back(shdr);
@@ -80,39 +83,17 @@ public:
 private:
     size_t append_section_name(std::string_view name)
     {
-        size_t offset = m_shstrtab.tellp();
-        m_shstrtab << name;
-        m_shstrtab << '\0';
+        size_t offset = m_shstrtab_stream.offset();
+        m_shstrtab_stream.write_bytes({ (const uint8_t*)name.data() , name.size() });
+        m_shstrtab_stream.write_object((uint8_t)0);
         return offset;
-    }
-
-    // FIXME: Use create_simple_section somehow.
-    size_t create_shstrtab_section()
-    {
-        Elf32_Shdr shdr;
-        shdr.sh_addralign = 4;
-        shdr.sh_entsize = 0;
-        shdr.sh_flags = 0;
-        shdr.sh_info = 0;
-        shdr.sh_link = 0;
-        shdr.sh_name = append_section_name(".shstrtab");
-        shdr.sh_type = SHT_STRTAB;
-
-        std::string shstrtab = m_shstrtab.str();
-        shdr.sh_offset = m_stream.offset();
-        shdr.sh_addr = m_stream.offset() - sizeof(Elf32_Ehdr);
-        shdr.sh_size = shstrtab.size();
-        m_stream.write_bytes({ (const uint8_t*)shstrtab.data(), shstrtab.size() });
-
-        size_t index = m_sections.size();
-        m_sections.push_back(shdr);
-        return index;
     }
 
     void encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        shstrtab_section_index = create_shstrtab_section();
+        shstrtab_section_index = append_section(".shstrtab", m_shstrtab_stream, SHT_STRTAB, 0);
 
+        printf("Putting sections at %zu\n", m_stream.offset());
         section_offset = m_stream.offset();
 
         for (const Elf32_Shdr& section : m_sections)
@@ -152,5 +133,5 @@ private:
 
     bool m_finalized = false;
     std::vector<Elf32_Shdr> m_sections;
-    std::ostringstream m_shstrtab;
+    BufferStream m_shstrtab_stream;
 };

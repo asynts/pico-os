@@ -39,20 +39,22 @@ public:
 
     void create_file(std::string_view path, std::span<const uint8_t> data)
     {
+        std::cout << "FileSystemGenerator::create_file path='" << path << "' size=" << data.size() << '\n';
+
         auto data_offset = m_data_stream.write_bytes(data);
         create_file_metadata(path, data_offset, data.size());
     }
 
     void create_file_metadata(std::string_view path, uint32_t data_offset, uint32_t size)
     {
-        // FIXME: Reference add_file from def84a4160dd1374f6aa475c26590bc164aa75d5.
+        // FIXME: FileSystemGenerator::add_file from def84a4160dd1374f6aa475c26590bc164aa75d5.
     }
 
     void finalize() &&
     {
-        m_elf_generator.append_simple_section(".embed.data", m_data_stream);
-        m_elf_generator.append_simple_section(".embed.meta", m_meta_stream);
-        m_elf_generator.append_simple_section(".embed.tab", m_tab_stream);
+        m_elf_generator.append_section(".embed.data", m_data_stream);
+        m_elf_generator.append_section(".embed.meta", m_meta_stream);
+        m_elf_generator.append_section(".embed.tab", m_tab_stream);
     }
 
 private:

@@ -26,12 +26,12 @@ int main() {
     fs_generator.create_file("/bin/Shell.elf", mmap_file("Userland/Shell.elf"));
     std::move(fs_generator).finalize();
 
-    BufferStream stream = std::move(elf_generator).finalize();
+    auto stream = std::move(elf_generator).finalize();
 
     int output_fd = creat("Shell.embed.elf", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(output_fd >= 0);
 
-    stream.copy_to(output_fd);
+    stream.copy_to_raw_fd(output_fd);
 
     int retval = close(output_fd);
     assert(retval == 0);

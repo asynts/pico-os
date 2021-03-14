@@ -11,8 +11,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-inline std::span<const uint8_t> mmap_file(int fd)
+inline std::span<const uint8_t> mmap_file(std::filesystem::path path)
 {
+    int fd = open(path.c_str(), O_RDONLY);
+    assert(fd >= 0);
+
     struct stat statbuf;
 
     int retval = fstat(fd, &statbuf);
@@ -22,14 +25,6 @@ inline std::span<const uint8_t> mmap_file(int fd)
     assert(pointer != MAP_FAILED);
 
     return { (const uint8_t*)pointer, (size_t)statbuf.st_size };
-}
-
-inline std::span<const uint8_t> mmap_file(std::filesystem::path path)
-{
-    int fd = open(path.c_str(), O_RDONLY);
-    assert(fd >= 0);
-
-    return mmap_file(fd);
 }
 
 class BufferStream {
@@ -54,6 +49,8 @@ public:
 
     size_t write_bytes(std::span<const uint8_t> bytes)
     {
+        printf("BufferStream::write_bytes size=%zu\n", bytes.size());
+
         size_t offset = this->offset();
 
         size_t retval = fwrite(bytes.data(), 1, bytes.size(), m_file);
@@ -64,12 +61,21 @@ public:
 
     size_t write_bytes(BufferStream& other)
     {
+        printf("BufferStream::write_bytes size=%zu\n", other.size());
+
         size_t base_offset = this->offset();
 
         size_t offset = other.offset();
 
         other.seek(0);
-        other.copy_to(fileno(m_file));
+        
+        char buffer[0x1000];
+        while (!feof(other.m_file)) {
+            size_t nread = fread(buffer, 1, sizeof(buffer), other.m_file);
+            size_t nwritten = fwrite(buffer, 1, nread, m_file);
+            assert(nread == nwritten);
+        }
+
         other.seek(offset);
 
         return base_offset;
@@ -78,6 +84,8 @@ public:
     template<typename T>
     size_t write_object(const T& value)
     {
+        printf("BufferStream::write_object size=%zu\n", sizeof(value));
+
         return write_bytes({ (const uint8_t*)&value, sizeof(value) });
     }
 
@@ -117,26 +125,12 @@ public:
         assert(retval == 0);
     }
 
-    void copy_to(int fd)
+    void copy_to_raw_fd(int fd)
     {
-        ssize_t retval;
+        off_t input_offset = 0;
 
-        retval = fseek(m_file, 0, SEEK_END);
-        assert(retval == 0);
-
-        size_t size = offset();
-
-        retval = fseek(m_file, 0, SEEK_SET);
-        assert(retval == 0);
-
-        retval = copy_file_range(fileno(m_file), nullptr, fd, nullptr, size, 0);
-        assert(retval == size);
-    }
-
-    std::span<const uint8_t> map_into_memory()
-    {
-        seek(0);
-        return mmap_file(fileno(m_file));
+        ssize_t retval = copy_file_range(fileno(m_file), &input_offset, fd, nullptr, size(), 0);
+        assert(retval == size());
     }
 
 private:
