@@ -1,8 +1,3 @@
 {
-    "files.associations": {
-        "*.tcc": "cpp",
-        "deque": "cpp",
-        "vector": "cpp",
-        "span": "cpp"
-    }
+    "C_Cpp.autoAddFileAssociations": false,
 }
