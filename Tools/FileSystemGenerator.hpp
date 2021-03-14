@@ -39,8 +39,6 @@ public:
 
     void create_file(std::string_view path, std::span<const uint8_t> data)
     {
-        std::cout << "FileSystemGenerator::create_file path='" << path << "' size=" << data.size() << '\n';
-
         auto data_offset = m_data_stream.write_bytes(data);
         create_file_metadata(path, data_offset, data.size());
     }

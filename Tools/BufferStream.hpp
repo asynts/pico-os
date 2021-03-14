@@ -11,9 +11,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-// FIXME
-#include <iostream>
-
 inline std::span<const uint8_t> mmap_file(std::filesystem::path path)
 {
     int fd = open(path.c_str(), O_RDONLY);
@@ -52,8 +49,6 @@ public:
 
     size_t write_bytes(std::span<const uint8_t> bytes)
     {
-        printf("BufferStream::write_bytes size=%zu\n", bytes.size());
-
         size_t offset = this->offset();
 
         size_t retval = fwrite(bytes.data(), 1, bytes.size(), m_file);
@@ -64,8 +59,6 @@ public:
 
     size_t write_bytes(BufferStream& other)
     {
-        printf("BufferStream::write_bytes size=%zu\n", other.size());
-
         size_t base_offset = this->offset();
 
         size_t offset = other.offset();
@@ -77,11 +70,6 @@ public:
             size_t nread = fread(buffer, 1, sizeof(buffer), other.m_file);
             size_t nwritten = fwrite(buffer, 1, nread, m_file);
             assert(nread == nwritten);
-
-            printf("BufferStream::write_bytes forwarded %zu bytes\n", nread);
-
-            if (nread == 36)
-                std::cout << "\"" << std::string_view { buffer, nread } << "\"\n";
         }
 
         other.seek(offset);
@@ -92,8 +80,6 @@ public:
     template<typename T>
     size_t write_object(const T& value)
     {
-        printf("BufferStream::write_object size=%zu\n", sizeof(value));
-
         return write_bytes({ (const uint8_t*)&value, sizeof(value) });
     }
 

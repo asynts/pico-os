@@ -8,9 +8,6 @@
 
 #include "BufferStream.hpp"
 
-// FIXME: remove
-#include <iostream>
-
 class ElfGenerator {
 public:
     ElfGenerator()
@@ -27,8 +24,6 @@ public:
         Elf32_Word type = SHT_PROGBITS,
         Elf32_Word flags = SHF_ALLOC)
     {
-        std::cout << "ElfGenerator::append_section name='" << name << "' size=" << stream.size() << '\n';
-
         Elf32_Addr address = m_stream.offset() - sizeof(Elf32_Ehdr);
         Elf32_Off offset = m_stream.offset();
         Elf32_Word size = stream.size();
@@ -46,8 +41,6 @@ public:
         Elf32_Word type = SHT_PROGBITS,
         Elf32_Word flags = SHF_ALLOC)
     {
-        std::cout << "ElfGenerator::create_section name='" << name << "' address=" << address << " offset=" << offset << " size=" << size << '\n';
-
         Elf32_Shdr shdr;
         shdr.sh_addr = address;
         shdr.sh_addralign = 4;
@@ -83,26 +76,18 @@ public:
 private:
     size_t append_section_name(std::string_view name)
     {
-        std::cout << "ElfGenerator::append_section_name Writing '" << name << "'\n";
-
         size_t offset = m_shstrtab_stream.offset();
         m_shstrtab_stream.write_bytes({ (const uint8_t*)name.data() , name.size() });
-
-        std::cout << "ElfGenerator::append_section_name before offset=" << m_shstrtab_stream.offset() << '\n';
 
         uint8_t null_terminator = 0;
         static_assert(sizeof(null_terminator) == 1);
         m_shstrtab_stream.write_object(null_terminator);
-
-        std::cout << "ElfGenerator::append_section_name after offset=" << m_shstrtab_stream.offset() << '\n';
 
         return offset;
     }
 
     size_t append_shstrtab_section()
     {
-        // FIXME: Move this to append_section_data
-
         size_t index = create_section(".shstrtab", 0, 0, 0, SHT_STRTAB, 0);
         auto& section = m_sections[index];
 
@@ -119,7 +104,6 @@ private:
     {
         shstrtab_section_index = append_shstrtab_section();
 
-        printf("Putting sections at %zu\n", m_stream.offset());
         section_offset = m_stream.offset();
 
         for (const Elf32_Shdr& section : m_sections)
