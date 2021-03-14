@@ -18,7 +18,7 @@ public:
         // We write the elf header in ElfGenerator::finalize
         m_stream.seek(sizeof(Elf32_Ehdr));
 
-        create_section("", 0, 0, 0, SHT_NULL);
+        create_section("", 0, 0, 0, SHT_NULL, 0);
     }
 
     size_t append_section(
@@ -49,15 +49,15 @@ public:
         std::cout << "ElfGenerator::create_section name='" << name << "' address=" << address << " offset=" << offset << " size=" << size << '\n';
 
         Elf32_Shdr shdr;
-        shdr.sh_addr = 0;
+        shdr.sh_addr = address;
         shdr.sh_addralign = 4;
         shdr.sh_entsize = 0;
         shdr.sh_flags = flags;
         shdr.sh_info = 0;
         shdr.sh_link = 0;
         shdr.sh_name = append_section_name(name);
-        shdr.sh_offset = m_stream.offset();
-        shdr.sh_size = 0;
+        shdr.sh_offset = offset;
+        shdr.sh_size = size;
         shdr.sh_type = type;
         
         size_t index = m_sections.size();
@@ -101,6 +101,8 @@ private:
 
     size_t append_shstrtab_section()
     {
+        // FIXME: Move this to append_section_data
+
         size_t index = create_section(".shstrtab", 0, 0, 0, SHT_STRTAB, 0);
         auto& section = m_sections[index];
 
