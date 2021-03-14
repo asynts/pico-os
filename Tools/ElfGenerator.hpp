@@ -83,15 +83,39 @@ public:
 private:
     size_t append_section_name(std::string_view name)
     {
+        std::cout << "ElfGenerator::append_section_name Writing '" << name << "'\n";
+
         size_t offset = m_shstrtab_stream.offset();
         m_shstrtab_stream.write_bytes({ (const uint8_t*)name.data() , name.size() });
-        m_shstrtab_stream.write_object((uint8_t)0);
+
+        std::cout << "ElfGenerator::append_section_name before offset=" << m_shstrtab_stream.offset() << '\n';
+
+        uint8_t null_terminator = 0;
+        static_assert(sizeof(null_terminator) == 1);
+        m_shstrtab_stream.write_object(null_terminator);
+
+        std::cout << "ElfGenerator::append_section_name after offset=" << m_shstrtab_stream.offset() << '\n';
+
         return offset;
+    }
+
+    size_t append_shstrtab_section()
+    {
+        size_t index = create_section(".shstrtab", 0, 0, 0, SHT_STRTAB, 0);
+        auto& section = m_sections[index];
+
+        size_t offset = m_stream.write_bytes(m_shstrtab_stream);
+
+        section.sh_addr = offset - sizeof(Elf32_Ehdr);
+        section.sh_offset = offset;
+        section.sh_size = m_shstrtab_stream.size();
+
+        return index;
     }
 
     void encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        shstrtab_section_index = append_section(".shstrtab", m_shstrtab_stream, SHT_STRTAB, 0);
+        shstrtab_section_index = append_shstrtab_section();
 
         printf("Putting sections at %zu\n", m_stream.offset());
         section_offset = m_stream.offset();

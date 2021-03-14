@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+// FIXME
+#include <iostream>
+
 inline std::span<const uint8_t> mmap_file(std::filesystem::path path)
 {
     int fd = open(path.c_str(), O_RDONLY);
@@ -74,6 +77,11 @@ public:
             size_t nread = fread(buffer, 1, sizeof(buffer), other.m_file);
             size_t nwritten = fwrite(buffer, 1, nread, m_file);
             assert(nread == nwritten);
+
+            printf("BufferStream::write_bytes forwarded %zu bytes\n", nread);
+
+            if (nread == 36)
+                std::cout << "\"" << std::string_view { buffer, nread } << "\"\n";
         }
 
         other.seek(offset);
