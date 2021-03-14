@@ -18,6 +18,8 @@ public:
         create_section("", 0, 0, 0, SHT_NULL, 0);
     }
 
+    Elf32_Shdr& section(size_t index) { return m_sections[index]; }
+
     size_t append_section(
         std::string_view name,
         BufferStream& stream,
