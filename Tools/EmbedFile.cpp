@@ -32,6 +32,13 @@ void write_output_file(std::filesystem::path path, BufferStream& stream)
 
 int main()
 {
+    // FIXME: I think the problem is that this relocation is marked to break unless compiled with -fpic and
+    //        that is somehow kept in the relocatable?
+    // 
+    // $ arm-none-eabi-ld Output.elf -o Linked.elf
+    // arm-none-eabi-ld: warning: cannot find entry symbol _start; defaulting to 0000000000008000
+    // Output.elf:(.data+0x4): dangerous relocation: unsupported relocation
+
     ElfGenerator elf_generator;
 
     size_t data_section_index;
@@ -59,6 +66,12 @@ int main()
         BufferStream symtab_stream;
 
         Elf32_Sym undefined_symbol;
+        undefined_symbol.st_name = 0;
+        undefined_symbol.st_value = 0;
+        undefined_symbol.st_size = 0;
+        undefined_symbol.st_info = 0;
+        undefined_symbol.st_other = 0;
+        undefined_symbol.st_shndx = SHN_UNDEF;
         symtab_stream.write_object(undefined_symbol);
 
         Elf32_Sym section_symbol;
@@ -75,6 +88,7 @@ int main()
 
         symbol_section.sh_entsize = sizeof(Elf32_Sym);
         symbol_section.sh_link = strtab_section_index;
+        symbol_section.sh_info = 2;
     }
 
     size_t rel_section_index;
@@ -83,7 +97,7 @@ int main()
 
         Elf32_Rel target_relocation;
         target_relocation.r_offset = 4; // target
-        target_relocation.r_info = ELF32_R_INFO(0, R_ARM_BASE_ABS);
+        target_relocation.r_info = ELF32_R_INFO(1, R_ARM_BASE_ABS);
         rel_stream.write_object(target_relocation);
 
         rel_section_index = elf_generator.append_section(".rel.data", rel_stream, SHT_REL, 0);
