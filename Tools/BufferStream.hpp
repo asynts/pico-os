@@ -3,10 +3,13 @@
 #include <cassert>
 #include <utility>
 #include <span>
+#include <filesystem>
 
 #include <sys/mman.h>
-#include <stdio.h>
+#include <sys/stat.h>
+#include <cstdio>
 #include <unistd.h>
+#include <fcntl.h>
 
 inline std::span<const uint8_t> mmap_file(int fd)
 {
