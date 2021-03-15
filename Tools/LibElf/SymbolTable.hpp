@@ -14,6 +14,7 @@ namespace Elf
         SymbolTable(std::string_view name_suffix, size_t target_index);
 
         size_t add_symbol(std::string_view name, Elf32_Sym);
+        size_t add_undefined_symbol(std::string_view name, Elf32_Sym);
 
         void add_relocation(Elf32_Rel);
         void add_relocation(Elf32_Rela);

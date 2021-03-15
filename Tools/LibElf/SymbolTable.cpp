@@ -29,6 +29,13 @@ namespace Elf
         m_symtab_stream.write_object(symbol);
         return m_next_index++;
     }
+    size_t SymbolTable::add_undefined_symbol(std::string_view name, Elf32_Sym symbol)
+    {
+        symbol.st_shndx = 0;
+        symbol.st_name = m_string_table.add_entry(name);
+        m_symtab_stream.write_object(symbol);
+        return m_next_index++;
+    }
     void SymbolTable::add_relocation(Elf32_Rel relocation)
     {
         m_rel_stream.write_object(relocation);
