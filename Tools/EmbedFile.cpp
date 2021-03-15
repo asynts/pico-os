@@ -6,6 +6,8 @@
 #include <LibElf/MemoryStream.hpp>
 #include <LibElf/SymbolTable.hpp>
 
+#include "FileSystem.hpp"
+
 static void write_output_file(std::filesystem::path path, Elf::MemoryStream& stream)
 {
     int fd = creat(path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
