@@ -33,6 +33,12 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 
     size_t data_offset = m_data_stream.write_bytes(data);
     size_t max_data_offset = data_offset + data.size();
+    size_t data_symbol = m_data_symtab->add_symbol(fmt::format("fs:data:{}", path), Elf32_Sym {
+        .st_value = (uint32_t)data_offset,
+        .st_size = (uint32_t)data.size(),
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE),
+        .st_other = STV_DEFAULT,
+    });
 
     IndexNode inode;
     inode.m_inode = m_next_inode++;
@@ -41,13 +47,21 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
     inode.m_device_id = FLASH_DEVICE_ID;
     inode.m_block_size = FLASH_BLOCK_SIZE;
 
+    std::vector<Elf32_Rel> inode_relocations;
+
     inode.m_direct_blocks[0] = data_offset;
     data_offset += FLASH_BLOCK_SIZE;
+    inode_relocations.push_back(Elf32_Rel {
+        .r_offset = offsetof(IndexNode, m_direct_blocks),
+        .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
+    });
 
     size_t indirect_block_index = 0;
     while (data_offset < max_data_offset)
     {
         uint32_t blocks[FLASH_BLOCK_ENTRIES];
+
+        std::vector<Elf32_Rel> blocks_relocations;
 
         for (size_t index = 0; index < FLASH_BLOCK_ENTRIES; ++index)
         {
@@ -56,14 +70,44 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
             
             blocks[index] = data_offset;
             data_offset += FLASH_BLOCK_SIZE;
+            blocks_relocations.push_back(Elf32_Rel {
+                .r_offset = (uint32_t) (index * sizeof(uint32_t)),
+                .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
+            });
         }
 
-        inode.m_indirect_blocks[indirect_block_index] = m_data_stream.write_bytes({ (const uint8_t*)blocks, sizeof(blocks) });
+        size_t blocks_offset = m_data_stream.write_bytes({ (const uint8_t*)blocks, sizeof(blocks) });
+        size_t blocks_symbol = m_data_symtab->add_symbol(fmt::format("fs:iblock:{}:{}", indirect_block_index, path), Elf32_Sym {
+            .st_name = 0,
+            .st_value = (uint32_t)blocks_offset,
+            .st_size = sizeof(blocks),
+            .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE),
+            .st_other = STV_DEFAULT,
+        });
+
+        for (Elf32_Rel& relocation : blocks_relocations) {
+            relocation.r_offset += blocks_offset;
+            m_data_symtab->add_relocation(relocation);
+        }
+
+        inode.m_indirect_blocks[indirect_block_index] = blocks_offset;
+        inode_relocations.push_back(Elf32_Rel {
+            .r_offset = (uint32_t) (offsetof(IndexNode, m_indirect_blocks) + indirect_block_index * sizeof(uint32_t)),
+            .r_info = ELF32_R_INFO(blocks_symbol, R_ARM_ABS32),
+        });
+
+        ++indirect_block_index;
     }
 
     size_t inode_offset = m_data_stream.write_object(inode);
 
-    m_data_symtab->add_symbol(fmt::format("flash-fs:{}", path), Elf32_Sym {
+    for (Elf32_Rel& relocation : inode_relocations)
+    {
+        relocation.r_offset += inode_offset;
+        m_data_symtab->add_relocation(relocation);
+    }
+
+    m_data_symtab->add_symbol(fmt::format("fs:inode:{}", path), Elf32_Sym {
         .st_value = static_cast<uint32_t>(inode_offset),
         .st_size = sizeof(IndexNode),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE),

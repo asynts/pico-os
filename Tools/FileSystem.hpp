@@ -16,9 +16,7 @@ public:
 
 private:
     std::optional<Elf::SymbolTable> m_data_symtab;
-    std::optional<Elf::SymbolTable> m_tab_symtab;
     std::optional<size_t> m_data_index;
-    std::optional<size_t> m_tab_index;
 
     Elf::MemoryStream m_data_stream;
     Elf::MemoryStream m_tab_stream;
