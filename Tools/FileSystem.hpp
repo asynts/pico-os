@@ -1,6 +1,5 @@
 #pragma once
 
-#include <filesystem>
 #include <span>
 #include <optional>
 
@@ -11,7 +10,7 @@ class FileSystem {
 public:
     explicit FileSystem(Elf::Generator& generator);
 
-    void add_file(std::filesystem::path, std::span<const uint8_t>);
+    void add_file(std::string_view, std::span<const uint8_t>);
 
     void finalize() &&;
 

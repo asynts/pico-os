@@ -11,7 +11,7 @@ namespace Elf
 {
     class SymbolTable {
     public:
-        explicit SymbolTable(std::string_view name_suffix, size_t target_index);
+        SymbolTable(std::string_view name_suffix, size_t target_index);
 
         size_t add_symbol(std::string_view name, Elf32_Sym);
 
