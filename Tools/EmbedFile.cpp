@@ -97,7 +97,7 @@ int main()
 
         Elf32_Rel target_relocation;
         target_relocation.r_offset = 4; // target
-        target_relocation.r_info = ELF32_R_INFO(1, R_ARM_BASE_ABS);
+        target_relocation.r_info = ELF32_R_INFO(1, R_ARM_ABS32);
         rel_stream.write_object(target_relocation);
 
         rel_section_index = elf_generator.append_section(".rel.data", rel_stream, SHT_REL, 0);
