@@ -1,53 +1,46 @@
-#pragma once
-
-#include <cassert>
-#include <utility>
-#include <span>
-#include <filesystem>
-
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <cstdio>
-#include <unistd.h>
 #include <fcntl.h>
+#include <assert.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-inline std::span<const uint8_t> mmap_file(std::filesystem::path path)
+#include "MemoryStream.hpp"
+
+namespace Elf
 {
-    int fd = open(path.c_str(), O_RDONLY);
-    assert(fd >= 0);
-
-    struct stat statbuf;
-
-    int retval = fstat(fd, &statbuf);
-    assert(retval == 0);
-
-    void *pointer = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    assert(pointer != MAP_FAILED);
-
-    return { (const uint8_t*)pointer, (size_t)statbuf.st_size };
-}
-
-class BufferStream {
-public:
-    BufferStream()
+    std::span<const uint8_t> mmap_file(std::filesystem::path path)
     {
-        int fd = memfd_create("BufferStream", 0);
+        int fd = open(path.c_str(), O_RDONLY);
+        assert(fd >= 0);
+
+        struct stat statbuf;
+
+        int retval = fstat(fd, &statbuf);
+        assert(retval == 0);
+
+        void *pointer = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        assert(pointer != MAP_FAILED);
+
+        return { (const uint8_t*)pointer, (size_t)statbuf.st_size };
+    }
+    MemoryStream::MemoryStream()
+    {
+        int fd = memfd_create("MemoryStream", 0);
         assert(fd >= 0);
 
         m_file = fdopen(fd, "w");
         assert(m_file != nullptr);
     }
-    ~BufferStream()
+    MemoryStream::~MemoryStream()
     {
         if (m_file)
             fclose(m_file);
     }
-    BufferStream(BufferStream&& other)
+    MemoryStream::MemoryStream(MemoryStream&& other)
     {
         m_file = std::exchange(other.m_file, nullptr);
     }
-
-    size_t write_bytes(std::span<const uint8_t> bytes)
+    size_t MemoryStream::write_bytes(std::span<const uint8_t> bytes)
     {
         size_t offset = this->offset();
 
@@ -56,8 +49,7 @@ public:
 
         return offset;
     }
-
-    size_t write_bytes(BufferStream& other)
+    size_t MemoryStream::write_bytes(MemoryStream& other)
     {
         size_t base_offset = this->offset();
 
@@ -76,21 +68,13 @@ public:
 
         return base_offset;
     }
-
-    template<typename T>
-    size_t write_object(const T& value)
-    {
-        return write_bytes({ (const uint8_t*)&value, sizeof(value) });
-    }
-
-    size_t offset()
+    size_t MemoryStream::offset()
     {
         long offset = ftell(m_file);
         assert(offset >= 0);
         return (size_t)offset;
     }
-
-    size_t size()
+    size_t MemoryStream::size()
     {
         int retval;
 
@@ -106,27 +90,21 @@ public:
 
         return size;
     }
-
-    void seek(size_t offset)
+    void MemoryStream::seek(size_t offset)
     {
         int retval = fseek(m_file, offset, SEEK_SET);
         assert(retval == 0);
     }
-
-    void seek_relative(ssize_t offset)
+    void MemoryStream::seek_relative(ssize_t offset)
     {
         int retval = fseek(m_file, offset, SEEK_CUR);
         assert(retval == 0);
     }
-
-    void copy_to_raw_fd(int fd)
+    void MemoryStream::copy_to_raw_fd(int fd)
     {
         off_t input_offset = 0;
 
         ssize_t retval = copy_file_range(fileno(m_file), &input_offset, fd, nullptr, size(), 0);
         assert(retval == size());
     }
-
-private:
-    FILE *m_file;
-};
+}

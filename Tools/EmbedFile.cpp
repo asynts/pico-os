@@ -1,25 +1,11 @@
-#include "BufferStream.hpp"
-#include "ElfGenerator.hpp"
-#include "FileSystemGenerator.hpp"
-
-#include <cstdio>
-#include <string_view>
-#include <span>
-#include <filesystem>
-#include <vector>
-#include <string>
-#include <cstring>
-#include <iostream>
-
 #include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <elf.h>
-#include <unistd.h>
-#include <bsd/string.h>
 #include <assert.h>
+#include <unistd.h>
 
-void write_output_file(std::filesystem::path path, BufferStream& stream)
+#include <LibElf/Generator.hpp>
+#include <LibElf/MemoryStream.hpp>
+
+static void write_output_file(std::filesystem::path path, Elf::MemoryStream& stream)
 {
     int fd = creat(path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(fd >= 0);
@@ -32,18 +18,11 @@ void write_output_file(std::filesystem::path path, BufferStream& stream)
 
 int main()
 {
-    // FIXME: I think the problem is that this relocation is marked to break unless compiled with -fpic and
-    //        that is somehow kept in the relocatable?
-    // 
-    // $ arm-none-eabi-ld Output.elf -o Linked.elf
-    // arm-none-eabi-ld: warning: cannot find entry symbol _start; defaulting to 0000000000008000
-    // Output.elf:(.data+0x4): dangerous relocation: unsupported relocation
-
-    ElfGenerator elf_generator;
+    Elf::Generator elf_generator;
 
     size_t data_section_index;
     {
-        BufferStream data_stream;
+        Elf::MemoryStream data_stream;
         data_stream.write_object<uint32_t>(0);
         data_stream.write_object<uint32_t>(32); // target
         data_stream.write_object<uint32_t>(0);
@@ -54,7 +33,7 @@ int main()
 
     size_t strtab_section_index;
     {
-        BufferStream strtab_stream;
+        Elf::MemoryStream strtab_stream;
         strtab_stream.write_object<uint8_t>(0);
         strtab_stream.write_bytes({ (const uint8_t*)"data\0", 5 });
 
@@ -63,7 +42,7 @@ int main()
 
     size_t symtab_section_index;
     {
-        BufferStream symtab_stream;
+        Elf::MemoryStream symtab_stream;
 
         Elf32_Sym undefined_symbol;
         undefined_symbol.st_name = 0;
@@ -93,7 +72,7 @@ int main()
 
     size_t rel_section_index;
     {
-        BufferStream rel_stream;
+        Elf::MemoryStream rel_stream;
 
         Elf32_Rel target_relocation;
         target_relocation.r_offset = 4; // target

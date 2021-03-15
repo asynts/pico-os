@@ -9,6 +9,11 @@ project(Tools CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-fdiagnostics-color=always)
+include_directories(.)
+
+file(GLOB_RECURSE LIBELF_SOURCES LibElf/*.cpp)
+
+add_library(LibElf ${LIBELF_SOURCES})
 
 add_executable(EmbedFile EmbedFile.cpp)
-target_link_libraries(EmbedFile bsd)
+target_link_libraries(EmbedFile bsd LibElf)
