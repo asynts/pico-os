@@ -16,17 +16,8 @@ namespace Elf
 
         Elf32_Shdr& section(size_t index) { return m_sections[index]; }
 
-        size_t append_section(
-            std::string_view name,
-            MemoryStream& stream,
-            Elf32_Word type = SHT_PROGBITS,
-            Elf32_Word flags = SHF_ALLOC);
-
-        size_t create_section(
-            std::string_view name,
-            Elf32_Word type = SHT_PROGBITS,
-            Elf32_Word flags = SHF_ALLOC);
-
+        size_t append_section(std::string_view name, MemoryStream& stream, Elf32_Word type, Elf32_Word flags);
+        size_t create_section(std::string_view name, Elf32_Word type, Elf32_Word flags);
         void write_section(size_t section_index, MemoryStream&);
 
         MemoryStream finalize() &&;

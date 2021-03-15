@@ -5,6 +5,8 @@
 #include "SymbolTable.hpp"
 #include "Generator.hpp"
 
+// FIXME: I think I messed up the target index thing
+
 namespace Elf
 {
     SymbolTable::SymbolTable(std::string_view name_suffix, size_t target_index)
@@ -12,9 +14,17 @@ namespace Elf
         , m_string_table(fmt::format(".strtab.{}", name_suffix))
         , m_target_index(target_index)
     {
+        Elf32_Sym undefined_symbol;
+        undefined_symbol.st_info = 0;
+        undefined_symbol.st_other = 0;
+        undefined_symbol.st_shndx = SHN_UNDEF;
+        undefined_symbol.st_size = 0;
+        undefined_symbol.st_value = 0;
+        add_symbol("", undefined_symbol);
     }
     size_t SymbolTable::add_symbol(std::string_view name, Elf32_Sym symbol)
     {
+        symbol.st_shndx = m_target_index;
         symbol.st_name = m_string_table.add_entry(name);
         m_symtab_stream.write_object(symbol);
         return m_next_index++;

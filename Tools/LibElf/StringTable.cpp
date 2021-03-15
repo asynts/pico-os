@@ -9,7 +9,6 @@ namespace Elf
     StringTable::StringTable(const std::string& name)
         : m_name(name)
     {
-        add_entry("");
     }
     size_t StringTable::add_entry(std::string_view name)
     {
