@@ -1,15 +1,13 @@
 #include <assert.h>
 #include <elf.h>
 
-#include <fmt/format.h>
-
 #include "StringTable.hpp"
 #include "Generator.hpp"
 
 namespace Elf
 {
-    StringTable::StringTable(std::string_view name_suffix)
-        : m_name_suffix(name_suffix)
+    StringTable::StringTable(const std::string& name)
+        : m_name(name)
     {
         add_entry("");
     }
@@ -25,7 +23,7 @@ namespace Elf
         m_applied = true;
 
         // We do this in two steps, because this might be the .shstrtab string table
-        m_strtab_index = generator.create_section(fmt::format(".strtab.{}", m_name_suffix), SHT_STRTAB, 0);
+        m_strtab_index = generator.create_section(m_name, SHT_STRTAB, 0);
         generator.write_section(m_strtab_index.value(), m_strtab_stream);
     }
 }

@@ -9,7 +9,7 @@ namespace Elf
 {
     SymbolTable::SymbolTable(std::string_view name_suffix, size_t target_index)
         : m_name_suffix(name_suffix)
-        , m_string_table(name_suffix)
+        , m_string_table(fmt::format(".strtab.{}", name_suffix))
         , m_target_index(target_index)
     {
     }

@@ -14,6 +14,7 @@ include_directories(.)
 file(GLOB_RECURSE LIBELF_SOURCES LibElf/*.cpp)
 
 add_library(LibElf ${LIBELF_SOURCES})
+target_link_libraries(LibElf fmt)
 
 add_executable(EmbedFile EmbedFile.cpp)
 target_link_libraries(EmbedFile bsd LibElf)

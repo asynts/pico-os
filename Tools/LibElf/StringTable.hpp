@@ -11,7 +11,7 @@ namespace Elf
 
     class StringTable {
     public:
-        explicit StringTable(std::string_view name_suffix);
+        explicit StringTable(const std::string& name);
 
         size_t add_entry(std::string_view);
 
@@ -22,7 +22,7 @@ namespace Elf
     private:
         MemoryStream m_strtab_stream;
 
-        std::string_view m_name_suffix;
+        std::string m_name;
         bool m_applied = false;
         std::optional<size_t> m_strtab_index;
     };

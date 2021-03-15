@@ -6,6 +6,7 @@
 namespace Elf
 {
     Generator::Generator()
+        : m_shstrtab(".shstrtab")
     {
         // We write the elf header in ElfGenerator::finalize
         m_stream.seek(sizeof(Elf32_Ehdr));
@@ -27,7 +28,7 @@ namespace Elf
         shdr.sh_flags = flags;
         shdr.sh_info = 0;
         shdr.sh_link = 0;
-        shdr.sh_name = append_section_name(name);
+        shdr.sh_name = m_shstrtab.add_entry(name);
         shdr.sh_offset = 0;
         shdr.sh_size = 0;
         shdr.sh_type = type;
@@ -40,8 +41,8 @@ namespace Elf
     {
         auto& section = this->section(section_index);
 
-        section.sh_addr = stream.offset() - sizeof(Elf32_Ehdr);
-        section.sh_offset = stream.offset();
+        section.sh_addr = m_stream.offset() - sizeof(Elf32_Ehdr);
+        section.sh_offset = m_stream.offset();
         section.sh_size = stream.size();
 
         m_stream.write_bytes(stream);
@@ -54,39 +55,15 @@ namespace Elf
         size_t section_offset;
         size_t shstrtab_section_index;
         encode_sections(section_offset, shstrtab_section_index);
-
         encode_header(section_offset, shstrtab_section_index);
 
         m_stream.seek(0);
         return std::move(m_stream);
     }
-    size_t Generator::append_section_name(std::string_view name)
-    {
-        size_t offset = m_shstrtab_stream.offset();
-        m_shstrtab_stream.write_bytes({ (const uint8_t*)name.data() , name.size() });
-
-        uint8_t null_terminator = 0;
-        static_assert(sizeof(null_terminator) == 1);
-        m_shstrtab_stream.write_object(null_terminator);
-
-        return offset;
-    }
-    size_t Generator::append_shstrtab_section()
-    {
-        size_t index = create_section(".shstrtab", SHT_STRTAB, 0);
-        auto& section = m_sections[index];
-
-        size_t offset = m_stream.write_bytes(m_shstrtab_stream);
-
-        section.sh_addr = offset - sizeof(Elf32_Ehdr);
-        section.sh_offset = offset;
-        section.sh_size = m_shstrtab_stream.size();
-
-        return index;
-    }
     void Generator::encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        shstrtab_section_index = append_shstrtab_section();
+        m_shstrtab.apply(*this);
+        shstrtab_section_index = m_shstrtab.strtab_index();
 
         section_offset = m_stream.offset();
 
