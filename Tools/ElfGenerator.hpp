@@ -3,10 +3,120 @@
 #include <cassert>
 #include <vector>
 #include <cstring>
+#include <fmt/format.h>
 
 #include <elf.h>
 
 #include "BufferStream.hpp"
+
+class StringTable {
+public:
+    explicit StringTable(std::string_view name_suffix)
+        : m_name_suffix(name_suffix)
+    {
+        add_entry("");
+    }
+
+    size_t add_entry(std::string_view name)
+    {
+        size_t offset = m_strtab_stream.write_bytes({ (const uint8_t*)name.data(), name.size() });
+        m_strtab_stream.write_object<uint8_t>(0);
+        return offset;
+    }
+
+    void apply(ElfGenerator& generator)
+    {
+        assert(!m_applied);
+        m_applied = true;
+
+        // We do this in two steps, because this might be the .shstrtab string table
+        m_strtab_index = generator.create_section(fmt::format(".strtab.{}", m_name_suffix), SHT_STRTAB, 0);
+        generator.write_section(m_strtab_index, m_strtab_stream);
+    }
+
+    size_t strtab_index()
+    {
+        return m_strtab_index.value();
+    }
+
+private:
+    BufferStream m_strtab_stream;
+
+    std::string_view m_name_suffix;
+    bool m_applied = false;
+    std::optional<size_t> m_strtab_index;
+};
+
+class SymbolTable {
+public:
+    explicit SymbolTable(std::string_view name_suffix, size_t target_index)
+        : m_name_suffix(name_suffix)
+        , m_string_table(name_suffix)
+        , m_target_index(target_index)
+    {
+    }
+
+    size_t add_symbol(std::string_view name, Elf32_Sym symbol)
+    {
+        symbol.st_name = m_string_table.add_entry(name);
+        m_symtab_stream.write_object(symbol);
+        return m_next_index++;
+    }
+
+    void add_relocation(Elf32_Rel relocation)
+    {
+        m_rel_stream.write_object(relocation);
+    }
+
+    void add_relocation(Elf32_Rela relocation)
+    {
+        m_rel_stream.write_object(relocation);
+    }
+
+    void apply(ElfGenerator& generator)
+    {
+        assert(!m_applied);
+        m_applied = true;
+
+        m_string_table.apply(generator);
+
+        m_symtab_index = generator.append_section(fmt::format(".symtab.{}", m_name_suffix), m_symtab_stream, SHT_SYMTAB, 0);
+        auto& symtab_section = generator.section(m_symtab_index.value());
+
+        symtab_section.sh_entsize = sizeof(Elf32_Sym);
+        symtab_section.sh_link = m_string_table.strtab_index();
+        symtab_section.sh_info = m_next_index;
+
+        m_rel_index = generator.append_section(fmt::format(".rel.{}", m_name_suffix), m_rel_stream, SHT_REL, 0);
+        auto& rel_section = generator.section(m_rel_index.value());
+
+        rel_section.sh_entsize = sizeof(Elf32_Rel);
+        rel_section.sh_link = m_symtab_index;
+        rel_section.sh_info = m_target_index;
+
+        m_rela_index = generator.append_section(fmt::format(".rela.{}", m_name_suffix), m_rela_stream, SHT_RELA, 0);
+        auto& rela_section = generator.section(m_rela_index.value());
+
+        rela_section.sh_entsize = sizeof(Elf32_Rela);
+        rela_section.sh_link = m_symtab_index;
+        rela_section.sh_info = m_target_index;
+    }
+
+private:
+    StringTable m_string_table;
+    BufferStream m_symtab_stream;
+    BufferStream m_rel_stream;
+    BufferStream m_rela_stream;
+
+    std::string_view m_name_suffix;
+    size_t m_next_index = 0;
+    bool m_applied = false;
+
+    size_t m_target_index;
+    std::optional<size_t> m_symtab_index;
+    std::optional<size_t> m_rel_index;
+    std::optional<size_t> m_rela_index;
+};
 
 class ElfGenerator {
 public:
@@ -15,7 +125,7 @@ public:
         // We write the elf header in ElfGenerator::finalize
         m_stream.seek(sizeof(Elf32_Ehdr));
 
-        create_section("", 0, 0, 0, SHT_NULL, 0);
+        create_section("", SHT_NULL, 0);
     }
 
     Elf32_Shdr& section(size_t index) { return m_sections[index]; }
@@ -26,38 +136,42 @@ public:
         Elf32_Word type = SHT_PROGBITS,
         Elf32_Word flags = SHF_ALLOC)
     {
-        Elf32_Addr address = m_stream.offset() - sizeof(Elf32_Ehdr);
-        Elf32_Off offset = m_stream.offset();
-        Elf32_Word size = stream.size();
-
-        m_stream.write_bytes(stream);
-
-        return create_section(name, address, offset, size, type, flags);
+        size_t index = create_section(name, type, flags);
+        write_section(index, stream);
+        return index;
     }
 
     size_t create_section(
         std::string_view name,
-        Elf32_Addr address,
-        Elf32_Off offset,
-        Elf32_Word size,
         Elf32_Word type = SHT_PROGBITS,
         Elf32_Word flags = SHF_ALLOC)
     {
         Elf32_Shdr shdr;
-        shdr.sh_addr = address;
+        shdr.sh_addr = 0;
         shdr.sh_addralign = 4;
         shdr.sh_entsize = 0;
         shdr.sh_flags = flags;
         shdr.sh_info = 0;
         shdr.sh_link = 0;
         shdr.sh_name = append_section_name(name);
-        shdr.sh_offset = offset;
-        shdr.sh_size = size;
+        shdr.sh_offset = 0;
+        shdr.sh_size = 0;
         shdr.sh_type = type;
         
         size_t index = m_sections.size();
         m_sections.push_back(shdr);
         return index;
+    }
+
+    void write_section(size_t section_index, BufferStream& stream)
+    {
+        auto& section = this->section(section_index);
+
+        section.sh_addr = stream.offset() - sizeof(Elf32_Ehdr);
+        section.sh_offset = stream.offset();
+        section.sh_size = stream.size();
+
+        m_stream.write_bytes(stream);
     }
 
     BufferStream finalize() &&
@@ -90,7 +204,7 @@ private:
 
     size_t append_shstrtab_section()
     {
-        size_t index = create_section(".shstrtab", 0, 0, 0, SHT_STRTAB, 0);
+        size_t index = create_section(".shstrtab", SHT_STRTAB, 0);
         auto& section = m_sections[index];
 
         size_t offset = m_stream.write_bytes(m_shstrtab_stream);
