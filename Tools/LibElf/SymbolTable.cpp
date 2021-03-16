@@ -8,12 +8,16 @@
 namespace Elf
 {
     SymbolTable::SymbolTable(Generator& generator, std::string_view name_suffix)
-        : m_name_suffix(name_suffix)
-        , m_string_table(fmt::format(".strtab{}", name_suffix))
+        : m_generator(generator)
+        , m_name_suffix(name_suffix)
+        , m_string_table(generator, fmt::format(".strtab{}", name_suffix))
     {
         create_undefined_symbol();
 
         m_symtab_index = generator.create_section(fmt::format(".symtab{}", m_name_suffix), SHT_SYMTAB, 0);
+        auto& symtab_section = m_generator.section(*m_symtab_index);
+        symtab_section.sh_entsize = sizeof(Elf32_Sym);
+        symtab_section.sh_link = m_string_table.strtab_index();
     }
     void SymbolTable::create_undefined_symbol()
     {
@@ -41,18 +45,15 @@ namespace Elf
         m_symtab_stream.write_object(symbol);
         return m_next_index++;
     }
-    void SymbolTable::apply(Generator& generator)
+    void SymbolTable::apply()
     {
         assert(!m_applied);
         m_applied = true;
 
-        m_string_table.apply(generator);
+        m_string_table.apply();
 
-        generator.write_section(*m_symtab_index, m_symtab_stream);
-        auto& symtab_section = generator.section(m_symtab_index.value());
-
-        symtab_section.sh_entsize = sizeof(Elf32_Sym);
-        symtab_section.sh_link = m_string_table.strtab_index();
+        m_generator.write_section(*m_symtab_index, m_symtab_stream);
+        auto& symtab_section = m_generator.section(m_symtab_index.value());
         symtab_section.sh_info = m_next_index;
     }   
 }

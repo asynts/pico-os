@@ -6,10 +6,12 @@
 
 namespace Elf
 {
-    StringTable::StringTable(const std::string& name)
-        : m_name(name)
+    StringTable::StringTable(Generator& generator, std::string_view name)
+        : m_generator(generator)
     {
         create_undefined_entry();
+
+        m_strtab_index = m_generator.create_section(name, SHT_STRTAB, 0);
     }
     void StringTable::create_undefined_entry()
     {
@@ -21,13 +23,8 @@ namespace Elf
         m_strtab_stream.write_object<uint8_t>(0);
         return offset;
     }
-    void StringTable::apply(Generator& generator)
+    void StringTable::apply()
     {
-        assert(!m_applied);
-        m_applied = true;
-
-        // We do this in two steps, because this might be the .shstrtab string table
-        m_strtab_index = generator.create_section(m_name, SHT_STRTAB, 0);
-        generator.write_section(m_strtab_index.value(), m_strtab_stream);
+        m_generator.write_section(m_strtab_index.value(), m_strtab_stream);
     }
 }

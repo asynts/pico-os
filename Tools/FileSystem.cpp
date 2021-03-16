@@ -30,11 +30,11 @@ static_assert(sizeof(FlashEntry) == 256);
 FileSystem::FileSystem(Elf::Generator& generator)
     : m_generator(generator)
 {
-    m_data_index = generator.create_section(".embed", SHT_PROGBITS, SHF_ALLOC);
-    m_data_relocs.emplace(".embed", generator.symtab().symtab_index(), *m_data_index);
+    m_data_index = m_generator.create_section(".embed", SHT_PROGBITS, SHF_ALLOC);
+    m_data_relocs.emplace(m_generator, ".embed", generator.symtab().symtab_index(), *m_data_index);
 
-    m_tab_index = generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
-    m_tab_relocs.emplace(".embed.tab", generator.symtab().symtab_index(), *m_tab_index);
+    m_tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
+    m_tab_relocs.emplace(m_generator, ".embed.tab", generator.symtab().symtab_index(), *m_tab_index);
 }
 void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 {
@@ -142,8 +142,8 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 }
 void FileSystem::finalize() &&
 {
-    m_data_relocs->apply(m_generator);
-    m_tab_relocs->apply(m_generator);
+    m_data_relocs->apply();
+    m_tab_relocs->apply();
 
     m_generator.write_section(m_data_index.value(), m_data_stream);
     m_generator.write_section(m_tab_index.value(), m_tab_stream);

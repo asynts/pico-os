@@ -11,21 +11,21 @@ namespace Elf
 
     class StringTable {
     public:
-        explicit StringTable(const std::string& name);
+        explicit StringTable(Generator&, std::string_view name);
 
         size_t add_entry(std::string_view);
 
-        void apply(Generator&);
+        void apply();
 
         size_t strtab_index() const { return m_strtab_index.value(); }
 
     private:
         void create_undefined_entry();
 
+        Generator& m_generator;
+
         MemoryStream m_strtab_stream;
 
-        std::string m_name;
-        bool m_applied = false;
         std::optional<size_t> m_strtab_index;
     };
 }

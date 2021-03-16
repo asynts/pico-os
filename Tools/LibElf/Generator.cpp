@@ -14,7 +14,7 @@ namespace Elf
 
         create_undefined_section();
 
-        m_shstrtab.emplace(".shstrtab");
+        m_shstrtab.emplace(*this, ".shstrtab");
         m_symtab.emplace(*this, "");
     }
     void Generator::create_undefined_section()
@@ -81,8 +81,8 @@ namespace Elf
     }
     void Generator::encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        m_symtab->apply(*this);
-        m_shstrtab->apply(*this);
+        m_symtab->apply();
+        m_shstrtab->apply();
 
         shstrtab_section_index = m_shstrtab->strtab_index();
 

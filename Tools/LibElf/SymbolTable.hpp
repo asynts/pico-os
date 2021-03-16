@@ -18,12 +18,14 @@ namespace Elf
         size_t add_symbol(std::string_view name, Elf32_Sym);
         size_t add_undefined_symbol(std::string_view name, Elf32_Sym);
 
-        void apply(Generator& generator);
+        void apply();
     
         size_t symtab_index() { return m_symtab_index.value(); }
 
     private:
         void create_undefined_symbol();
+
+        Generator& m_generator;
 
         StringTable m_string_table;
         MemoryStream m_symtab_stream;
