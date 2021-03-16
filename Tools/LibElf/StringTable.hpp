@@ -12,10 +12,11 @@ namespace Elf
     class StringTable {
     public:
         explicit StringTable(Generator&, std::string_view name);
+        ~StringTable();
 
         size_t add_entry(std::string_view);
 
-        void apply();
+        void finalize();
 
         size_t strtab_index() const { return m_strtab_index.value(); }
 
@@ -23,6 +24,7 @@ namespace Elf
         void create_undefined_entry();
 
         Generator& m_generator;
+        bool m_finalized = false;
 
         MemoryStream m_strtab_stream;
 

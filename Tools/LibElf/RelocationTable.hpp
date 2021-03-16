@@ -14,11 +14,12 @@ namespace Elf
     class RelocationTable {
     public:
         RelocationTable(Generator&, std::string_view name_suffix, size_t symtab_index, size_t target_index);
+        ~RelocationTable();
 
         void add_entry(Elf32_Rel);
         void add_entry(Elf32_Rela);
 
-        void apply();
+        void finalize();
 
         size_t symtab_index() { return m_symtab_index; }
         size_t target_index() { return m_target_index; }
@@ -27,6 +28,7 @@ namespace Elf
 
     private:
         Generator& m_generator;
+        bool m_finalized = false;
 
         MemoryStream m_rel_stream;
         MemoryStream m_rela_stream;

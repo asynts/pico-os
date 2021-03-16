@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include <fmt/format.h>
 
 #include "Generator.hpp"
@@ -23,6 +25,10 @@ namespace Elf
         rela_section.sh_link = m_symtab_index;
         rela_section.sh_info = m_target_index;
     }
+    RelocationTable::~RelocationTable()
+    {
+        assert(m_finalized);
+    }
     void RelocationTable::add_entry(Elf32_Rel relocation)
     {
         m_rel_stream.write_object(relocation);
@@ -31,8 +37,11 @@ namespace Elf
     {
         m_rela_stream.write_object(relocation);
     }
-    void RelocationTable::apply()
+    void RelocationTable::finalize()
     {
+        assert(!m_finalized);
+        m_finalized = true;
+
         m_generator.write_section(m_rel_index.value(), m_rel_stream);
         m_generator.write_section(m_rela_index.value(), m_rela_stream);
     }

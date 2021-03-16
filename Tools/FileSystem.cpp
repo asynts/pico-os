@@ -1,5 +1,6 @@
 #include <bsd/string.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 #include <fmt/format.h>
 
@@ -35,6 +36,10 @@ FileSystem::FileSystem(Elf::Generator& generator)
 
     m_tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
     m_tab_relocs.emplace(m_generator, ".embed.tab", generator.symtab().symtab_index(), *m_tab_index);
+}
+FileSystem::~FileSystem()
+{
+    assert(m_finalized);
 }
 void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 {
@@ -140,10 +145,13 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
         .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
     });
 }
-void FileSystem::finalize() &&
+void FileSystem::finalize()
 {
-    m_data_relocs->apply();
-    m_tab_relocs->apply();
+    assert(!m_finalized);
+    m_finalized = true;
+
+    m_data_relocs->finalize();
+    m_tab_relocs->finalize();
 
     m_generator.write_section(m_data_index.value(), m_data_stream);
     m_generator.write_section(m_tab_index.value(), m_tab_stream);

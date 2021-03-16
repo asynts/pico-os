@@ -19,6 +19,10 @@ namespace Elf
         symtab_section.sh_entsize = sizeof(Elf32_Sym);
         symtab_section.sh_link = m_string_table.strtab_index();
     }
+    SymbolTable::~SymbolTable()
+    {
+        assert(m_finalized);
+    }
     void SymbolTable::create_undefined_symbol()
     {
         Elf32_Sym undefined_symbol;
@@ -45,12 +49,12 @@ namespace Elf
         m_symtab_stream.write_object(symbol);
         return m_next_index++;
     }
-    void SymbolTable::apply()
+    void SymbolTable::finalize()
     {
-        assert(!m_applied);
-        m_applied = true;
+        assert(!m_finalized);
+        m_finalized = true;
 
-        m_string_table.apply();
+        m_string_table.finalize();
 
         m_generator.write_section(*m_symtab_index, m_symtab_stream);
         auto& symtab_section = m_generator.section(m_symtab_index.value());

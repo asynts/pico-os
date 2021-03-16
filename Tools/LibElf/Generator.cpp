@@ -6,8 +6,6 @@
 namespace Elf
 {
     Generator::Generator()
-        // : m_shstrtab(".shstrtab")
-        // , m_symtab(*this, "")
     {
         // We write the elf header in ElfGenerator::finalize
         m_stream.seek(sizeof(Elf32_Ehdr));
@@ -16,6 +14,10 @@ namespace Elf
 
         m_shstrtab.emplace(*this, ".shstrtab");
         m_symtab.emplace(*this, "");
+    }
+    Generator::~Generator()
+    {
+        assert(m_finalized);
     }
     void Generator::create_undefined_section()
     {
@@ -66,7 +68,7 @@ namespace Elf
 
         m_stream.write_bytes(stream);
     }
-    MemoryStream Generator::finalize() &&
+    MemoryStream Generator::finalize()
     {
         assert(!m_finalized);
         m_finalized = true;
@@ -81,8 +83,8 @@ namespace Elf
     }
     void Generator::encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
     {
-        m_symtab->apply();
-        m_shstrtab->apply();
+        m_symtab->finalize();
+        m_shstrtab->finalize();
 
         shstrtab_section_index = m_shstrtab->strtab_index();
 

@@ -14,6 +14,7 @@ namespace Elf
     class Generator {
     public:
         Generator();
+        ~Generator();
 
         Elf32_Shdr& section(size_t index) { return m_sections[index]; }
         SymbolTable& symtab() { return m_symtab.value(); }
@@ -22,7 +23,7 @@ namespace Elf
         size_t create_section(std::string_view name, Elf32_Word type, Elf32_Word flags);
         void write_section(size_t section_index, MemoryStream&);
 
-        MemoryStream finalize() &&;
+        MemoryStream finalize();
 
     private:
         void create_undefined_section();

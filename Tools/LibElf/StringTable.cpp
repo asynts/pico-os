@@ -13,6 +13,10 @@ namespace Elf
 
         m_strtab_index = m_generator.create_section(name, SHT_STRTAB, 0);
     }
+    StringTable::~StringTable()
+    {
+        assert(m_finalized);
+    }
     void StringTable::create_undefined_entry()
     {
         m_strtab_stream.write_object<uint8_t>(0);
@@ -23,8 +27,11 @@ namespace Elf
         m_strtab_stream.write_object<uint8_t>(0);
         return offset;
     }
-    void StringTable::apply()
+    void StringTable::finalize()
     {
+        assert(!m_finalized);
+        m_finalized = true;
+
         m_generator.write_section(m_strtab_index.value(), m_strtab_stream);
     }
 }

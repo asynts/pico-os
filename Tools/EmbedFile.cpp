@@ -24,11 +24,9 @@ int main()
     Elf::Generator generator;
 
     FileSystem fs { generator };
-
     fs.add_file("/bin/Shell.elf", Elf::mmap_file("../../Build/Userland/Shell.2.elf"));
-    
-    std::move(fs).finalize();
+    fs.finalize();
 
-    auto stream = std::move(generator).finalize();
+    auto stream = generator.finalize();
     write_output_file("Output.elf", stream);
 }
