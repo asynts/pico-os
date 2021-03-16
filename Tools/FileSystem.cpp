@@ -1,5 +1,5 @@
-#include <bsd/string.h>
 #include <sys/stat.h>
+#include <bsd/string.h>
 #include <assert.h>
 
 #include <fmt/format.h>

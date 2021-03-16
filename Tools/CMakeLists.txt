@@ -1,20 +1,19 @@
 cmake_minimum_required(VERSION 3.19.5)
-
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
-
 project(Tools CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+find_package(fmt)
 
-add_compile_options(-fdiagnostics-color=always)
-include_directories(.)
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_20)
+target_compile_options(project_options INTERFACE -fdiagnostics-color=always)
+target_include_directories(project_options INTERFACE ${CMAKE_SOURCE_DIR})
 
-file(GLOB_RECURSE LIBELF_SOURCES LibElf/*.cpp)
+file(GLOB LibElf_SOURCES LibElf/*.cpp)
+add_library(LibElf ${LibElf_SOURCES})
+target_link_libraries(LibElf project_options fmt::fmt)
 
-add_library(LibElf ${LIBELF_SOURCES})
-target_link_libraries(LibElf fmt)
+file(GLOB EmbedFile_SOURCES *.cpp)
+add_executable(EmbedFile ${EmbedFile_SOURCES})
+target_link_libraries(EmbedFile LibElf bsd)
 
-add_executable(EmbedFile EmbedFile.cpp FileSystem.cpp)
-target_link_libraries(EmbedFile bsd LibElf)
+# FIXME: Export EmbedFile
