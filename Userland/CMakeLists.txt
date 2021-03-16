@@ -1,3 +1,5 @@
+find_package(Tools MODULE REQUIRED)
+
 file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
 
 add_custom_target(Shell.1.elf ALL
@@ -17,23 +19,11 @@ add_custom_target(Shell.2.elf ALL
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.2.elf
     DEPENDS Shell.1.elf)
 
-add_custom_target(ShellEmbedded.1.o ALL
-    COMMAND arm-none-eabi-ld -r -b binary
-        -L ${CMAKE_CURRENT_BINARY_DIR}
-        Shell.2.elf
-        -o ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.1.o
-    DEPENDS Shell.2.elf)
+add_custom_target(EmbeddedFiles.elf ALL
+    COMMAND ${CMAKE_BINARY_DIR}/Tools/ElfEmbed
+        ${CMAKE_CURRENT_BINARY_DIR}/Shell.2.elf /bin/Shell.elf
+        -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.elf
+    DEPENDS ElfEmbed Shell.2.elf)
 
-add_custom_target(ShellEmbedded.2.o ALL
-    COMMAND arm-none-eabi-objcopy
-        --rename-section .data=.rodata,alloc,load,readonly,data,contents
-        --redefine-sym _binary_Shell_2_elf_start=embedded_shell_binary_start
-        --redefine-sym _binary_Shell_2_elf_end=embedded_shell_binary_end
-        --redefine-sym _binary_Shell_2_elf_size=embedded_shell_binary_size
-        ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.1.o
-        ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.2.o
-    DEPENDS ShellEmbedded.1.o)
-
-add_library(ShellEmbedded OBJECT IMPORTED GLOBAL)
-set_property(TARGET ShellEmbedded PROPERTY IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/ShellEmbedded.2.o)
-add_definitions(ShellEmbedded ShellEmbedded.2.o)
+add_library(EmbeddedFiles OBJECT IMPORTED GLOBAL)
+set_property(TARGET EmbeddedFiles PROPERTY IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.elf)

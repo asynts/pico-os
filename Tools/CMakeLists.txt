@@ -12,8 +12,6 @@ file(GLOB LibElf_SOURCES LibElf/*.cpp)
 add_library(LibElf ${LibElf_SOURCES})
 target_link_libraries(LibElf project_options fmt::fmt)
 
-file(GLOB EmbedFile_SOURCES *.cpp)
-add_executable(EmbedFile ${EmbedFile_SOURCES})
-target_link_libraries(EmbedFile LibElf bsd)
-
-# FIXME: Export EmbedFile
+file(GLOB ElfEmbed_SOURCES *.cpp)
+add_executable(ElfEmbed ${ElfEmbed_SOURCES})
+target_link_libraries(ElfEmbed project_options LibElf bsd)

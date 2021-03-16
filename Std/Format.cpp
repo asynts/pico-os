@@ -45,6 +45,12 @@ namespace Std {
         builder.append(StringView { buffer, index1 });
     }
 
+    void Formatter<const char*>::format(StringBuilder& builder, const char *value)
+    {
+        builder.append(value);
+        return;
+    }
+
     template class Formatter<u8>;
     template class Formatter<u16>;
     template class Formatter<u32>;

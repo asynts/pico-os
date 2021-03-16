@@ -28,6 +28,14 @@ namespace Std {
         }
     };
 
+    template<>
+    struct Formatter<const char*> {
+        static void format(StringBuilder& builder, const char *value);
+    };
+    template<usize Size>
+    struct Formatter<char[Size]> : Formatter<const char*> {
+    };
+
     using FormatFunction = void(*)(StringBuilder&, const void*);
 
     struct TypeErasedFormatParameter {

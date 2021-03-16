@@ -10,9 +10,39 @@
 
 #include <pico/stdio.h>
 
+// FIXME: This is replicated in Tools/FileSystem.cpp
+struct IndexNode {
+    uint32_t m_inode;
+    uint32_t m_mode;
+    uint32_t m_size;
+    uint32_t m_device_id;
+    uint32_t m_block_size;
+    u8* m_direct_blocks[1];
+    u8** m_indirect_blocks[4];
+};
+struct FlashEntry {
+    char m_name[252];
+    IndexNode *m_inode;
+};
+static_assert(sizeof(FlashEntry) == 256);
+
+extern "C"
+{
+    extern char __embed_start[];
+    extern char __embed_end[];
+}
+
 void load_and_execute_shell()
 {
-    ElfWrapper elf { reinterpret_cast<u8*>(embedded_shell_binary_start) };
+    assert(__embed_end - __embed_start == sizeof(FlashEntry));
+    FlashEntry *shell_entry = reinterpret_cast<FlashEntry*>(__embed_start);
+
+    dbgln("Loading Shell.elf from FlashEntry { m_name=%, m_inode=% } from address %",
+        shell_entry->m_name,
+        shell_entry->m_inode,
+        shell_entry->m_inode->m_direct_blocks[0]);
+
+    ElfWrapper elf { reinterpret_cast<u8*>(shell_entry->m_inode->m_direct_blocks[0]) };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
     dbgln("Loading process stack and static base, debugger hook");

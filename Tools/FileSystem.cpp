@@ -80,7 +80,7 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
         {
             if (data_offset >= max_data_offset)
                 break;
-            
+
             blocks[index] = data_offset;
             data_offset += FLASH_BLOCK_SIZE;
             blocks_relocations.push_back(Elf32_Rel {
@@ -155,4 +155,19 @@ void FileSystem::finalize()
 
     m_generator.write_section(m_data_index.value(), m_data_stream);
     m_generator.write_section(m_tab_index.value(), m_tab_stream);
+
+    m_generator.symtab().add_symbol("__embed_start", Elf32_Sym {
+        .st_value = 0,
+        .st_size = 0,
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_tab_index),
+    });
+    m_generator.symtab().add_symbol("__embed_end", Elf32_Sym {
+        .st_value = m_tab_stream.size(),
+        .st_size = 0,
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_tab_index),
+    });
 }

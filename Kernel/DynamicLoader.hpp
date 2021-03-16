@@ -1,12 +1,6 @@
 #include <elf.h>
 #include <Std/Forward.hpp>
 
-extern "C" {
-    extern u8 embedded_shell_binary_start[];
-    extern u8 embedded_shell_binary_end[];
-    extern u8 embedded_shell_binary_size[];
-}
-
 class ElfWrapper {
 public:
     explicit ElfWrapper(u8 *base)
