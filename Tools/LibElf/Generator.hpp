@@ -7,6 +7,7 @@
 
 #include "MemoryStream.hpp"
 #include "StringTable.hpp"
+#include "SymbolTable.hpp"
 
 namespace Elf
 {
@@ -15,6 +16,7 @@ namespace Elf
         Generator();
 
         Elf32_Shdr& section(size_t index) { return m_sections[index]; }
+        SymbolTable& symtab() { return m_symtab.value(); }
 
         size_t append_section(std::string_view name, MemoryStream& stream, Elf32_Word type, Elf32_Word flags);
         size_t create_section(std::string_view name, Elf32_Word type, Elf32_Word flags);
@@ -23,6 +25,8 @@ namespace Elf
         MemoryStream finalize() &&;
 
     private:
+        void create_undefined_section();
+
         void encode_sections(size_t& section_offset, size_t& shstrtab_section_index);
         void encode_header(size_t section_offset, size_t shstrtab_section_index);
 
@@ -30,6 +34,8 @@ namespace Elf
 
         bool m_finalized = false;
         std::vector<Elf32_Shdr> m_sections;
-        StringTable m_shstrtab;
+
+        std::optional<StringTable> m_shstrtab;
+        std::optional<SymbolTable> m_symtab;
     };
 }

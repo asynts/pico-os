@@ -9,6 +9,11 @@ namespace Elf
     StringTable::StringTable(const std::string& name)
         : m_name(name)
     {
+        create_undefined_entry();
+    }
+    void StringTable::create_undefined_entry()
+    {
+        m_strtab_stream.write_object<uint8_t>(0);
     }
     size_t StringTable::add_entry(std::string_view name)
     {

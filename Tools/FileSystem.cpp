@@ -31,26 +31,21 @@ FileSystem::FileSystem(Elf::Generator& generator)
     : m_generator(generator)
 {
     m_data_index = generator.create_section(".embed", SHT_PROGBITS, SHF_ALLOC);
-    m_data_symtab.emplace(".embed", m_data_index.value());
+    m_data_relocs.emplace(".embed", generator.symtab().symtab_index(), *m_data_index);
 
     m_tab_index = generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
-    m_tab_symtab.emplace(".embed.tab", m_tab_index.value());
+    m_tab_relocs.emplace(".embed.tab", generator.symtab().symtab_index(), *m_tab_index);
 }
 void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 {
     size_t data_offset = m_data_stream.write_bytes(data);
     size_t max_data_offset = data_offset + data.size();
-    size_t data_symbol = m_data_symtab->add_symbol(fmt::format("fs:data:{}", path), Elf32_Sym {
+    size_t data_symbol = m_generator.symtab().add_symbol(fmt::format("fs:data:{}", path), Elf32_Sym {
         .st_value = (uint32_t)data_offset,
         .st_size = (uint32_t)data.size(),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
-    });
-    size_t data_symbol_for_tab = m_tab_symtab->add_undefined_symbol(fmt::format("fs:data:{}", path), Elf32_Sym {
-        .st_value = 0,
-        .st_size = (uint32_t)data.size(),
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_data_index),
     });
 
     IndexNode inode;
@@ -90,17 +85,18 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
         }
 
         size_t blocks_offset = m_data_stream.write_bytes({ (const uint8_t*)blocks, sizeof(blocks) });
-        size_t blocks_symbol = m_data_symtab->add_symbol(fmt::format("fs:iblock:{}:{}", indirect_block_index, path), Elf32_Sym {
+        size_t blocks_symbol = m_generator.symtab().add_symbol(fmt::format("fs:iblock:{}:{}", indirect_block_index, path), Elf32_Sym {
             .st_name = 0,
             .st_value = (uint32_t)blocks_offset,
             .st_size = sizeof(blocks),
             .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
             .st_other = STV_DEFAULT,
+            .st_shndx = static_cast<uint16_t>(*m_data_index),
         });
 
         for (Elf32_Rel& relocation : blocks_relocations) {
             relocation.r_offset += blocks_offset;
-            m_data_symtab->add_relocation(relocation);
+            m_data_relocs->add_entry(relocation);
         }
 
         inode.m_indirect_blocks[indirect_block_index] = blocks_offset;
@@ -113,40 +109,41 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
     }
 
     size_t inode_offset = m_data_stream.write_object(inode);
-
-    for (Elf32_Rel& relocation : inode_relocations)
-    {
-        relocation.r_offset += inode_offset;
-        m_data_symtab->add_relocation(relocation);
-    }
-
-    size_t inode_symbol = m_data_symtab->add_symbol(fmt::format("fs:inode:{}", path), Elf32_Sym {
+    size_t inode_symbol = m_generator.symtab().add_symbol(fmt::format("fs:inode:{}", path), Elf32_Sym {
         .st_value = static_cast<uint32_t>(inode_offset),
         .st_size = sizeof(IndexNode),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_data_index),
     });
+
+    for (Elf32_Rel& relocation : inode_relocations)
+    {
+        relocation.r_offset += inode_offset;
+        m_data_relocs->add_entry(relocation);
+    }
 
     FlashEntry entry;
     entry.m_inode = 0;
     strlcpy(entry.m_name, std::string { path }.c_str(), sizeof(entry.m_name));
     size_t entry_offset = m_tab_stream.write_object(entry);
 
-    m_tab_symtab->add_symbol(fmt::format("fs:entry:{}", path), Elf32_Sym {
+    m_generator.symtab().add_symbol(fmt::format("fs:entry:{}", path), Elf32_Sym {
         .st_value = (uint32_t)entry_offset,
         .st_size = sizeof(FlashEntry),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_tab_index),
     });
-    m_tab_symtab->add_relocation(Elf32_Rel {
+    m_tab_relocs->add_entry(Elf32_Rel {
         .r_offset = (uint32_t) (entry_offset + offsetof(FlashEntry, m_inode)),
-        .r_info = ELF32_R_INFO(data_symbol_for_tab, R_ARM_ABS32),
+        .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
     });
 }
 void FileSystem::finalize() &&
 {
-    m_data_symtab->apply(m_generator);
-    m_tab_symtab->apply(m_generator);
+    m_data_relocs->apply(m_generator);
+    m_tab_relocs->apply(m_generator);
 
     m_generator.write_section(m_data_index.value(), m_data_stream);
     m_generator.write_section(m_tab_index.value(), m_tab_stream);

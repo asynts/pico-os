@@ -20,6 +20,8 @@ namespace Elf
         size_t strtab_index() const { return m_strtab_index.value(); }
 
     private:
+        void create_undefined_entry();
+
         MemoryStream m_strtab_stream;
 
         std::string m_name;

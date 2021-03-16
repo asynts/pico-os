@@ -5,6 +5,7 @@
 
 #include <LibElf/Generator.hpp>
 #include <LibElf/SymbolTable.hpp>
+#include <LibElf/RelocationTable.hpp>
 
 class FileSystem {
 public:
@@ -15,8 +16,8 @@ public:
     void finalize() &&;
 
 private:
-    std::optional<Elf::SymbolTable> m_data_symtab;
-    std::optional<Elf::SymbolTable> m_tab_symtab;
+    std::optional<Elf::RelocationTable> m_data_relocs;
+    std::optional<Elf::RelocationTable> m_tab_relocs;
     std::optional<size_t> m_data_index;
     std::optional<size_t> m_tab_index;
 
