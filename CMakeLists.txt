@@ -6,6 +6,8 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake)
 
+find_package(Tools MODULE)
+
 include(CMake/pico_sdk_import.cmake)
 
 project(Pico C CXX ASM)

@@ -1,8 +1,3 @@
-# FIXME: This means that we don't have dependency checking for ElfEmbed.
-add_executable(ElfEmbed IMPORTED)
-set_target_properties(ElfEmbed PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/Tools/Build/ElfEmbed)
-
 file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
 
 add_custom_target(Shell.1.elf ALL
@@ -23,7 +18,7 @@ add_custom_target(Shell.elf ALL
     DEPENDS Shell.1.elf)
 
 add_custom_target(EmbeddedFiles.o ALL
-    COMMAND ${CMAKE_SOURCE_DIR}/Tools/Build/ElfEmbed
+    COMMAND ${ELF_EMBED_EXECUTABLE}
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf /bin/Shell.elf
         -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o
     DEPENDS ElfEmbed Shell.elf)
