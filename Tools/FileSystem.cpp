@@ -104,7 +104,7 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
             m_data_relocs->add_entry(relocation);
         }
 
-        inode.m_indirect_blocks[indirect_block_index] = blocks_offset;
+        inode.m_indirect_blocks[indirect_block_index] = 0;
         inode_relocations.push_back(Elf32_Rel {
             .r_offset = (uint32_t) (offsetof(IndexNode, m_indirect_blocks) + indirect_block_index * sizeof(uint32_t)),
             .r_info = ELF32_R_INFO(blocks_symbol, R_ARM_ABS32),
@@ -142,7 +142,7 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
     });
     m_tab_relocs->add_entry(Elf32_Rel {
         .r_offset = (uint32_t) (entry_offset + offsetof(FlashEntry, m_inode)),
-        .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
+        .r_info = ELF32_R_INFO(inode_symbol, R_ARM_ABS32),
     });
 }
 void FileSystem::finalize()
