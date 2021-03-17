@@ -38,12 +38,18 @@ namespace Elf
     }
     size_t SymbolTable::add_symbol(std::string_view name, Elf32_Sym symbol)
     {
+        // We don't support local symbols.
+        assert(symbol.st_info & ELF32_ST_BIND(0xf) == ELF32_ST_BIND(STB_GLOBAL));
+
         symbol.st_name = m_string_table.add_entry(name);
         m_symtab_stream.write_object(symbol);
         return m_next_index++;
     }
     size_t SymbolTable::add_undefined_symbol(std::string_view name, Elf32_Sym symbol)
     {
+        // We don't support local symbols.
+        assert(symbol.st_info & ELF32_ST_BIND(0xf) == ELF32_ST_BIND(STB_GLOBAL));
+
         symbol.st_shndx = 0;
         symbol.st_name = m_string_table.add_entry(name);
         m_symtab_stream.write_object(symbol);
@@ -58,6 +64,6 @@ namespace Elf
 
         m_generator.write_section(*m_symtab_index, m_symtab_stream);
         auto& symtab_section = m_generator.section(m_symtab_index.value());
-        symtab_section.sh_info = m_next_index;
-    }   
+        symtab_section.sh_info = 1;
+    }
 }
