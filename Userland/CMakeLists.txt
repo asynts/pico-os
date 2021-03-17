@@ -22,28 +22,14 @@ add_custom_target(Shell.elf ALL
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf
     DEPENDS Shell.1.elf)
 
-# FIXME: It seems CMake doesn't like it when you create object files it doesn't know about.
-
-add_custom_target(EmbeddedFiles.1.o ALL
+add_custom_target(EmbeddedFiles.o ALL
     COMMAND ${CMAKE_SOURCE_DIR}/Tools/Build/ElfEmbed
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf /bin/Shell.elf
-        -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.1.o
+        -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o
     DEPENDS ElfEmbed Shell.elf)
 
-add_custom_target(EmbeddedFiles.o ALL
-    COMMAND arm-none-eabi-ld -r
-        -T ${CMAKE_CURRENT_SOURCE_DIR}/EmbedHack.x
-        ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.1.o
-        -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o
-    DEPENDS EmbeddedFiles.1.o)
-
-add_library(LibEmbeddedFiles.1 OBJECT IMPORTED GLOBAL)
-set_target_properties(LibEmbeddedFiles.1
-    PROPERTIES
-        IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o)
-add_dependencies(LibEmbeddedFiles.1 EmbeddedFiles.o)
-
-add_library(LibEmbeddedFiles $<TARGET_OBJECTS:LibEmbeddedFiles.1>)
+add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)
 set_target_properties(LibEmbeddedFiles
     PROPERTIES
-        LINKER_LANGUAGE CXX)
+        IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o)
+add_dependencies(LibEmbeddedFiles EmbeddedFiles.o)
