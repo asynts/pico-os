@@ -164,7 +164,7 @@ void FileSystem::finalize()
         .st_shndx = static_cast<uint16_t>(*m_tab_index),
     });
     m_generator.symtab().add_symbol("__embed_end", Elf32_Sym {
-        .st_value = m_tab_stream.size(),
+        .st_value = static_cast<uint32_t>(m_tab_stream.size()),
         .st_size = 0,
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
