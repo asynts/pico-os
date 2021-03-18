@@ -17,10 +17,9 @@ add_custom_target(Shell.elf ALL
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf
     DEPENDS Shell.1.elf)
 
+# FIXME: Pass command line arguments to ElfEmbed
 add_custom_target(EmbeddedFiles.o ALL
     COMMAND ${ELF_EMBED_EXECUTABLE}
-        ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf /bin/Shell.elf
-        -o ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o
     DEPENDS ElfEmbed Shell.elf)
 
 add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)

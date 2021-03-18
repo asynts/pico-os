@@ -8,28 +8,6 @@
 #define S_IFDIR 0b10
 #define S_IFREG 0b11
 
-// FIXME: This is replicated in Tools/FileSystem.cpp
-struct IndexNode {
-    uint32_t m_inode;
-    uint32_t m_mode;
-    uint32_t m_size;
-    uint32_t m_device_id;
-    uint32_t m_block_size;
-    u8* m_direct_blocks[1];
-    u8** m_indirect_blocks[4];
-};
-struct FlashEntry {
-    char m_path[252];
-    IndexNode *m_inode;
-};
-static_assert(sizeof(FlashEntry) == 256);
-
-extern "C"
-{
-    extern const FlashEntry __embed_start[];
-    extern const FlashEntry __embed_end[];
-}
-
 namespace Kernel {
     using namespace Std;
 
@@ -70,6 +48,8 @@ namespace Kernel {
 
         void append_file(const char *name, File& file)
         {
+            dbgln("File::append_file called with file=%", &file);
+
             assert(is_directory());
             assert(directory_size() <= directory_entries_per_block);
 
@@ -84,6 +64,11 @@ namespace Kernel {
             entries[index].m_inode = file.m_inode;
         }
     };
+
+    extern "C"
+    {
+        extern File __flash_root;
+    }
 
     enum class IterationDecision {
         Continue,
@@ -184,48 +169,7 @@ namespace Kernel {
 
             m_next_inode = 3;
 
-            load_flash_filesystem();
-        }
-
-        void load_flash_filesystem()
-        {
-            for(auto *entry = __embed_start; entry < __embed_end; entry++)
-            {
-                dbgln("Loading % from flash", entry->m_path);
-
-                File *directory = &root();
-                iterate_split_path(entry->m_path, [&](StringView part, bool final) {
-                    if (final) {
-                        char *null_terminated_part = new char[part.size() + 1];
-                        memcpy(null_terminated_part, part.data(), part.size());
-                        null_terminated_part[part.size()] = 0;
-
-                        dbgln("Creating file % in inode %", part, directory->m_inode);
-                        directory->append_file(null_terminated_part, *(File*)entry->m_inode);
-
-                        delete null_terminated_part;
-                        return IterationDecision::Break;
-                    }
-
-                    bool exists = false;
-                    iterate_directory(*directory, [&](DirectoryEntry entry) {
-                        if (part == entry.m_name) {
-                            directory = &lookup_inode(entry.m_inode);
-                            exists = true;
-                            return IterationDecision::Break;
-                        }
-
-                        return IterationDecision::Continue;
-                    });
-
-                    if (!exists) {
-                        dbgln("Creating directory % in inode %", part, directory->m_inode);
-                        directory = &create_directory(*directory, part, 0, device_flash);
-                    }
-
-                    return IterationDecision::Continue;
-                });
-            }
+            root().append_file("flash", __flash_root);
         }
 
         Map<u32, File*> m_inodes;

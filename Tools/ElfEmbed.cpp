@@ -1,4 +1,5 @@
 #include <map>
+#include <vector>
 
 #include <fcntl.h>
 #include <assert.h>
@@ -27,33 +28,19 @@ static void write_output_file(std::filesystem::path path, Elf::MemoryStream& str
 
 int main(int argc, char **argv)
 {
-    std::optional<std::string_view> output_file;
-    std::map<std::string_view, std::string_view> input_files;
-    for (int index = 1; index < argc; ++index) {
-        assert(index + 1 < argc);
-
-        if (std::string_view { "-o" } == argv[index]) {
-            assert(!output_file.has_value());
-            output_file = argv[index + 1];
-            ++index;
-        } else {
-            input_files[argv[index]] = argv[index+1];
-            ++index;
-        }
-    }
-    assert(output_file.has_value());
+    // FIXME: Parse command line arguments
 
     Elf::Generator generator;
 
     FileSystem fs { generator };
 
-    for (auto& [real_path, virtual_path] : input_files) {
-        fmt::print("Adding input file {} ({})\n", virtual_path, real_path);
-        fs.add_file(virtual_path , Elf::mmap_file(real_path));
-    }
+    std::map<std::string, uint32_t> bin_files;
+    bin_files["Shell.elf"] = fs.add_host_file("Shell.elf");
+
+    fs.add_root_directory(bin_files);
 
     fs.finalize();
 
     auto stream = generator.finalize();
-    write_output_file(output_file.value(), stream);
+    write_output_file("EmbeddedFiles.o", stream);
 }

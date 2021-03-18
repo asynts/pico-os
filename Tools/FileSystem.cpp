@@ -1,3 +1,5 @@
+#include <map>
+
 #include <sys/stat.h>
 #include <bsd/string.h>
 #include <assert.h>
@@ -21,6 +23,10 @@ struct IndexNode {
     uint32_t m_direct_blocks[1];
     uint32_t m_indirect_blocks[4];
 };
+struct DirectoryEntry {
+    char m_name[252];
+    uint32_t m_inode;
+};
 
 struct FlashEntry {
     char m_name[252];
@@ -41,13 +47,40 @@ FileSystem::~FileSystem()
 {
     assert(m_finalized);
 }
-void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
+uint32_t FileSystem::add_host_file(std::string_view path)
 {
-    size_t data_offset = m_data_stream.write_bytes(data);
-    size_t max_data_offset = data_offset + data.size();
-    size_t data_symbol = m_generator.symtab().add_symbol(fmt::format("fs:data:{}", path), Elf32_Sym {
+    // FIXME: We don't have to map the file into memory
+    Elf::MemoryStream stream;
+    stream.write_bytes(Elf::mmap_file(path));
+
+    return add_file(stream);
+}
+uint32_t FileSystem::add_directory(std::map<std::string, uint32_t>& files, uint32_t inode_number)
+{
+    Elf::MemoryStream stream;
+
+    for (auto& [name, inode] : files) {
+        DirectoryEntry entry;
+        strlcpy(entry.m_name, name.c_str(), sizeof(entry.m_name));
+        entry.m_inode = inode;
+    }
+
+    return add_file(stream, S_IFDIR, inode_number);
+}
+uint32_t FileSystem::add_root_directory(std::map<std::string, uint32_t>& files)
+{
+    return add_directory(files, 2);
+}
+uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t inode_number)
+{
+    if (inode_number == 0)
+        inode_number = m_next_inode++;
+
+    size_t data_offset = m_data_stream.write_bytes(stream);
+    size_t max_data_offset = data_offset + stream.size();
+    size_t data_symbol = m_generator.symtab().add_symbol(fmt::format("__flash_data_{}", inode_number), Elf32_Sym {
         .st_value = (uint32_t)data_offset,
-        .st_size = (uint32_t)data.size(),
+        .st_size = (uint32_t)stream.size(),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
         .st_shndx = static_cast<uint16_t>(*m_data_index),
@@ -55,8 +88,8 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
 
     IndexNode inode;
     inode.m_inode = m_next_inode++;
-    inode.m_mode = S_IFREG;
-    inode.m_size = data.size();
+    inode.m_mode = mode;
+    inode.m_size = stream.size();
     inode.m_device_id = FLASH_DEVICE_ID;
     inode.m_block_size = FLASH_BLOCK_SIZE;
 
@@ -90,7 +123,7 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
         }
 
         size_t blocks_offset = m_data_stream.write_bytes({ (const uint8_t*)blocks, sizeof(blocks) });
-        size_t blocks_symbol = m_generator.symtab().add_symbol(fmt::format("fs:iblock:{}:{}", indirect_block_index, path), Elf32_Sym {
+        size_t blocks_symbol = m_generator.symtab().add_symbol(fmt::format("__flash_iblock_{}_{}", inode_number, indirect_block_index), Elf32_Sym {
             .st_name = 0,
             .st_value = (uint32_t)blocks_offset,
             .st_size = sizeof(blocks),
@@ -114,7 +147,7 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
     }
 
     size_t inode_offset = m_data_stream.write_object(inode);
-    size_t inode_symbol = m_generator.symtab().add_symbol(fmt::format("fs:inode:{}", path), Elf32_Sym {
+    size_t inode_symbol = m_generator.symtab().add_symbol(fmt::format("__flash_header_{}", inode_number), Elf32_Sym {
         .st_value = static_cast<uint32_t>(inode_offset),
         .st_size = sizeof(IndexNode),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
@@ -122,28 +155,23 @@ void FileSystem::add_file(std::string_view path, std::span<const uint8_t> data)
         .st_shndx = static_cast<uint16_t>(*m_data_index),
     });
 
+    if (inode_number == 2) {
+        m_generator.symtab().add_symbol("__flash_root", Elf32_Sym {
+            .st_value = static_cast<uint32_t>(inode_offset),
+            .st_size = sizeof(IndexNode),
+            .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+            .st_other = STV_DEFAULT,
+            .st_shndx = static_cast<uint16_t>(*m_data_index),
+        });
+    }
+
     for (Elf32_Rel& relocation : inode_relocations)
     {
         relocation.r_offset += inode_offset;
         m_data_relocs->add_entry(relocation);
     }
 
-    FlashEntry entry;
-    entry.m_inode = 0;
-    strlcpy(entry.m_name, std::string { path }.c_str(), sizeof(entry.m_name));
-    size_t entry_offset = m_tab_stream.write_object(entry);
-
-    m_generator.symtab().add_symbol(fmt::format("fs:entry:{}", path), Elf32_Sym {
-        .st_value = (uint32_t)entry_offset,
-        .st_size = sizeof(FlashEntry),
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(*m_tab_index),
-    });
-    m_tab_relocs->add_entry(Elf32_Rel {
-        .r_offset = (uint32_t) (entry_offset + offsetof(FlashEntry, m_inode)),
-        .r_info = ELF32_R_INFO(inode_symbol, R_ARM_ABS32),
-    });
+    return inode.m_inode;
 }
 void FileSystem::finalize()
 {
@@ -155,19 +183,4 @@ void FileSystem::finalize()
 
     m_generator.write_section(m_data_index.value(), m_data_stream);
     m_generator.write_section(m_tab_index.value(), m_tab_stream);
-
-    m_generator.symtab().add_symbol("__embed_start", Elf32_Sym {
-        .st_value = 0,
-        .st_size = 0,
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(*m_tab_index),
-    });
-    m_generator.symtab().add_symbol("__embed_end", Elf32_Sym {
-        .st_value = static_cast<uint32_t>(m_tab_stream.size()),
-        .st_size = 0,
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(*m_tab_index),
-    });
 }

@@ -12,7 +12,11 @@ public:
     explicit FileSystem(Elf::Generator& generator);
     ~FileSystem();
 
-    void add_file(std::string_view, std::span<const uint8_t>);
+    uint32_t add_file(Elf::MemoryStream&, uint32_t mode = S_IFREG, uint32_t inode_number = 0);
+    uint32_t add_host_file(std::string_view path);
+
+    uint32_t add_directory(std::map<std::string, uint32_t>& files, uint32_t inode_number = 0);
+    uint32_t add_root_directory(std::map<std::string, uint32_t>& files);
 
     void finalize();
 
