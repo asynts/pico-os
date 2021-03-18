@@ -58,6 +58,14 @@ constexpr T exchange(T& obj, U&& new_value)
 }
 
 template<typename T>
+constexpr void swap(T& lhs, T& rhs)
+{
+    T value = move(lhs);
+    lhs = move(rhs);
+    rhs = move(value);
+}
+
+template<typename T>
 constexpr T max(T a, T b)
 {
     return a >= b ? a : b;

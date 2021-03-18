@@ -21,28 +21,14 @@ namespace Std {
 
         builder.append("0x");
 
-        if (value == 0) {
-            for (usize index = 0; index < sizeof(value); ++index)
-                builder.append("00");
-            return;
-        }
-
-        static_assert(sizeof(T) <= 8);
-        char buffer[16];
-
-        usize index1 = 0;
-        while (value > 0) {
-            buffer[index1++] = "0123456789abcdef"[value % 16];
+        char buffer[sizeof(T) * 2];
+        for (usize index = 0; index < sizeof(buffer); ++index) {
+            buffer[index] = "0123456789abcdef"[value % 16];
             value /= 16;
         }
 
-        for (usize index2 = 0; index2 < index1 / 2; ++index2)
-            buffer[index2] = buffer[(index1 - 1) - index2];
-
-        for (usize index3 = 0; index3 < sizeof(value) * 2 - index1; ++index3)
-            builder.append('0');
-
-        builder.append(StringView { buffer, index1 });
+        for (usize index = 0; index < sizeof(buffer); ++index)
+            builder.append(buffer[(sizeof(buffer) - 1) - index]);
     }
 
     void Formatter<const char*>::format(StringBuilder& builder, const char *value)
