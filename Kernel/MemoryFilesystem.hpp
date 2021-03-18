@@ -8,6 +8,28 @@
 #define S_IFDIR 0b10
 #define S_IFREG 0b11
 
+// FIXME: This is replicated in Tools/FileSystem.cpp
+struct IndexNode {
+    uint32_t m_inode;
+    uint32_t m_mode;
+    uint32_t m_size;
+    uint32_t m_device_id;
+    uint32_t m_block_size;
+    u8* m_direct_blocks[1];
+    u8** m_indirect_blocks[4];
+};
+struct FlashEntry {
+    char m_path[252];
+    IndexNode *m_inode;
+};
+static_assert(sizeof(FlashEntry) == 256);
+
+extern "C"
+{
+    extern const FlashEntry __embed_start[];
+    extern const FlashEntry __embed_end[];
+}
+
 namespace Kernel {
     using namespace Std;
 
@@ -32,6 +54,7 @@ namespace Kernel {
         u32 m_size;
         u32 m_device_id;
         u8 *m_direct_blocks[1];
+        u8 **m_indirect_blocks[4];
 
         bool is_directory() const
         {
@@ -44,15 +67,78 @@ namespace Kernel {
             assert(m_size % sizeof(DirectoryEntry) == 0);
             return m_size / sizeof(DirectoryEntry);
         }
+
+        void append_file(const char *name, File& file)
+        {
+            assert(is_directory());
+            assert(directory_size() <= directory_entries_per_block);
+
+            auto *entries = reinterpret_cast<DirectoryEntry*>(m_direct_blocks);
+
+            usize index = directory_size();
+            m_size += sizeof(DirectoryEntry);
+
+            dbgln("Inserting inode % (%) into inode %", file.m_inode, name, m_inode);
+
+            strlcpy(entries[index].m_name, name, sizeof(entries[index].m_name));
+            entries[index].m_inode = file.m_inode;
+        }
     };
+
+    enum class IterationDecision {
+        Continue,
+        Break,
+    };
+
+    template<typename Callback>
+    void iterate_split_path(StringView path, Callback&& callback)
+    {
+        assert(path.size() >= 1);
+        assert(path[0] == '/');
+        path = path.substr(1);
+
+        auto end_index = path.index_of('/');
+
+        if (!end_index.is_valid()) {
+            callback(path, true);
+            return;
+        } else {
+            if (callback(path.trim(end_index.value()), false) == IterationDecision::Break)
+                return;
+            return iterate_split_path(path.substr(end_index.value()), move(callback));
+        }
+    }
+
+    template<typename Callback>
+    void iterate_directory(File& directory, Callback&& callback)
+    {
+        assert(directory.directory_size() <= directory_entries_per_block);
+
+        DirectoryEntry *entries = reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0]);
+        for (usize index = 0; index < directory.directory_size(); ++index) {
+            if (callback(entries[index]) == IterationDecision::Break)
+                return;
+        }
+    }
 
     class MemoryFilesystem : public Singleton<MemoryFilesystem> {
     public:
         File& root() { return *m_root; }
 
+        // This won't work with multiple devices
         File& lookup_inode(usize inode)
         {
             return *m_inodes.lookup(inode).must();
+        }
+
+        File& create_directory(File& directory, StringView filename, u32 mode, u32 device)
+        {
+            auto& file = create_file(directory, filename, mode | S_IFDIR, device);
+
+            file.append_file(".", file);
+            file.append_file("..", directory);
+
+            return file;
         }
 
         File& create_file(File& directory, StringView filename, u32 mode, u32 device)
@@ -98,8 +184,48 @@ namespace Kernel {
 
             m_next_inode = 3;
 
-            auto& bin_dir = create_file(root(), "bin", S_IFDIR, device_ram);
-            auto& shell_file = create_file(bin_dir, "Shell.elf", S_IFREG, device_flash);
+            load_flash_filesystem();
+        }
+
+        void load_flash_filesystem()
+        {
+            for(auto *entry = __embed_start; entry < __embed_end; entry++)
+            {
+                dbgln("Loading % from flash", entry->m_path);
+
+                File *directory = &root();
+                iterate_split_path(entry->m_path, [&](StringView part, bool final) {
+                    if (final) {
+                        char *null_terminated_part = new char[part.size() + 1];
+                        memcpy(null_terminated_part, part.data(), part.size());
+                        null_terminated_part[part.size()] = 0;
+
+                        dbgln("Creating file % in inode %", part, directory->m_inode);
+                        directory->append_file(null_terminated_part, *(File*)entry->m_inode);
+
+                        delete null_terminated_part;
+                        return IterationDecision::Break;
+                    }
+
+                    bool exists = false;
+                    iterate_directory(*directory, [&](DirectoryEntry entry) {
+                        if (part == entry.m_name) {
+                            directory = &lookup_inode(entry.m_inode);
+                            exists = true;
+                            return IterationDecision::Break;
+                        }
+
+                        return IterationDecision::Continue;
+                    });
+
+                    if (!exists) {
+                        dbgln("Creating directory % in inode %", part, directory->m_inode);
+                        directory = &create_directory(*directory, part, 0, device_flash);
+                    }
+
+                    return IterationDecision::Continue;
+                });
+            }
         }
 
         Map<u32, File*> m_inodes;
@@ -108,42 +234,34 @@ namespace Kernel {
         u32 m_next_inode;
     };
 
-    template<typename Callback = decltype([](DirectoryEntry&){})>
-    void iterate_directory(File& directory, Callback&& callback = {})
+    template<typename Callback = decltype([](File&, bool){ return IterationDecision::Continue; })>
+    File& iterate_path(StringView path, Callback&& callback = {})
     {
-        assert(directory.is_directory());
+        MemoryFilesystem& fs = MemoryFilesystem::the();
 
-        for (usize index = 0; index < directory.directory_size(); ++index)
-        {
-            DirectoryEntry *entry = reinterpret_cast<DirectoryEntry*>(directory.m_direct_blocks[0] + index * sizeof(DirectoryEntry));
-            callback(*entry);
-        }
-    }
+        File *file = &fs.root();
+        iterate_split_path(path, [&](StringView part, bool final) {
+            dbgln("Looking for % in inode %", part, file->m_inode);
 
-    // FIXME: Verify that this works as intendet.
-    template<typename Callback = decltype([](File&){})>
-    File& iterate_path(StringView path, File& root, Callback&& callback = {})
-    {
-        callback(root);
+            bool found_file = false;
+            iterate_directory(*file, [&](DirectoryEntry entry) {
+                if (entry.name() == part) {
+                    found_file = true;
+                    file = &fs.lookup_inode(entry.m_inode);
+                    return IterationDecision::Break;
+                }
 
-        if (path.size() == 0)
-            return root;
+                dbgln("Nope, it's not %", entry.name());
+                return IterationDecision::Continue;
+            });
+            assert(found_file);
 
-        assert(root.is_directory());
+            if (callback(*file, final) == IterationDecision::Break)
+                return IterationDecision::Break;
 
-        assert(path[0] == '/');
-        path = path.substr(1);
-
-        auto end = path.index_of('/').value_or(path.size());
-        StringView filename = path.trim(end);
-
-        File *file = nullptr;
-        iterate_directory(root, [&](DirectoryEntry& entry) {
-            if (entry.name() == filename)
-                file = &MemoryFilesystem::the().lookup_inode(entry.m_inode);
+            return IterationDecision::Continue;
         });
-        assert(file != nullptr);
 
-        return iterate_path(path.substr(end), *file, move(callback));
+        return *file;
     }
 }

@@ -31,7 +31,7 @@ namespace Std {
             builder.append(buffer[(sizeof(buffer) - 1) - index]);
     }
 
-    void Formatter<const char*>::format(StringBuilder& builder, const char *value)
+    void Formatter<StringView>::format(StringBuilder& builder, StringView value)
     {
         builder.append(value);
         return;

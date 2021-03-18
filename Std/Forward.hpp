@@ -65,6 +65,19 @@ constexpr void swap(T& lhs, T& rhs)
     rhs = move(value);
 }
 
+inline void strlcpy(char *destination, const char *source, usize size)
+{
+    if (size >= 1) {
+        __builtin_strncpy(destination, source, size - 1);
+        destination[size - 1] = 0;
+    }
+}
+
+inline void* memcpy(void *destination, const void *source, usize count)
+{
+    return __builtin_memcpy(destination, source, count);
+}
+
 template<typename T>
 constexpr T max(T a, T b)
 {

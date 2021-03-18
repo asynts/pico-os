@@ -29,11 +29,14 @@ namespace Std {
     };
 
     template<>
-    struct Formatter<const char*> {
-        static void format(StringBuilder& builder, const char *value);
+    struct Formatter<StringView> {
+        static void format(StringBuilder& builder, StringView);
+    };
+    template<>
+    struct Formatter<const char*> : Formatter<StringView> {
     };
     template<usize Size>
-    struct Formatter<char[Size]> : Formatter<const char*> {
+    struct Formatter<char[Size]> : Formatter<StringView> {
     };
 
     using FormatFunction = void(*)(StringBuilder&, const void*);
