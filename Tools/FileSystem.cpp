@@ -27,21 +27,16 @@ struct DirectoryEntry {
     char m_name[252];
     uint32_t m_inode;
 };
-
-struct FlashEntry {
-    char m_name[252];
-    uint32_t m_inode;
+struct LookupEntry {
+    uint32_t m_inode_number;
+    uint32_t m_inode_pointer;
 };
-static_assert(sizeof(FlashEntry) == 256);
 
 FileSystem::FileSystem(Elf::Generator& generator)
     : m_generator(generator)
 {
     m_data_index = m_generator.create_section(".embed", SHT_PROGBITS, SHF_ALLOC);
     m_data_relocs.emplace(m_generator, ".embed", generator.symtab().symtab_index(), *m_data_index);
-
-    m_tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
-    m_tab_relocs.emplace(m_generator, ".embed.tab", generator.symtab().symtab_index(), *m_tab_index);
 }
 FileSystem::~FileSystem()
 {
@@ -171,6 +166,8 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
         m_data_relocs->add_entry(relocation);
     }
 
+    m_inode_to_offset[inode_number] = inode_offset;
+
     return inode.m_inode;
 }
 void FileSystem::finalize()
@@ -179,8 +176,45 @@ void FileSystem::finalize()
     m_finalized = true;
 
     m_data_relocs->finalize();
-    m_tab_relocs->finalize();
-
     m_generator.write_section(m_data_index.value(), m_data_stream);
-    m_generator.write_section(m_tab_index.value(), m_tab_stream);
+
+    size_t data_symbol = m_generator.symtab().add_symbol("__flash_base", Elf32_Sym {
+        .st_value = 0,
+        .st_size = static_cast<uint32_t>(m_data_stream.size()),
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(*m_data_index),
+    });
+
+    size_t tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
+    Elf::RelocationTable tab_relocs { m_generator, ".embed.tab", m_generator.symtab().symtab_index(), tab_index };
+
+    // Note that std::map iterators are sorted by the key
+    Elf::MemoryStream tab_stream;
+    for (auto& [inode_number, inode_offset] : m_inode_to_offset) {
+        size_t lookup_offset = tab_stream.write_object(LookupEntry { inode_number, inode_offset });
+
+        tab_relocs.add_entry(Elf32_Rel {
+            .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(LookupEntry, m_inode_pointer)),
+            .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
+        });
+    }
+
+    tab_relocs.finalize();
+    m_generator.write_section(tab_index, tab_stream);
+
+    m_generator.symtab().add_symbol("__flash_tab_start", Elf32_Sym {
+        .st_value = 0,
+        .st_size = 0,
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(tab_index),
+    });
+    m_generator.symtab().add_symbol("__flash_tab_end", Elf32_Sym {
+        .st_value = static_cast<uint32_t>(tab_stream.size()),
+        .st_size = 0,
+        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
+        .st_other = STV_DEFAULT,
+        .st_shndx = static_cast<uint16_t>(tab_index),
+    });
 }
