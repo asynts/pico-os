@@ -17,13 +17,12 @@ add_custom_target(Shell.elf ALL
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf
     DEPENDS Shell.1.elf)
 
-# FIXME: Pass command line arguments to ElfEmbed
-add_custom_target(EmbeddedFiles.o ALL
-    COMMAND ${ELF_EMBED_EXECUTABLE}
-    DEPENDS ElfEmbed Shell.elf)
+add_custom_target(FileSystem.elf ALL
+    COMMAND ${CMAKE_SOURCE_DIR}/Scripts/create-filesystem.sh
+    DEPENDS Shell.elf ${CMAKE_SOURCE_DIR}/Scripts/create-filesystem.sh)
 
 add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)
 set_target_properties(LibEmbeddedFiles
     PROPERTIES
-        IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFiles.o)
-add_dependencies(LibEmbeddedFiles EmbeddedFiles.o)
+        IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/FileSystem.elf)
+add_dependencies(LibEmbeddedFiles FileSystem.elf)

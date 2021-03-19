@@ -37,6 +37,14 @@ namespace Std {
         return;
     }
 
+    void Formatter<bool>::format(StringBuilder& builder, bool value)
+    {
+        if (value)
+            builder.append("true");
+        else
+            builder.append("false");
+    }
+
     template class Formatter<unsigned char>;
     template class Formatter<unsigned short>;
     template class Formatter<unsigned int>;

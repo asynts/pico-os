@@ -8,6 +8,7 @@
 
 namespace Std {
     class StringBuilder;
+    class String;
 
     template<typename T>
     struct Formatter {
@@ -33,10 +34,18 @@ namespace Std {
         static void format(StringBuilder& builder, StringView);
     };
     template<>
+    struct Formatter<String> : Formatter<StringView> {
+    };
+    template<>
     struct Formatter<const char*> : Formatter<StringView> {
     };
     template<usize Size>
     struct Formatter<char[Size]> : Formatter<StringView> {
+    };
+
+    template<>
+    struct Formatter<bool> {
+        static void format(StringBuilder& builder, bool);
     };
 
     using FormatFunction = void(*)(StringBuilder&, const void*);

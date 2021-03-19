@@ -42,6 +42,8 @@ namespace Kernel
 
         void load_directory_entries()
         {
+            dbgln("Loading directory entry info for inode=% device=% name=%", m_info->m_id, m_info->m_device, m_name);
+
             if (m_loaded)
                 return;
             m_loaded = true;
@@ -61,6 +63,8 @@ namespace Kernel
                     new_info->m_entries.append(".", new_info);
                     new_info->m_entries.append("..", this);
                     m_entries.append(entry->m_name, new_info);
+
+                    dbgln("Loaded directory entry info for inode=% name=%", entry->m_info->m_id, entry->m_name);
                 }
                 return;
             }
@@ -70,16 +74,18 @@ namespace Kernel
         }
     };
 
-    extern "C" FileInfo __flash_root;
-
     class VirtualFileSystem : public Singleton<VirtualFileSystem> {
     public:
         DirectoryEntryInfo& lookup_path(StringView path)
         {
+            dbgln("VirtualFileSystem::lookup_path path=%", path);
+
             DirectoryEntryInfo *info = m_root_dentry_info;
             iterate_path_components(path, [&](StringView component, bool final) {
+                dbgln("VirtualFileSystem::lookup_path component=% final=% in inode=% device=%", component, final, info->m_info->m_id, info->m_info->m_device);
                 info->load_directory_entries();
                 info = info->m_entries.lookup(component).must();
+                dbgln("VirtualFileSystem::lookup_path found % as inode=% device=%", component, info->m_info->m_id, info->m_info->m_device);
                 return IterationDecision::Continue;
             });
             return *info;
@@ -102,14 +108,6 @@ namespace Kernel
             m_root_dentry_info->m_keep = true;
             m_root_dentry_info->m_entries.append(".", m_root_dentry_info);
             m_root_dentry_info->m_entries.append("..", m_root_dentry_info);
-
-            DirectoryEntryInfo *bin_info = new DirectoryEntryInfo;
-            bin_info->m_name = "bin";
-            bin_info->m_info = &__flash_root;
-            bin_info->m_keep = true;
-            bin_info->m_entries.append(".", bin_info);
-            bin_info->m_entries.append("..", m_root_dentry_info);
-            m_root_dentry_info->m_entries.append("bin", bin_info);
         }
 
         FileInfo *m_root_file_info;

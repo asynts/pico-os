@@ -10,6 +10,11 @@
 
 #include <pico/stdio.h>
 
+extern "C" {
+    extern u8 __fs_start[];
+    extern u8 __fs_end[];
+}
+
 void load_and_execute_shell()
 {
     auto& shell_dentry_info = Kernel::VirtualFileSystem::the().lookup_path("/bin/Shell.elf");

@@ -33,6 +33,8 @@ namespace Std {
 
         StringView view() const { return { data(), size() }; }
 
+        operator StringView() const { return view(); }
+
         bool operator==(const String& other) const
         {
             return view() == other.view();
