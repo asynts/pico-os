@@ -24,6 +24,11 @@ namespace Std {
             return {};
         }
 
+        bool is_empty() const
+        {
+            return m_sources.is_empty();
+        }
+
     private:
         Vector<T> m_sources;
         Vector<S> m_targets;

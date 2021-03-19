@@ -42,6 +42,8 @@ namespace Std {
             ++m_size;
         }
 
+        bool is_empty() const { return m_size > 0; }
+
         const T* data() const { return m_data; }
         T* data() { return m_data; }
 
