@@ -53,7 +53,7 @@ namespace Kernel {
             assert(is_directory());
             assert(directory_size() <= directory_entries_per_block);
 
-            auto *entries = reinterpret_cast<DirectoryEntry*>(m_direct_blocks);
+            auto *entries = reinterpret_cast<DirectoryEntry*>(m_direct_blocks[0]);
 
             usize index = directory_size();
             m_size += sizeof(DirectoryEntry);
@@ -169,7 +169,7 @@ namespace Kernel {
 
             m_next_inode = 3;
 
-            root().append_file("flash", __flash_root);
+            root().append_file("bin", __flash_root);
         }
 
         Map<u32, File*> m_inodes;

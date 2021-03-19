@@ -87,7 +87,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
     });
 
     IndexNode inode;
-    inode.m_inode = m_next_inode++;
+    inode.m_inode = inode_number;
     inode.m_mode = mode;
     inode.m_size = stream.size();
     inode.m_device_id = FLASH_DEVICE_ID;
