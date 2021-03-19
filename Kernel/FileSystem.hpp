@@ -2,51 +2,37 @@
 
 #include <Std/Forward.hpp>
 #include <Std/String.hpp>
-#include <Std/Vector.hpp>
 #include <Std/Map.hpp>
-#include <Std/StringBuilder.hpp>
+#include <Std/Singleton.hpp>
 
-namespace Std
-{
-    enum class IterationDecision {
-        Continue,
-        Break,
-    };
-}
-
-// In this filesystem `m_direct_blocks[0]` is null and `DirectoryEntryInfo`s are generated
-// with `m_keep` set.
-#define DEVICE_RAM 1
-
-// In this filesystem `m_direct_blocks[0]` is a pointer to the data which is stored
-// contiguously.
-//
-// Directories are encoded as normal files where the data is an array of
-// `FlashDirectoryEntryInfo`s which can be used to generate `DirectoryEntryInfo`s.
-#define DEVICE_FLASH 2
-
-#define S_IFDIR 1
-#define S_IFREG 2
+#include <Kernel/Interface/vfs.h>
 
 namespace Kernel
 {
     using namespace Std;
 
     template<typename Callback>
-    void iterate_path_components(StringView path, Callback&& callback);
+    void iterate_path_components(StringView path, Callback&& callback)
+    {
+        assert(path.size() >= 1);
+        assert(path[0] == '/');
+        path = path.substr(1);
 
-    struct FileInfo {
-        u32 m_id;
-        u32 m_device;
-        u32 m_mode;
+        if (path.size() == 0)
+            return;
 
-        u8 *m_direct_blocks[1];
-        u8 **m_indirect_blocks[4];
-    };
-    struct FlashDirectoryEntryInfo {
-        char m_name[252];
-        FileInfo *m_info;
-    };
+        auto end_index = path.index_of('/');
+
+        if (!end_index.is_valid()) {
+            callback(path, true);
+            return;
+        } else {
+            if (callback(path.trim(end_index.value()), false) == IterationDecision::Break)
+                return;
+            return iterate_path_components(path.substr(end_index.value()), move(callback));
+        }
+    }
+
     struct DirectoryEntryInfo {
         String m_name;
         FileInfo *m_info;
@@ -60,20 +46,16 @@ namespace Kernel
                 return;
             m_loaded = true;
 
-            if (m_info->m_device == DEVICE_RAM)
+            if (m_info->m_device == RAM_DEVICE_ID)
                 return;
 
-            if (m_info->m_device == DEVICE_FLASH) {
+            if (m_info->m_device == FLASH_DEVICE_ID) {
                 auto *begin = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0]);
                 auto *end = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0] + m_info->m_size);
 
                 for (auto *entry = begin; begin < end; ++begin) {
-                    StringBuilder name_builder;
-                    name_builder.append('/');
-                    name_builder.append(entry->m_name);
-
                     auto *new_info = new DirectoryEntryInfo;
-                    new_info->m_name = name_builder.view();
+                    new_info->m_name = entry->m_name;
                     new_info->m_info = entry->m_info;
                     new_info->m_keep = false;
                     new_info->m_entries.append(".", new_info);
@@ -83,20 +65,35 @@ namespace Kernel
                 return;
             }
 
+            dbgln("DirectoryEntryInfo::load_directory_entries Unknown device %", m_info->m_device);
             assert(false);
         }
     };
 
     extern "C" FileInfo __flash_root;
 
-    class VirtualFileSystem {
+    class VirtualFileSystem : public Singleton<VirtualFileSystem> {
     public:
+        DirectoryEntryInfo& lookup_path(StringView path)
+        {
+            DirectoryEntryInfo *info = m_root_dentry_info;
+            iterate_path_components(path, [&](StringView component, bool final) {
+                info->load_directory_entries();
+                info = info->m_entries.lookup(component).must();
+                return IterationDecision::Continue;
+            });
+            return *info;
+        }
+
+    private:
+        friend Singleton<VirtualFileSystem>;
         VirtualFileSystem()
         {
             m_root_file_info = new FileInfo;
             m_root_file_info->m_id = 2;
-            m_root_file_info->m_device = DEVICE_RAM;
+            m_root_file_info->m_device = RAM_DEVICE_ID;
             m_root_file_info->m_mode = S_IFDIR;
+            m_root_file_info->m_size = 0;
             m_root_file_info->m_direct_blocks[0] = nullptr;
 
             m_root_dentry_info = new DirectoryEntryInfo;
@@ -107,7 +104,7 @@ namespace Kernel
             m_root_dentry_info->m_entries.append("..", m_root_dentry_info);
 
             DirectoryEntryInfo *bin_info = new DirectoryEntryInfo;
-            bin_info->m_name = "/bin";
+            bin_info->m_name = "bin";
             bin_info->m_info = &__flash_root;
             bin_info->m_keep = true;
             bin_info->m_entries.append(".", bin_info);
@@ -115,17 +112,6 @@ namespace Kernel
             m_root_dentry_info->m_entries.append("bin", bin_info);
         }
 
-        DirectoryEntryInfo& lookup_path(StringView path)
-        {
-            DirectoryEntryInfo *info = m_root_dentry_info;
-            iterate_path_components(path, [&](StringView component, bool final) {
-                info->load_directory_entries();
-                info = info->m_entries.lookup(component).must();
-            });
-            return *info;
-        }
-
-    private:
         FileInfo *m_root_file_info;
         DirectoryEntryInfo *m_root_dentry_info;
     };

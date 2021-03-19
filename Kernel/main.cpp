@@ -6,17 +6,17 @@
 #include <Std/Format.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/MemoryFilesystem.hpp>
+#include <Kernel/FileSystem.hpp>
 
 #include <pico/stdio.h>
 
 void load_and_execute_shell()
 {
-    auto& shell_file = Kernel::iterate_path("/bin/Shell.elf");
+    auto& shell_dentry_info = Kernel::VirtualFileSystem::the().lookup_path("/bin/Shell.elf");
 
-    dbgln("Found Shell.elf: inode=% size=%", shell_file.m_inode, shell_file.m_size);
+    dbgln("Found Shell.elf: inode=% size=%", shell_dentry_info.m_info->m_id, shell_dentry_info.m_info->m_size);
 
-    ElfWrapper elf { shell_file.m_direct_blocks[0] };
+    ElfWrapper elf { shell_dentry_info.m_info->m_direct_blocks[0] };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
     dbgln("Loading process stack and static base, debugger hook");
@@ -54,14 +54,8 @@ int main()
     initialize_uart_debug();
     dbgln("\e[1mBOOT\e[0m");
 
-    Kernel::MemoryFilesystem::the();
+    Kernel::VirtualFileSystem::the();
     Kernel::ConsoleDevice::the();
-
-    dbgln("The contents of '/':");
-    Kernel::iterate_directory(Kernel::MemoryFilesystem::the().root(), [](auto entry) {
-        dbgln("  % (%)", entry.m_name, entry.m_inode);
-        return Kernel::IterationDecision::Continue;
-    });
 
     load_and_execute_shell();
 

@@ -8,10 +8,12 @@
 
 #include <LibElf/MemoryStream.hpp>
 
+#include <Kernel/Interface/vfs.h>
+
 #include "FileSystem.hpp"
 
 // FIXME: Get this from some kernel header
-#define FLASH_DEVICE_ID 1
+#define FLASH_DEVICE_ID 2
 #define FLASH_BLOCK_SIZE 0x1000
 #define FLASH_BLOCK_ENTRIES 0x400
 struct IndexNode {
@@ -26,10 +28,6 @@ struct IndexNode {
 struct DirectoryEntry {
     char m_name[252];
     uint32_t m_inode;
-};
-struct LookupEntry {
-    uint32_t m_inode_number;
-    uint32_t m_inode_pointer;
 };
 
 FileSystem::FileSystem(Elf::Generator& generator)
@@ -192,10 +190,10 @@ void FileSystem::finalize()
     // Note that std::map iterators are sorted by the key
     Elf::MemoryStream tab_stream;
     for (auto& [inode_number, inode_offset] : m_inode_to_offset) {
-        size_t lookup_offset = tab_stream.write_object(LookupEntry { inode_number, inode_offset });
+        size_t lookup_offset = tab_stream.write_object(FlashLookupEntry { .m_id = inode_number, .m_info_raw = inode_offset });
 
         tab_relocs.add_entry(Elf32_Rel {
-            .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(LookupEntry, m_inode_pointer)),
+            .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(FlashLookupEntry, m_info_raw)),
             .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
         });
     }

@@ -7,16 +7,15 @@ namespace Std {
     public:
         String()
         {
-            m_buffer = new char[1];
             m_buffer_size = 1;
+            m_buffer = new char[m_buffer_size];
             m_buffer[0] = 0;
         }
         String(StringView view)
         {
-            m_buffer = new char[view.size() + 1];
             m_buffer_size = view.size() + 1;
-            view.copy_to({ m_buffer, m_buffer_size - 1 });
-            m_buffer[size()] = 0;
+            m_buffer = new char[m_buffer_size];
+            view.strcpy_to({ m_buffer, m_buffer_size });
         }
         String(const char *str)
             : String(StringView { str })
@@ -31,6 +30,13 @@ namespace Std {
         usize size() const { return m_buffer_size - 1; }
 
         Span<const char> span() const { return { data(), size() }; }
+
+        StringView view() const { return { data(), size() }; }
+
+        bool operator==(const String& other) const
+        {
+            return view() == other.view();
+        }
 
     private:
         char *m_buffer;

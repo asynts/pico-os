@@ -94,3 +94,10 @@ inline usize round_to_power_of_two(usize value)
 {
     return 1 << (32 - __builtin_clz(value));
 }
+
+namespace Std {
+    enum class IterationDecision {
+        Continue,
+        Break,
+    };
+}

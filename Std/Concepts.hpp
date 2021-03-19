@@ -27,12 +27,14 @@ namespace Std::Concepts {
     concept Same = IsSame<T, S>::value;
 
     template<typename T>
-    concept Integral = Same<T, u8>
-                    || Same<T, u16>
-                    || Same<T, u32>
-                    || Same<T, u64>
-                    || Same<T, i8>
-                    || Same<T, i16>
-                    || Same<T, i32>
-                    || Same<T, i64>;
+    concept Integral = Same<T, unsigned char>
+                    || Same<T, unsigned short>
+                    || Same<T, unsigned int>
+                    || Same<T, unsigned long>
+                    || Same<T, unsigned long long>
+                    || Same<T, signed char>
+                    || Same<T, signed short>
+                    || Same<T, signed int>
+                    || Same<T, signed long>
+                    || Same<T, signed long long>;
 }

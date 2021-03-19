@@ -37,12 +37,14 @@ namespace Std {
         return;
     }
 
-    template class Formatter<u8>;
-    template class Formatter<u16>;
-    template class Formatter<u32>;
-    template class Formatter<u64>;
-    template class Formatter<i8>;
-    template class Formatter<i16>;
-    template class Formatter<i32>;
-    template class Formatter<i64>;
+    template class Formatter<unsigned char>;
+    template class Formatter<unsigned short>;
+    template class Formatter<unsigned int>;
+    template class Formatter<unsigned long>;
+    template class Formatter<unsigned long long>;
+    template class Formatter<signed char>;
+    template class Formatter<signed short>;
+    template class Formatter<signed int>;
+    template class Formatter<signed long>;
+    template class Formatter<signed long long>;
 }
