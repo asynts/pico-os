@@ -33,6 +33,8 @@ namespace Kernel
         }
     }
 
+    extern "C" FileInfo __flash_root;
+
     struct DirectoryEntryInfo {
         String m_name;
         FileInfo *m_info;
@@ -55,6 +57,8 @@ namespace Kernel
                 auto *begin = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0]);
                 auto *end = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0] + m_info->m_size);
 
+                dbgln("Loading % directory entries from inode=% device=%", end - begin, m_info->m_id, m_info->m_device);
+
                 for (auto *entry = begin; begin < end; ++begin) {
                     auto *new_info = new DirectoryEntryInfo;
                     new_info->m_name = entry->m_name;
@@ -64,6 +68,7 @@ namespace Kernel
                     new_info->m_entries.append("..", this);
                     m_entries.append(entry->m_name, new_info);
 
+                    dbgln("(Repeated) Loading directory with from entry=% info=%", entry, entry->m_info);
                     dbgln("Loaded directory entry info for inode=% name=%", entry->m_info->m_id, entry->m_name);
                 }
                 return;
@@ -103,11 +108,19 @@ namespace Kernel
             m_root_file_info->m_direct_blocks[0] = nullptr;
 
             m_root_dentry_info = new DirectoryEntryInfo;
-            m_root_dentry_info->m_name = "/";
+            m_root_dentry_info->m_name = "";
             m_root_dentry_info->m_info = m_root_file_info;
             m_root_dentry_info->m_keep = true;
             m_root_dentry_info->m_entries.append(".", m_root_dentry_info);
             m_root_dentry_info->m_entries.append("..", m_root_dentry_info);
+
+            auto *bin_dentry = new DirectoryEntryInfo;
+            bin_dentry->m_name = "bin";
+            bin_dentry->m_info = &__flash_root;
+            bin_dentry->m_keep = true;
+            bin_dentry->m_entries.append(".", bin_dentry);
+            bin_dentry->m_entries.append("..", m_root_dentry_info);
+            m_root_dentry_info->m_entries.append("bin", bin_dentry);
         }
 
         FileInfo *m_root_file_info;

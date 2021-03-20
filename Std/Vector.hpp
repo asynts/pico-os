@@ -23,21 +23,12 @@ namespace Std {
             delete m_data;
         }
 
-        void append(const T &value)
+        template<typename T_>
+        void append(T_&& value)
         {
             ensure_capacity(m_size + 1);
 
-            new (m_data + m_size) T { value };
-
-            ++m_size;
-        }
-
-        void append(T &&value)
-        {
-            ensure_capacity(m_size + 1);
-
-            new (m_data + m_size) T;
-            m_data[m_size] = move(value);
+            new (m_data + m_size) T { forward<T_>(value) };
 
             ++m_size;
         }

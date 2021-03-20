@@ -7,10 +7,11 @@ namespace Std {
     template<typename T, typename S>
     class Map {
     public:
-        void append(T source, S target)
+        template<typename T_, typename S_>
+        void append(T_&& source, S_&& target)
         {
-            m_sources.append(source);
-            m_targets.append(target);
+            m_sources.append(forward<T_>(source));
+            m_targets.append(forward<S_>(target));
         }
 
         Optional<S> lookup(T source)

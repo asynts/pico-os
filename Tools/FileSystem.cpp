@@ -55,7 +55,7 @@ uint32_t FileSystem::add_directory(std::map<std::string, uint32_t>& files, uint3
         size_t info_offset = stream.write_object(info);
 
         directory_relocations.push_back(Elf32_Rel {
-            .r_offset = (uint32_t)info_offset,
+            .r_offset = (uint32_t) (info_offset + offsetof(FlashDirectoryEntryInfo, m_info_raw)),
             .r_info = ELF32_R_INFO(*m_base_symbol, R_ARM_ABS32),
         });
     }
@@ -143,14 +143,6 @@ void FileSystem::finalize()
     m_data_relocs->finalize();
     m_generator.write_section(m_data_index.value(), m_data_stream);
 
-    size_t data_symbol = m_generator.symtab().add_symbol("__flash_base", Elf32_Sym {
-        .st_value = 0,
-        .st_size = static_cast<uint32_t>(m_data_stream.size()),
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(*m_data_index),
-    });
-
     size_t tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
     Elf::RelocationTable tab_relocs { m_generator, ".embed.tab", m_generator.symtab().symtab_index(), tab_index };
 
@@ -161,7 +153,7 @@ void FileSystem::finalize()
 
         tab_relocs.add_entry(Elf32_Rel {
             .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(FlashLookupEntry, m_info_raw)),
-            .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
+            .r_info = ELF32_R_INFO(*m_base_symbol, R_ARM_ABS32),
         });
     }
 

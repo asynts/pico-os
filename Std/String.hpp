@@ -16,10 +16,16 @@ namespace Std {
             m_buffer_size = view.size() + 1;
             m_buffer = new char[m_buffer_size];
             view.strcpy_to({ m_buffer, m_buffer_size });
+
+            dbgln("Created String % from StringView %", *this, view);
         }
         String(const char *str)
             : String(StringView { str })
         {
+        }
+        String(String&& other)
+        {
+            *this = move(other);
         }
         ~String()
         {
@@ -34,6 +40,13 @@ namespace Std {
         StringView view() const { return { data(), size() }; }
 
         operator StringView() const { return view(); }
+
+        String& operator=(String&& other)
+        {
+            m_buffer = exchange(other.m_buffer, nullptr);
+            m_buffer_size = exchange(other.m_buffer_size, 0);
+            return *this;
+        }
 
         bool operator==(const String& other) const
         {

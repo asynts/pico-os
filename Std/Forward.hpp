@@ -38,13 +38,27 @@ void operator delete(void*);
 void operator delete[](void*);
 
 template<typename T>
-constexpr T&& move(T &&value)
+struct RemoveReference {
+    using Type = T;
+};
+template<typename T>
+struct RemoveReference<T&> {
+    using Type = T;
+};
+
+template<typename T>
+constexpr typename RemoveReference<T>::Type&& move(T&& value)
 {
-    return static_cast<T&&>(value);
+    return static_cast<typename RemoveReference<T>::Type&&>(value);
 }
 
 template<typename T>
-constexpr T&& forward(T&& value)
+constexpr T&& forward(typename RemoveReference<T>::Type& value)
+{
+    return static_cast<T&&>(value);
+}
+template<typename T>
+constexpr T&& forward(typename RemoveReference<T>::Type&& value)
 {
     return static_cast<T&&>(value);
 }
@@ -54,7 +68,7 @@ constexpr T exchange(T& obj, U&& new_value)
 {
     T old_value = move(obj);
     obj = forward<U>(new_value);
-    return old_value;
+    return move(old_value);
 }
 
 template<typename T>
