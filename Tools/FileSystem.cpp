@@ -100,7 +100,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
 
     std::vector<Elf32_Rel> inode_relocations;
 
-    inode.m_direct_blocks_raw[0] = data_offset;
+    inode.m_direct_blocks_raw[0] = 0;
     inode_relocations.push_back(Elf32_Rel {
         .r_offset = offsetof(FileInfo, m_direct_blocks_raw),
         .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
