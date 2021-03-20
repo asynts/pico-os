@@ -36,13 +36,11 @@ SECTIONS
         *(.bss*)
         __bss_end__ = .;
         end = .;
-    } :data
-    .heap : {
+
         __heap_start__ = .;
         . += 0x10000;
         __heap_end__ = .;
-    } :data
-    .stack : {
+
         . += 0x10100;
         __stack = .;
     } :data
