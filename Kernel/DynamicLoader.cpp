@@ -50,6 +50,9 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - text_segment.p_vaddr);
     dbgln("Putting entry point at %", executable.m_entry);
 
+    executable.m_text_base = 0;
+    executable.m_data_base = 0;
+    executable.m_stack_base = 0;
     for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
         Elf32_Shdr& section = elf.sections()[section_index];
 
@@ -75,7 +78,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 
     dbgln("Found text segment at % in readonly segment", executable.m_text_base);
     dbgln("Found data segment at % in writable segment", executable.m_data_base);
-    dbgln("Found stack segment at % in readonly segment", executable.m_stack_base);
+    dbgln("Found stack segment at % in writable segment", executable.m_stack_base);
 
     executable_for_debugger = &executable;
     inform_debugger_about_executable();
