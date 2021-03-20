@@ -15,8 +15,13 @@
 #define FLASH_BLOCK_SIZE 0x1000
 #define FLASH_BLOCK_ENTRIES 0x400
 
-#define S_IFDIR 1
-#define S_IFREG 2
+#ifdef HOST
+# define FLASH_TYPE_DIR 1
+# define FLASH_TYPE_REG 2
+#else
+# define S_IFDIR 1
+# define S_IFREG 2
+#endif
 
 struct FileInfo {
     uint32_t m_id;
