@@ -29,31 +29,35 @@ struct FileInfo {
     uint32_t m_mode;
     uint32_t m_size;
 
-    union {
-        uint8_t *m_direct_blocks[1];
-        uint32_t m_direct_blocks_raw[1];
-    };
+#ifdef HOST
+    uint32_t m_direct_blocks_raw[1];
+#else
+    uint8_t *m_direct_blocks[1];
+#endif
 
-    union {
-        uint8_t **m_indirect_blocks[4];
-        uint32_t m_indirect_blocks_raw[4];
-    };
+#ifdef HOST
+    uint32_t m_indirect_blocks_raw[4];
+#else
+    uint8_t **m_indirect_blocks[4];
+#endif
 };
 
 struct FlashDirectoryEntryInfo {
     char m_name[252];
 
-    union {
-        FileInfo *m_info;
-        uint32_t m_info_raw;
-    };
+#ifdef HOST
+    uint32_t m_info_raw;
+#else
+    FileInfo *m_info;
+#endif
 };
 
 struct FlashLookupEntry {
     uint32_t m_id;
 
-    union {
-        FileInfo *m_info;
-        uint32_t m_info_raw;
-    };
+#ifdef HOST
+    uint32_t m_info_raw;
+#else
+    FileInfo *m_info;
+#endif
 };
