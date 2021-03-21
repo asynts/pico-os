@@ -1,12 +1,8 @@
 #pragma once
 
-#include <pico/mutex.h>
-
 #include <Std/Forward.hpp>
 
 namespace Std {
-    auto_init_mutex(singleton_mutex);
-
     template<typename T>
     class Singleton {
     public:
@@ -18,15 +14,8 @@ namespace Std {
             if (initialized)
                 return *reinterpret_cast<T*>(instance);
 
-            mutex_enter_blocking(&singleton_mutex);
-
-            if (initialized)
-                return *reinterpret_cast<T*>(instance);
-
-            new (instance) T;
             initialized = true;
-
-            mutex_exit(&singleton_mutex);
+            new (instance) T;
 
             return *reinterpret_cast<T*>(instance);
         }

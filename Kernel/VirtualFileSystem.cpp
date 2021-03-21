@@ -1,10 +1,23 @@
 #include <Kernel/VirtualFileSystem.hpp>
+#include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FlashFileSystem.hpp>
 
 namespace Kernel
 {
-    void VirtualDirectoryEntry::add_entry(StringView name, FileInfo& info, bool keep)
+    // FIXME: Do this properly
+    static VirtualFileSystem& filesystem_by_device(u32 device)
     {
-        auto& dentry = m_fs->create_empty_dentry();
+        if (device == RAM_DEVICE_ID)
+            return MemoryFileSystem::the();
+        if (device == FLASH_DEVICE_ID)
+            return FlashFileSystem::the();
+
+        assert(false);
+    }
+
+    VirtualDirectoryEntry& VirtualDirectoryEntry::add_entry(StringView name, FileInfo& info, bool keep)
+    {
+        auto& dentry = filesystem_by_device(info.m_device).create_empty_dentry();
 
         dentry.m_info = &info;
         dentry.m_keep |= keep;
@@ -14,5 +27,6 @@ namespace Kernel
         dentry.m_entries.append("..", this);
 
         m_entries.append(name, &dentry);
+        return dentry;
     }
 }

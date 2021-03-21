@@ -7,6 +7,7 @@
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FlashFileSystem.hpp>
 
 #include <pico/stdio.h>
 
@@ -60,7 +61,11 @@ int main()
     dbgln("\e[1mBOOT\e[0m");
 
     Kernel::MemoryFileSystem::the();
+    Kernel::FlashFileSystem::the();
     Kernel::ConsoleDevice::the();
+
+    auto& bin = Kernel::MemoryFileSystem::the().lookup_path("/bin");
+    dbgln("/bin inode=% device=%", bin.m_info->m_id, bin.m_info->m_device);
 
     auto& tty_info = Kernel::MemoryFileSystem::the().lookup_path("/dev/tty");
     dbgln("/dev/tty got devno=%", tty_info.m_info->m_devno);

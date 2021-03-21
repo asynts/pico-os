@@ -79,6 +79,8 @@ namespace Kernel
             m_root->m_name = "";
             m_root->m_entries.append(".", m_root);
             m_root->m_entries.append("..", m_root);
+
+            m_root->add_entry("dev", create_directory());
         }
 
         MemoryDirectoryEntry *m_root;

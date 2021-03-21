@@ -23,7 +23,7 @@ namespace Kernel
 
         virtual void load_directory_entries() = 0;
 
-        void add_entry(StringView name, FileInfo& info, bool keep = false);
+        VirtualDirectoryEntry& add_entry(StringView name, FileInfo& info, bool keep = false);
     };
 
     class VirtualFileSystem {
@@ -35,6 +35,8 @@ namespace Kernel
 
         VirtualDirectoryEntry& lookup_path(StringView path)
         {
+            dbgln("VirtualFileSystem::lookup_path(%)", path);
+
             VirtualDirectoryEntry *info = &root();
             iterate_path_components(path, [&](StringView component, bool final) {
                 info->load_directory_entries();
