@@ -45,15 +45,4 @@ SECTIONS
     .stack (NOLOAD) : {
         . += 0x10100;
     } :data
-
-    /DISCARD/ : {
-        /* Why are these sections even emitted? They are not releavant for the Cortex-M0+. */
-        *(.vfp11_veneer)
-        *(.v4_bx)
-
-        /* Why are these sections even emitted? We are linking statically?! */
-        *(.iplt)
-        *(.rel.iplt)
-        *(.igot.plt)
-    }
 }
