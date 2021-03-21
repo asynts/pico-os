@@ -62,6 +62,9 @@ int main()
     Kernel::VirtualFileSystem::the();
     Kernel::ConsoleDevice::the();
 
+    auto& tty_info = Kernel::VirtualFileSystem::the().lookup_path("/dev/tty");
+    dbgln("/dev/tty got devno=%", tty_info.m_info->m_devno);
+
     load_and_execute_shell();
 
     for(;;)

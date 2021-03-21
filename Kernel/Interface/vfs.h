@@ -4,6 +4,7 @@
 
 // In this filesystem `m_direct_blocks[0]` is null and `DirectoryEntryInfo`s are generated
 // with `m_keep` set.
+#define RAM_BLOCK_SIZE 0x1000
 #define RAM_DEVICE_ID 1
 
 // In this filesystem `m_direct_blocks[0]` is a pointer to the data which is stored
@@ -22,6 +23,7 @@
 # define S_IFMT 0xf
 # define S_IFDIR 1
 # define S_IFREG 2
+# define S_IFDEV 3
 #endif
 
 struct FileInfo {
@@ -29,6 +31,7 @@ struct FileInfo {
     uint32_t m_device;
     uint32_t m_mode;
     uint32_t m_size;
+    uint32_t m_devno;
 
 #ifdef HOST
     uint32_t m_direct_blocks_raw[1];

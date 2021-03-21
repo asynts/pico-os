@@ -90,6 +90,23 @@ namespace Kernel
             dbgln("DirectoryEntryInfo::load_directory_entries Unknown device %", m_info->m_device);
             assert(false);
         }
+
+        DirectoryEntryInfo& add_entry(StringView name, FileInfo &info, bool keep = false)
+        {
+            if (keep)
+                assert(m_keep);
+
+            auto& dentry = *new DirectoryEntryInfo;
+            dentry.m_name = name;
+            dentry.m_info = &info;
+            dentry.m_keep = keep;
+            dentry.m_entries.append(".", &dentry);
+            dentry.m_entries.append("..", this);
+
+            m_entries.append(name, &dentry);
+
+            return dentry;
+        }
     };
 
     class VirtualFileSystem : public Singleton<VirtualFileSystem> {
@@ -107,6 +124,31 @@ namespace Kernel
                 return IterationDecision::Continue;
             });
             return *info;
+        }
+
+        FileInfo& create_ram_directory()
+        {
+            auto& info = *new FileInfo;
+            info.m_device = RAM_DEVICE_ID;
+            info.m_direct_blocks[0] = nullptr;
+            info.m_id = m_next_ram_id++;
+            info.m_mode = S_IFDIR;
+            info.m_size = 0;
+
+            return info;
+        }
+
+        FileInfo& create_ram_device(u32 device_id)
+        {
+            auto& info = *new FileInfo;
+            info.m_device = RAM_DEVICE_ID;
+            info.m_direct_blocks[0] = nullptr;
+            info.m_id = m_next_ram_id++;
+            info.m_mode = S_IFDEV;
+            info.m_size = 0;
+            info.m_devno = device_id;
+
+            return info;
         }
 
     private:
@@ -127,16 +169,13 @@ namespace Kernel
             m_root_dentry_info->m_entries.append(".", m_root_dentry_info);
             m_root_dentry_info->m_entries.append("..", m_root_dentry_info);
 
-            auto *bin_dentry = new DirectoryEntryInfo;
-            bin_dentry->m_name = "bin";
-            bin_dentry->m_info = &__flash_root;
-            bin_dentry->m_keep = true;
-            bin_dentry->m_entries.append(".", bin_dentry);
-            bin_dentry->m_entries.append("..", m_root_dentry_info);
-            m_root_dentry_info->m_entries.append("bin", bin_dentry);
+            m_root_dentry_info->add_entry("bin", __flash_root, true);
+            m_root_dentry_info->add_entry("dev", create_ram_directory(), true);
         }
 
         FileInfo *m_root_file_info;
         DirectoryEntryInfo *m_root_dentry_info;
+
+        u32 m_next_ram_id = 3;
     };
 }

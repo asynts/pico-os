@@ -11,11 +11,13 @@ namespace Kernel {
 
     class Device {
     public:
-        Device(u16 minor, u16 major)
+        Device(u16 major, u16 minor)
             : m_minor(minor)
             , m_major(major)
         {
         }
+
+        u32 device_id() { return m_major << 16 | m_minor; }
 
         virtual isize read(Bytes) = 0;
         virtual isize write(ReadonlyBytes) = 0;
@@ -51,9 +53,6 @@ namespace Kernel {
 
     private:
         friend Singleton<ConsoleDevice>;
-        ConsoleDevice()
-            : Device(1, 0)
-        {
-        }
+        ConsoleDevice();
     };
 }
