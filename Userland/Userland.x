@@ -31,17 +31,18 @@ SECTIONS
     .data : {
         *(.data*)
         *(.noinit)
-
+    } :data
+    .bss (NOLOAD) : {
         __bss_start__ = .;
         *(.bss*)
         __bss_end__ = .;
     } :data
-    .heap : {
+    .heap (NOLOAD) : {
         __heap_start__ = .;
         . += 0x10000;
         __heap_end__ = .;
     } :data
-    .stack : {
+    .stack (NOLOAD) : {
         . += 0x10100;
     } :data
 
