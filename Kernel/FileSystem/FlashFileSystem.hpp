@@ -2,7 +2,7 @@
 
 #include <Std/Singleton.hpp>
 
-#include <Kernel/VirtualFileSystem.hpp>
+#include <Kernel/FileSystem/VirtualFileSystem.hpp>
 
 namespace Kernel
 {

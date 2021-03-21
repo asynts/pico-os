@@ -1,5 +1,5 @@
-#include <Kernel/FlashFileSystem.hpp>
-#include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 
 namespace Kernel {
     extern "C" FileInfo __flash_root;

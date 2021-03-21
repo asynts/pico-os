@@ -1,5 +1,5 @@
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 
 namespace Kernel {
     ConsoleDevice::ConsoleDevice()

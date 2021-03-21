@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/VirtualFileSystem.hpp>
 
 namespace Kernel {
     class File {

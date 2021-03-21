@@ -1,6 +1,6 @@
-#include <Kernel/VirtualFileSystem.hpp>
-#include <Kernel/MemoryFileSystem.hpp>
-#include <Kernel/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/VirtualFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
 
 namespace Kernel
 {

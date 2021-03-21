@@ -6,8 +6,8 @@
 #include <Std/Format.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/MemoryFileSystem.hpp>
-#include <Kernel/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
 
 #include <pico/stdio.h>
 

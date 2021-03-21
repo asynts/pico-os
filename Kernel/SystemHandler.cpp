@@ -1,7 +1,7 @@
 #include <Std/Forward.hpp>
 #include <Kernel/Interface/syscalls.h>
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/File.hpp>
 
 #define STDIN_FILENO 0

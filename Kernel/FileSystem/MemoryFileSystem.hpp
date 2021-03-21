@@ -6,7 +6,7 @@
 #include <Std/Singleton.hpp>
 #include <Std/Format.hpp>
 
-#include <Kernel/VirtualFileSystem.hpp>
+#include <Kernel/FileSystem/VirtualFileSystem.hpp>
 #include <Kernel/Interface/vfs.h>
 
 namespace Kernel
