@@ -1,17 +1,17 @@
 #pragma once
 
-#include <Kernel/FileSystem.hpp>
+#include <Kernel/MemoryFileSystem.hpp>
 
 namespace Kernel {
     class File {
     public:
-        explicit File(DirectoryEntryInfo& info)
+        explicit File(VirtualDirectoryEntry& info)
             : m_info(info)
         {
         }
 
     private:
-        DirectoryEntryInfo& m_info;
+        VirtualDirectoryEntry& m_info;
     };
 
     class FileHandle {

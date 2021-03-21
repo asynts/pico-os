@@ -1,7 +1,7 @@
 #include <Std/Forward.hpp>
 #include <Kernel/Interface/syscalls.h>
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/FileSystem.hpp>
+#include <Kernel/MemoryFileSystem.hpp>
 #include <Kernel/File.hpp>
 
 #define STDIN_FILENO 0
@@ -54,7 +54,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 
         auto absolute_path = Kernel::compute_absolute_path(path);
 
-        auto& entry = Kernel::VirtualFileSystem::the().lookup_path(absolute_path.view());
+        auto& entry = Kernel::MemoryFileSystem::the().lookup_path(absolute_path.view());
 
         if (flags & O_DIRECTORY) {
             if (entry.m_info->m_mode & S_IFMT != S_IFDIR)

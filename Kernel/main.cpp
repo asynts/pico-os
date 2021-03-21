@@ -6,7 +6,7 @@
 #include <Std/Format.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
-#include <Kernel/FileSystem.hpp>
+#include <Kernel/MemoryFileSystem.hpp>
 
 #include <pico/stdio.h>
 
@@ -17,7 +17,7 @@ extern "C" {
 
 void load_and_execute_shell()
 {
-    auto& shell_dentry_info = Kernel::VirtualFileSystem::the().lookup_path("/bin/Shell.elf");
+    auto& shell_dentry_info = Kernel::MemoryFileSystem::the().lookup_path("/bin/Shell.elf");
 
     dbgln("Found Shell.elf: inode=% size=%", shell_dentry_info.m_info->m_id, shell_dentry_info.m_info->m_size);
 
@@ -59,10 +59,10 @@ int main()
     initialize_uart_debug();
     dbgln("\e[1mBOOT\e[0m");
 
-    Kernel::VirtualFileSystem::the();
+    Kernel::MemoryFileSystem::the();
     Kernel::ConsoleDevice::the();
 
-    auto& tty_info = Kernel::VirtualFileSystem::the().lookup_path("/dev/tty");
+    auto& tty_info = Kernel::MemoryFileSystem::the().lookup_path("/dev/tty");
     dbgln("/dev/tty got devno=%", tty_info.m_info->m_devno);
 
     load_and_execute_shell();
