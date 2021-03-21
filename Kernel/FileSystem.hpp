@@ -4,6 +4,7 @@
 #include <Std/String.hpp>
 #include <Std/Map.hpp>
 #include <Std/Singleton.hpp>
+#include <Std/Format.hpp>
 
 #include <Kernel/Interface/vfs.h>
 
@@ -31,6 +32,18 @@ namespace Kernel
                 return;
             return iterate_path_components(path.substr(end_index.value()), move(callback));
         }
+    }
+
+    inline StringBuilder compute_absolute_path(StringView path)
+    {
+        // FIXME: Introduce process seperation
+        StringView current_working_directory = "/";
+
+        StringBuilder builder;
+        builder.append(current_working_directory);
+        builder.append(path);
+
+        return builder;
     }
 
     extern "C" FileInfo __flash_root;

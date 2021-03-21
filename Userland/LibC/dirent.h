@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct {
+    int fd;
 } DIR;
 
 struct dirent {

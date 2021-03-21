@@ -13,3 +13,8 @@ ssize_t sys$read(int fd, void *buffer, size_t count)
 {
     return syscall(_SC_read, fd, buffer, count);
 }
+
+int sys$open(const char *path, int flags, int mode)
+{
+    return syscall(_SC_open, path, flags, mode);
+}

@@ -16,8 +16,6 @@ namespace Std {
             m_buffer_size = view.size() + 1;
             m_buffer = new char[m_buffer_size];
             view.strcpy_to({ m_buffer, m_buffer_size });
-
-            dbgln("Created String % from StringView %", *this, view);
         }
         String(const char *str)
             : String(StringView { str })

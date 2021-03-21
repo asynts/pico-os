@@ -19,6 +19,7 @@
 # define FLASH_TYPE_DIR 1
 # define FLASH_TYPE_REG 2
 #else
+# define S_IFMT 0xf
 # define S_IFDIR 1
 # define S_IFREG 2
 #endif

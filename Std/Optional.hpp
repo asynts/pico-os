@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/Forward.hpp>
+#include <assert.h>
 
 namespace Std {
     template<typename T>
