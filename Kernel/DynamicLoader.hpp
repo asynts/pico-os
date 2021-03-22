@@ -43,6 +43,7 @@ struct LoadedExecutable {
 
     u32 m_data_base;
     u32 m_text_base;
+    u32 m_bss_base;
 
     u32 m_stack_base;
     u32 m_stack_size;

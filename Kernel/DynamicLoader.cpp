@@ -53,6 +53,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     executable.m_text_base = 0;
     executable.m_data_base = 0;
     executable.m_stack_base = 0;
+    executable.m_bss_base = 0;
     for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
         Elf32_Shdr& section = elf.sections()[section_index];
 
@@ -61,9 +62,12 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
             executable.m_stack_size = 0x10000;
             continue;
         }
-
         if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
             executable.m_data_base = executable.m_writable_base + section.sh_addr;
+            continue;
+        }
+        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".bss") == 0) {
+            executable.m_bss_base = executable.m_writable_base + section.sh_addr;
             continue;
         }
 
@@ -75,6 +79,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(executable.m_text_base);
     assert(executable.m_data_base);
     assert(executable.m_stack_base);
+    assert(executable.m_bss_base);
 
     dbgln("Found text segment at % in readonly segment", executable.m_text_base);
     dbgln("Found data segment at % in writable segment", executable.m_data_base);
