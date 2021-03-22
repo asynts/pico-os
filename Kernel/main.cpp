@@ -8,6 +8,7 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/Process.hpp>
 
 #include <pico/stdio.h>
 
@@ -24,6 +25,9 @@ void load_and_execute_shell()
 
     ElfWrapper elf { shell_dentry_info.m_info->m_direct_blocks[0] };
     LoadedExecutable executable = load_executable_into_memory(elf);
+
+    // FIXME: Do this properly
+    Kernel::Process::current();
 
     dbgln("Loading process stack and static base, debugger hook");
 

@@ -1,7 +1,10 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 
-namespace Kernel {
+namespace Kernel
+{
+    Map<u32, Device*> Device::m_devices;
+
     ConsoleDevice::ConsoleDevice()
         : Device(1, 0)
     {

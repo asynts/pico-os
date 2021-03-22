@@ -1,8 +1,12 @@
 #pragma once
 
 #include <Kernel/FileSystem/VirtualFileSystem.hpp>
+#include <Kernel/ConsoleDevice.hpp>
 
-namespace Kernel {
+namespace Kernel
+{
+    class VirtualFileHandle;
+
     class File {
     public:
         explicit File(VirtualDirectoryEntry& info)
@@ -10,30 +14,26 @@ namespace Kernel {
         {
         }
 
-    private:
+        VirtualFileHandle& create_handle();
+
         VirtualDirectoryEntry& m_info;
     };
 
-    class FileHandle {
+    class VirtualFileHandle {
     public:
-        explicit FileHandle(File& file, i32 fd)
+        virtual ~VirtualFileHandle() = default;
+
+        explicit VirtualFileHandle(File& file)
             : m_file(file)
-            , m_fd(fd)
         {
+            m_offset = 0;
         }
 
-        i32 fd() const { return m_fd; }
-
-        // FIXME: We need to do this on a process basis
-        static i32 generate_fd()
-        {
-            return next_fd++;
-        }
+        virtual usize read(Bytes) = 0;
+        virtual usize write(ReadonlyBytes) = 0;
 
     private:
-        static i32 next_fd;
-
         File& m_file;
-        i32 m_fd;
+        usize m_offset;
     };
 }

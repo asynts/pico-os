@@ -19,12 +19,16 @@ namespace Kernel {
 
         u32 device_id() { return m_major << 16 | m_minor; }
 
-        virtual isize read(Bytes) = 0;
-        virtual isize write(ReadonlyBytes) = 0;
+        virtual usize read(Bytes) = 0;
+        virtual usize write(ReadonlyBytes) = 0;
 
-        Device* lookup(u16 minor, u16 major)
+        static Device* lookup(u16 minor, u16 major)
         {
-            return m_devices.lookup(major << 16 | minor).value_or(nullptr);
+            return lookup(major << 16 | minor);
+        }
+        static Device* lookup(u32 id)
+        {
+            return m_devices.lookup(id).value_or(nullptr);
         }
 
     private:
@@ -36,7 +40,7 @@ namespace Kernel {
 
     class ConsoleDevice : public Device, public Singleton<ConsoleDevice> {
     public:
-        isize read(Bytes bytes)
+        usize read(Bytes bytes)
         {
             isize nread;
             for (nread = 0; nread < bytes.size(); ++nread)
@@ -45,7 +49,7 @@ namespace Kernel {
             return nread;
         }
 
-        isize write(ReadonlyBytes bytes)
+        usize write(ReadonlyBytes bytes)
         {
             uart_write_blocking(uart0, bytes.data(), bytes.size());
             return bytes.size();

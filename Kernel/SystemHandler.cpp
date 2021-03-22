@@ -3,6 +3,7 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/File.hpp>
+#include <Kernel/Process.hpp>
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
@@ -27,24 +28,20 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
 {
     if (syscall == _SC_read) {
         i32 fd = arg1.fd();
-        char *buffer = arg2.pointer<char>();
+        auto *buffer = arg2.pointer<u8>();
         usize count = arg3.size();
 
-        assert(fd == STDIN_FILENO);
-
-        Kernel::ConsoleDevice::the().read({ (u8*)buffer, count });
-        return count;
+        auto& handle = Kernel::Process::current().get_file_handle(fd);
+        return handle.read({ buffer, count });
     }
 
     if (syscall == _SC_write) {
         i32 fd = arg1.fd();
-        const char *buffer = arg2.pointer<const char>();
+        auto *buffer = arg2.pointer<const u8>();
         usize count = arg3.size();
 
-        assert(fd == STDOUT_FILENO);
-
-        Kernel::ConsoleDevice::the().write({ (u8*)buffer, count });
-        return count;
+        auto& handle = Kernel::Process::current().get_file_handle(fd);
+        return handle.write({ buffer, count });
     }
 
     if (syscall == _SC_open) {
@@ -62,9 +59,7 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         }
 
         auto& file = *new Kernel::File { entry };
-        auto& handle = *new Kernel::FileHandle { file, Kernel::FileHandle::generate_fd() };
-
-        return handle.fd();
+        return Kernel::Process::current().add_file_handle(file.create_handle());
     }
 
     panic("Unknown system call %i", syscall);
