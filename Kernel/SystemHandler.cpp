@@ -59,7 +59,11 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         }
 
         auto& file = *new Kernel::File { entry };
-        return Kernel::Process::current().add_file_handle(file.create_handle());
+        auto& handle = file.create_handle();
+        i32 fd = Kernel::Process::current().add_file_handle(handle);
+
+        dbgln("Opened % (fd=%)", path, fd);
+        return fd;
     }
 
     panic("Unknown system call %i", syscall);

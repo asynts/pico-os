@@ -26,14 +26,12 @@ namespace Kernel
         explicit VirtualFileHandle(File& file)
             : m_file(file)
         {
-            m_offset = 0;
         }
 
         virtual usize read(Bytes) = 0;
         virtual usize write(ReadonlyBytes) = 0;
 
-    private:
+    protected:
         File& m_file;
-        usize m_offset;
     };
 }

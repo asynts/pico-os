@@ -28,10 +28,16 @@ namespace Std {
 
     inline StringBuilder compute_absolute_path(StringView path)
     {
+        StringBuilder builder;
+
+        if (path.starts_with('/')) {
+            builder.append(path);
+            return builder;
+        }
+
         // FIXME: Introduce process seperation
         StringView current_working_directory = "/";
 
-        StringBuilder builder;
         builder.append(current_working_directory);
         builder.append(path);
 

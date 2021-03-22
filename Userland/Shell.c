@@ -47,6 +47,26 @@ int main(int argc, char **argv) {
 
             int retval = closedir(dir);
             assert(retval == 0);
+        } else if (strcmp(program, "cat") == 0) {
+            const char *filename = strtok_r(NULL, " ", &saveptr);
+            assert(filename != NULL);
+            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            int fd = open(filename, O_RDONLY);
+
+            char buffer[0x1000];
+            for(;;) {
+                ssize_t nread = read(fd, buffer, sizeof(buffer));
+                assert(nread >= 0);
+
+                ssize_t nwritten = write(STDOUT_FILENO, buffer, nread);
+                assert(nwritten == nread);
+
+                if (nread == 0)
+                    break;
+            }
+
+            close(fd);
         } else if (strcmp(program, "cd") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);

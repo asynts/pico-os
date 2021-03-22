@@ -20,6 +20,10 @@ namespace Kernel
             auto& stdout_file = *new File { MemoryFileSystem::the().lookup_path("/dev/tty") };
             i32 stdout_fileno = add_file_handle(stdout_file.create_handle());
             assert(stdout_fileno == 1);
+
+            auto& stderr_file = *new File { MemoryFileSystem::the().lookup_path("/dev/tty") };
+            i32 stderr_fileno = add_file_handle(stderr_file.create_handle());
+            assert(stderr_fileno == 2);
         }
 
         static Process& current();
@@ -28,6 +32,9 @@ namespace Kernel
         {
             i32 handle_id = m_next_handle_id++;
             m_handles.append(handle_id, &handle);
+
+            dbgln("Adding file handle fd=% handle=%", handle_id, &handle);
+
             return handle_id;
         }
 

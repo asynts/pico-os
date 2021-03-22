@@ -55,6 +55,11 @@ public:
         other.data()[size()] = 0;
     }
 
+    bool starts_with(char ch) const
+    {
+        return size() >= 1 && data()[0] == ch;
+    }
+
     int operator<=>(StringView rhs) const
     {
         if (size() < rhs.size())

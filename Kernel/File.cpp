@@ -21,17 +21,29 @@ namespace Kernel
     class FlashFileHandle final : public VirtualFileHandle
     {
     public:
+        FlashFileHandle(File& file)
+            : VirtualFileHandle(file)
+        {
+            m_bytes = { file.m_info.m_info->m_direct_blocks[0], file.m_info.m_info->m_size };
+        }
+
         using VirtualFileHandle::VirtualFileHandle;
 
-        usize read(Bytes) override
+        usize read(Bytes bytes) override
         {
-            FIXME();
+            usize nread = m_bytes.slice(m_offset).copy_trimmed_to(bytes);
+            m_offset += nread;
+            return nread;
         }
 
         usize write(ReadonlyBytes) override
         {
-            FIXME();
+            ASSERT_NOT_REACHED();
         }
+
+    private:
+        ReadonlyBytes m_bytes;
+        usize m_offset = 0;
     };
 
     class DeviceFileHandle final : public VirtualFileHandle {

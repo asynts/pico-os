@@ -3,6 +3,8 @@
 #include <Std/Forward.hpp>
 #include <Std/Concepts.hpp>
 
+#include <assert.h>
+
 namespace Std {
     template<typename T>
     class SpanIterator;
@@ -37,12 +39,30 @@ namespace Std {
         void set_data(T *data) { m_data = data; }
         void set_size(usize size) { m_size = size; }
 
-        void copy_to(Span<typename RemoveConst<T>::Type> other) const
+        usize copy_to(Span<typename RemoveConst<T>::Type> other) const
         {
             assert(other.size() >= size());
 
             for (usize index = 0; index < size(); ++index)
                 other[index] = (*this)[index];
+
+            return other.size();
+        }
+
+        usize copy_trimmed_to(Span<typename RemoveConst<T>::Type> other) const
+        {
+            usize count = min(size(), other.size());
+
+            for (usize index = 0; index < count; ++index)
+                other[index] = (*this)[index];
+
+            return count;
+        }
+
+        Span slice(usize offset) const
+        {
+            assert(offset <= size());
+            return { data() + offset, size() - offset };
         }
 
         T& operator[](isize index) { return m_data[index]; }
