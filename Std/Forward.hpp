@@ -115,3 +115,9 @@ namespace Std {
         Break,
     };
 }
+
+[[noreturn]]
+void __crash(const char *prefix, const char *filename, usize line);
+
+#define FIXME() __crash("FIXME:", __FILE__, __LINE__)
+#define ASSERT_NOT_REACHED() __crash("ASSERT_NOT_REACHED():", __FILE__, __LINE__)

@@ -9,14 +9,12 @@ namespace Kernel
 
         usize read(Bytes) override
         {
-            // FIXME
-            assert(false);
+            FIXME();
         }
 
         usize write(ReadonlyBytes) override
         {
-            // FIXME
-            assert(false);
+            FIXME();
         }
     };
 
@@ -27,14 +25,12 @@ namespace Kernel
 
         usize read(Bytes) override
         {
-            // FIXME
-            assert(false);
+            FIXME();
         }
 
         usize write(ReadonlyBytes) override
         {
-            // FIXME
-            assert(false);
+            FIXME();
         }
     };
 
@@ -77,7 +73,6 @@ namespace Kernel
             return *new FlashFileHandle { *this };
         }
 
-        // FIXME
-        assert(false);
+        ASSERT_NOT_REACHED();
     }
 }
