@@ -29,7 +29,7 @@ void load_and_execute_shell()
     // FIXME: Do this properly
     Kernel::Process::current();
 
-    dbgln("Loading process stack and static base, debugger hook");
+    dbgln("Loading process stack and static base");
 
     asm volatile(
         "movs r0, #0;"
@@ -40,7 +40,6 @@ void load_and_execute_shell()
         "isb;"
         "mov r0, %1;"
         "mov sb, %2;"
-        "bkpt #0;"
         "blx %0;"
         :
         : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)

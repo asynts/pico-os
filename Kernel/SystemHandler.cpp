@@ -31,6 +31,9 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         auto *buffer = arg2.pointer<u8>();
         usize count = arg3.size();
 
+        if (fd > 2)
+            dbgln("read(%, %, %)", fd, buffer, count);
+
         auto& handle = Kernel::Process::current().get_file_handle(fd);
         return handle.read({ buffer, count });
     }
@@ -40,6 +43,9 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         auto *buffer = arg2.pointer<const u8>();
         usize count = arg3.size();
 
+        if (fd > 2)
+            dbgln("write(%, %, %)", fd, buffer, count);
+
         auto& handle = Kernel::Process::current().get_file_handle(fd);
         return handle.write({ buffer, count });
     }
@@ -48,6 +54,8 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         const char *path = arg1.pointer<const char>();
         u32 flags = arg2.value<u32>();
         u32 mode = arg3.value<u32>();
+
+        dbgln("open(%, %, %)", path, flags, mode);
 
         auto absolute_path = Kernel::compute_absolute_path(path);
 

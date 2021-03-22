@@ -33,6 +33,9 @@ namespace Kernel
         {
             usize nread = m_bytes.slice(m_offset).copy_trimmed_to(bytes);
             m_offset += nread;
+
+            dbgln("FlashFileHandle::read nread=%", nread);
+
             return nread;
         }
 
