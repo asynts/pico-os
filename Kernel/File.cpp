@@ -40,6 +40,7 @@ namespace Kernel
             : VirtualFileHandle(file)
         {
             m_device = Device::lookup(file.m_info.m_info->m_devno);
+            assert(m_device);
         }
 
         usize read(Bytes bytes) override

@@ -15,6 +15,7 @@ namespace Kernel {
             : m_minor(minor)
             , m_major(major)
         {
+            m_devices.append(device_id(), this);
         }
 
         u32 device_id() { return m_major << 16 | m_minor; }
@@ -30,6 +31,9 @@ namespace Kernel {
         {
             return m_devices.lookup(id).value_or(nullptr);
         }
+
+        u16 major() { return m_major; }
+        u16 minor() { return m_minor; }
 
     private:
         static Map<u32, Device*> m_devices;
