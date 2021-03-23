@@ -37,6 +37,8 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     u8 *data = new u8[data_segment.p_memsz];
     assert(data != nullptr);
 
+    dbgln("Allocated writable segment at % with size %", data, data_segment.p_memsz);
+
     executable.m_writable_base = u32(data);
     dbgln("Putting writable segment at % (allocated)", executable.m_writable_base);
 
@@ -81,9 +83,10 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     assert(executable.m_stack_base);
     assert(executable.m_bss_base);
 
-    dbgln("Found text segment at % in readonly segment", executable.m_text_base);
-    dbgln("Found data segment at % in writable segment", executable.m_data_base);
-    dbgln("Found stack segment at % in writable segment", executable.m_stack_base);
+    dbgln("Found text section at % in readonly segment", executable.m_text_base);
+    dbgln("Found data section at % in writable segment", executable.m_data_base);
+    dbgln("Found bss section at % in writable segment", executable.m_bss_base);
+    dbgln("Found stack section at % in writable segment", executable.m_stack_base);
 
     executable_for_debugger = &executable;
     inform_debugger_about_executable();
