@@ -12,6 +12,10 @@
 
 int main(int argc, char **argv) {
     for(;;) {
+        printf("0x01020304 %zu\n", (size_t)0x01020304);
+        printf("0x00000000 %zu\n", (size_t)0);
+        printf("0x11223344 %zu\n", (size_t)0x11223344);
+
         char *buffer = readline("> ");
         assert(buffer != NULL);
 
@@ -56,11 +60,19 @@ int main(int argc, char **argv) {
 
             char buffer[0x1000];
             for(;;) {
+                printf("Userland: Before read\n");
                 ssize_t nread = read(fd, buffer, sizeof(buffer));
+                printf("Userland: After read\n");
                 assert(nread >= 0);
 
+                printf("Userland: nread=%zu\n", nread);
+
+                printf("Userland: Before write\n");
                 ssize_t nwritten = write(STDOUT_FILENO, buffer, nread);
+                printf("Userland: After write\n");
                 assert(nwritten == nread);
+
+                printf("Userland: nwritten=%zu\n", nwritten);
 
                 if (nread == 0)
                     break;
