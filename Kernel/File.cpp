@@ -31,8 +31,12 @@ namespace Kernel
 
         usize read(Bytes bytes) override
         {
+            dbgln("FlashFileHandle::read about to copy");
+
             usize nread = m_bytes.slice(m_offset).copy_trimmed_to(bytes);
             m_offset += nread;
+
+            dbgln("FlashFileHandle::read copied");
 
             dbgln("FlashFileHandle::read nread=%", nread);
 

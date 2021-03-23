@@ -14,40 +14,6 @@ namespace Std {
     struct Formatter {
     };
 
-    template<typename T>
-    requires Concepts::Integral<T>
-    struct Formatter<T> {
-        static void format(StringBuilder&, T);
-    };
-
-    template<typename T>
-    struct Formatter<T*> {
-        static void format(StringBuilder& builder, T *value)
-        {
-            static_assert(sizeof(T*) == 4);
-            return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
-        }
-    };
-
-    template<>
-    struct Formatter<StringView> {
-        static void format(StringBuilder& builder, StringView);
-    };
-    template<>
-    struct Formatter<String> : Formatter<StringView> {
-    };
-    template<>
-    struct Formatter<const char*> : Formatter<StringView> {
-    };
-    template<usize Size>
-    struct Formatter<char[Size]> : Formatter<StringView> {
-    };
-
-    template<>
-    struct Formatter<bool> {
-        static void format(StringBuilder& builder, bool);
-    };
-
     using FormatFunction = void(*)(StringBuilder&, const void*);
 
     struct TypeErasedFormatParameter {
@@ -139,6 +105,56 @@ namespace Std {
         vformat(builder, fmtstr, VariadicFormatParams { parameters... });
         dbgln_raw(builder.view());
     }
+
+    template<typename... Parameters>
+    void dbgln(const char *fmtstr, const Parameters&... parameters)
+    {
+        StringBuilder builder;
+        vformat(builder, fmtstr, VariadicFormatParams { parameters... });
+        dbgln_raw(builder.view());
+    }
+
+    template<typename T>
+    requires Concepts::Integral<T>
+    struct Formatter<T> {
+        static void format(StringBuilder&, T);
+    };
+
+    template<typename T>
+    struct Formatter<T*> {
+        static void format(StringBuilder& builder, T *value)
+        {
+            static_assert(sizeof(T*) == 4);
+            return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
+        }
+    };
+
+    template<>
+    struct Formatter<StringView> {
+        static void format(StringBuilder& builder, StringView);
+    };
+    template<>
+    struct Formatter<String> : Formatter<StringView> {
+    };
+    template<>
+    struct Formatter<const char*> : Formatter<StringView> {
+    };
+    template<usize Size>
+    struct Formatter<char[Size]> : Formatter<StringView> {
+    };
+
+    template<>
+    struct Formatter<bool> {
+        static void format(StringBuilder& builder, bool);
+    };
+
+    template<typename T>
+    struct Formatter<Span<T>> {
+        static void format(StringBuilder& builder, Span<T> value)
+        {
+            builder.appendf("{ %, % }", value.data(), value.size());
+        }
+    };
 }
 
 using Std::dbgln;
