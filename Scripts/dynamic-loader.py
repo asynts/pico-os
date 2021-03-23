@@ -19,6 +19,7 @@ class KernelCommand(gdb.Command):
     def invoke(self, argument, from_tty):
         _mode = "kernel"
 
+        print("Loading kernel symbols...")
         gdb.execute("symbol-file")
         gdb.execute(f"file {_kernel_symbol_file}")
 
@@ -33,7 +34,13 @@ class UserlandCommand(gdb.Command):
 
         gdb.execute("symbol-file")
 
+        global _userland_symbol_file
+        global _userland_text_base
+        global _userland_data_base
+        global _userland_bss_base
+
         if _userland_symbol_file:
+            print("Loading userland symbols...")
             gdb.execute(f"add-symbol-file {_userland_symbol_file} -s .text {_userland_text_base} -s .data {_userland_data_base} -s .bss {_userland_bss_base}")
 
 class DynamicLoaderBreakpoint(gdb.Breakpoint):
@@ -49,6 +56,11 @@ class DynamicLoaderBreakpoint(gdb.Breakpoint):
             qualified=False)
 
     def stop(self):
+        global _userland_symbol_file
+        global _userland_text_base
+        global _userland_data_base
+        global _userland_bss_base
+
         executable = gdb.parse_and_eval(self._variable_symbol)
 
         _userland_symbol_file = "Userland/Shell.1.elf"
@@ -57,6 +69,7 @@ class DynamicLoaderBreakpoint(gdb.Breakpoint):
         _userland_data_base = hex(executable["m_data_base"])
         _userland_bss_base = hex(executable["m_bss_base"])
 
+        print("Hit dynamic loader hook")
         if _mode == "userland":
             gdb.execute("userland")
 
