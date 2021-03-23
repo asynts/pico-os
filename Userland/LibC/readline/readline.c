@@ -19,7 +19,7 @@ char* readline(const char *prompt)
         int retval = sys$read(STDIN_FILENO, buffer + index, 1);
         assert(retval == 1);
 
-        char ch = buffer[index++];
+        char ch = buffer[index];
 
         if (ch == 0x7f) {
             if (index == 0)
@@ -29,6 +29,8 @@ char* readline(const char *prompt)
             buffer[index -= 2] = 0;
             continue;
         }
+
+        ++index;
 
         putchar(ch);
 
