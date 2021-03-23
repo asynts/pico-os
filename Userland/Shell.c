@@ -10,12 +10,9 @@
 #include <assert.h>
 #include <malloc.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     for(;;) {
-        printf("0x01020304 %zu\n", (size_t)0x01020304);
-        printf("0x00000000 %zu\n", (size_t)0);
-        printf("0x11223344 %zu\n", (size_t)0x11223344);
-
         char *buffer = readline("> ");
         assert(buffer != NULL);
 

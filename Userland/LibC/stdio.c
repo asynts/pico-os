@@ -38,6 +38,7 @@ int printf(const char *format, ...)
             format += 1;
 
             int flag_size = 0;
+            int flag_pointer = 0;
 
             if (format[0] == '%') {
                 format += 1;
@@ -57,18 +58,25 @@ int printf(const char *format, ...)
                 continue;
             }
 
+            if (format[0] == 'p') {
+                format += 1;
+
+                flag_pointer = 1;
+            }
+
             if (format[0] == 'z') {
                 format += 1;
 
                 flag_size = 1;
             }
 
-            if (format[0] == 'u') {
-                format += 1;
+            if (format[0] == 'u' || flag_pointer) {
+                if (!flag_pointer)
+                    format += 1;
 
                 char buffer[256];
                 size_t buffer_size = 0;
-                if (flag_size) {
+                if (flag_size || flag_pointer) {
                     unsigned long long value = va_arg(ap, size_t);
                     buffer_size = format_integer(0, value, 8 * sizeof(size_t), buffer);
                 } else {
