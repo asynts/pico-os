@@ -53,16 +53,7 @@ namespace Std {
         {
             usize count = min(size(), other.size());
 
-            // FIXME: Do this properly
-            assert(size() % 4 == 0);
-            assert(other.size() % 4 == 0);
-
-            const u32 *source = reinterpret_cast<const u32*>(data());
-            u32 *destination = reinterpret_cast<u32*>(other.data());
-
-            for (usize index = 0; index < count / 4; ++index)
-                destination[index] = source[index];
-
+            memcpy(other.data(), data(), count);
             return count;
         }
 

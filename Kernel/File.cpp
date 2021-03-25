@@ -7,14 +7,29 @@ namespace Kernel
     public:
         using VirtualFileHandle::VirtualFileHandle;
 
-        usize read(Bytes) override
+        usize read(Bytes bytes) override
         {
-            FIXME();
+            return ReadonlyBytes {
+                m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
+                m_file.m_info.m_info->m_size - m_file.m_offset,
+            }.copy_trimmed_to(bytes);
         }
 
-        usize write(ReadonlyBytes) override
+        usize write(ReadonlyBytes bytes) override
         {
-            FIXME();
+            if (m_file.m_info.m_info->m_direct_blocks[0] == nullptr)
+                m_file.m_info.m_info->m_direct_blocks[0] = new u8[RAM_BLOCK_SIZE];
+
+            assert(m_file.m_info.m_info->m_size + bytes.size() <= RAM_BLOCK_SIZE);
+
+            bytes.copy_to({
+                m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
+                RAM_BLOCK_SIZE - m_file.m_offset,
+            });
+            m_file.m_offset += bytes.size();
+            m_file.m_info.m_info->m_size = max<u32>(m_file.m_info.m_info->m_size, m_file.m_offset);
+
+            return bytes.size();
         }
     };
 

@@ -67,11 +67,12 @@ int main()
     Kernel::FlashFileSystem::the();
     Kernel::ConsoleDevice::the();
 
-    auto& bin = Kernel::MemoryFileSystem::the().lookup_path("/bin");
-    dbgln("/bin inode=% device=%", bin.m_info->m_id, bin.m_info->m_device);
-
-    auto& tty_info = Kernel::MemoryFileSystem::the().lookup_path("/dev/tty");
-    dbgln("/dev/tty got devno=%", tty_info.m_info->m_devno);
+    // FIXME: I got the abstractions wrong somehow
+    dbgln("Creating /example.txt");
+    auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
+    auto& example_dentry = Kernel::MemoryFileSystem::the().root().add_entry("example.txt", example_file);
+    auto& example_handle = Kernel::File { example_dentry }.create_handle();
+    example_handle.write({ (const u8*)"Hello, world!\n", 14 });
 
     load_and_execute_shell();
 

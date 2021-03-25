@@ -14,9 +14,11 @@ namespace Kernel
         {
         }
 
+        // FIXME: This should go with the inode?
         VirtualFileHandle& create_handle();
 
         VirtualDirectoryEntry& m_info;
+        usize m_offset = 0;
     };
 
     class VirtualFileHandle {

@@ -67,7 +67,7 @@ int main(int argc, char **argv)
                 printf("Userland: Before write\n");
                 ssize_t nwritten = write(STDOUT_FILENO, buffer, nread);
                 printf("Userland: After write\n");
-                assert(nwritten == nread);
+                assert(nwritten == nread); // FIXME: We hit this assertion
 
                 printf("Userland: nwritten=%zu\n", nwritten);
 
