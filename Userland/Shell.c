@@ -57,19 +57,11 @@ int main(int argc, char **argv)
 
             char buffer[0x1000];
             for(;;) {
-                printf("Userland: Before read\n");
                 ssize_t nread = read(fd, buffer, sizeof(buffer));
-                printf("Userland: After read\n");
                 assert(nread >= 0);
 
-                printf("Userland: nread=%zu\n", nread);
-
-                printf("Userland: Before write\n");
                 ssize_t nwritten = write(STDOUT_FILENO, buffer, nread);
-                printf("Userland: After write\n");
-                assert(nwritten == nread); // FIXME: We hit this assertion
-
-                printf("Userland: nwritten=%zu\n", nwritten);
+                assert(nwritten == nread);
 
                 if (nread == 0)
                     break;

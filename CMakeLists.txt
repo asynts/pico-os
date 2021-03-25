@@ -21,7 +21,7 @@ target_include_directories(project_options INTERFACE ${CMAKE_SOURCE_DIR})
 
 add_subdirectory(Userland)
 
-file(GLOB_RECURSE Kernel_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Std/*.cpp)
+file(GLOB_RECURSE Kernel_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Kernel/*.S Std/*.cpp)
 
 add_executable(Kernel ${Kernel_SOURCES})
 target_link_libraries(Kernel pico_stdlib project_options LibEmbeddedFiles)

@@ -24,7 +24,7 @@ private:
 };
 
 extern "C"
-isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3)
+isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3)
 {
     if (syscall == _SC_read) {
         i32 fd = arg1.fd();

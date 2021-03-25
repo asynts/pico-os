@@ -98,18 +98,16 @@ namespace Kernel
 
     VirtualFileHandle& File::create_handle()
     {
-        dbgln("File::create_handle: mode=% (S_IFDEV=%)", m_info.m_info->m_mode, S_IFDEV);
-
         if ((m_info.m_info->m_mode & S_IFMT) == S_IFDEV) {
-            dbgln("Creating DeviceFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
+            dbgln("[File::create_handle] Creating DeviceFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
             return *new DeviceFileHandle { *this };
         }
 
         if (m_info.m_info->m_device == RAM_DEVICE_ID) {
-            dbgln("Creating RamFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
+            dbgln("[File::create_handle]Creating RamFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
             return *new RamFileHandle { *this };
         } if (m_info.m_info->m_device == FLASH_DEVICE_ID) {
-            dbgln("Creating FlashFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
+            dbgln("[File::create_handle]Creating FlashFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
             return *new FlashFileHandle { *this };
         }
 
