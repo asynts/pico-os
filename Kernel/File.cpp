@@ -9,10 +9,15 @@ namespace Kernel
 
         usize read(Bytes bytes) override
         {
-            return ReadonlyBytes {
+            dbgln("[RamFileHandle::read] bytes=% size=% offset=%", bytes, m_file.m_info.m_info->m_size, m_file.m_offset);
+
+            usize nread = ReadonlyBytes {
                 m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
                 m_file.m_info.m_info->m_size - m_file.m_offset,
             }.copy_trimmed_to(bytes);
+
+            dbgln("[RamFileHandle::read] nread=%", nread);
+            return nread;
         }
 
         usize write(ReadonlyBytes bytes) override

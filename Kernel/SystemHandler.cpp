@@ -35,7 +35,11 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
             dbgln("read(%, %, %)", fd, buffer, count);
 
         auto& handle = Kernel::Process::current().get_file_handle(fd);
-        return handle.read({ buffer, count });
+        auto nread =  handle.read({ buffer, count });
+
+        if (fd > 2)
+            dbgln("[isr_svcall] nread=%", nread);
+        return nread;
     }
 
     if (syscall == _SC_write) {
@@ -74,5 +78,5 @@ isize isr_svcall(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, 
         return fd;
     }
 
-    panic("Unknown system call %i", syscall);
+    VERIFY_NOT_REACHED();
 }

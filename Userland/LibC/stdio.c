@@ -77,8 +77,33 @@ int printf(const char *format, ...)
                 char buffer[256];
                 size_t buffer_size = 0;
                 if (flag_size || flag_pointer) {
-                    unsigned long long value = va_arg(ap, size_t);
+                    size_t value = va_arg(ap, size_t);
                     buffer_size = format_integer(0, value, 8 * sizeof(size_t), buffer);
+                } else {
+                    abort();
+                }
+
+                for (size_t index = 0; index < buffer_size; ++index)
+                    putchar(buffer[index]);
+
+                continue;
+            }
+
+            if (format[0] == 'i') {
+                format += 1;
+
+                char buffer[256];
+                size_t buffer_size = 0;
+
+                if (flag_size) {
+                    ssize_t value = va_arg(ap, ssize_t);
+                    int is_negative = 0;
+                    if (value < 0) {
+                        value = -value;
+                        is_negative = 1;
+                    }
+
+                    buffer_size = format_integer(is_negative, (size_t)value, 8 *sizeof(ssize_t), buffer);
                 } else {
                     abort();
                 }
