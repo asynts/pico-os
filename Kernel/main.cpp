@@ -55,7 +55,7 @@ void initialize_uart_debug()
 
     // FIXME: For some reason there is a 0xff symbol send when the connection is opened.
     char ch = uart_getc(uart0);
-    assert(ch == 0xff);
+    VERIFY(ch == 0xff);
 }
 
 int main()

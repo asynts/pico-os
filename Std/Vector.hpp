@@ -3,8 +3,6 @@
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
 
-#include <assert.h>
-
 namespace Std {
     template<typename T>
     class Vector {
@@ -56,7 +54,7 @@ namespace Std {
                 return;
 
             usize new_capacity = round_to_power_of_two(capacity);
-            assert(new_capacity >= capacity && new_capacity > m_capacity);
+            VERIFY(new_capacity >= capacity && new_capacity > m_capacity);
 
             T *new_data = reinterpret_cast<T*>(new u8[new_capacity * sizeof(T)]);
 

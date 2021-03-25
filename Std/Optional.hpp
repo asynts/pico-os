@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Std/Forward.hpp>
-#include <assert.h>
 
 namespace Std {
     template<typename T>
@@ -29,7 +28,7 @@ namespace Std {
         }
         T must()
         {
-            assert(is_valid());
+            ASSERT(is_valid());
             return value();
         }
 

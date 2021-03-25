@@ -7,8 +7,8 @@ namespace Std {
     template<typename Callback>
     void iterate_path_components(StringView path, Callback&& callback)
     {
-        assert(path.size() >= 1);
-        assert(path[0] == '/');
+        VERIFY(path.size() >= 1);
+        VERIFY(path[0] == '/');
         path = path.substr(1);
 
         if (path.size() == 0)

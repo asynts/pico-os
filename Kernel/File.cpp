@@ -20,7 +20,7 @@ namespace Kernel
             if (m_file.m_info.m_info->m_direct_blocks[0] == nullptr)
                 m_file.m_info.m_info->m_direct_blocks[0] = new u8[RAM_BLOCK_SIZE];
 
-            assert(m_file.m_info.m_info->m_size + bytes.size() <= RAM_BLOCK_SIZE);
+            VERIFY(m_file.m_info.m_info->m_size + bytes.size() <= RAM_BLOCK_SIZE);
 
             bytes.copy_to({
                 m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
@@ -60,7 +60,7 @@ namespace Kernel
 
         usize write(ReadonlyBytes) override
         {
-            ASSERT_NOT_REACHED();
+            NOT_IMPLEMENTED();
         }
 
     private:
@@ -74,7 +74,7 @@ namespace Kernel
             : VirtualFileHandle(file)
         {
             m_device = Device::lookup(file.m_info.m_info->m_devno);
-            assert(m_device);
+            VERIFY(m_device);
         }
 
         usize read(Bytes bytes) override
@@ -108,6 +108,6 @@ namespace Kernel
             return *new FlashFileHandle { *this };
         }
 
-        ASSERT_NOT_REACHED();
+        VERIFY_NOT_REACHED();
     }
 }

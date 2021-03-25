@@ -12,7 +12,7 @@ namespace Kernel
         if (device == FLASH_DEVICE_ID)
             return FlashFileSystem::the();
 
-        ASSERT_NOT_REACHED();
+        VERIFY_NOT_REACHED();
     }
 
     VirtualDirectoryEntry& VirtualDirectoryEntry::add_entry(StringView name, FileInfo& info, bool keep)

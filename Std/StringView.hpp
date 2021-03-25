@@ -3,8 +3,6 @@
 #include <Std/Span.hpp>
 #include <Std/Optional.hpp>
 
-#include <assert.h>
-
 namespace Std {
 
 class StringView : public Span<const char> {
@@ -37,7 +35,7 @@ public:
 
     StringView substr(usize index)
     {
-        assert(index <= size());
+        VERIFY(index <= size());
         return { data() + index, size() - index };
     }
 
@@ -49,7 +47,7 @@ public:
 
     void strcpy_to(Span<char> other) const
     {
-        assert(other.size() >= size() + 1);
+        VERIFY(other.size() >= size() + 1);
 
         __builtin_memcpy(other.data(), data(), size());
         other.data()[size()] = 0;

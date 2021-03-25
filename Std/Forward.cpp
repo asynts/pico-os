@@ -2,9 +2,15 @@
 #include <Std/Format.hpp>
 
 #include <stdlib.h>
+#include <pico/printf.h>
 
-void __crash(const char *prefix, const char *filename, usize line)
+void __crash(const char *format, ...)
 {
-    dbgln("% %:%", prefix, filename, line);
+    va_list ap;
+
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
+
     abort();
 }
