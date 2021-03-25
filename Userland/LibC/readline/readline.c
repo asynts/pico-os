@@ -16,7 +16,7 @@ char* readline(const char *prompt)
     size_t index = 0;
     while (index < buffer_size)
     {
-        int retval = sys$read(STDIN_FILENO, buffer + index, 1);
+        int retval = sys$read(STDIN_FILENO, &buffer[index], 1);
         assert(retval == 1);
 
         char ch = buffer[index];
@@ -26,12 +26,11 @@ char* readline(const char *prompt)
                 continue;
 
             printf("\e[1D \e[1D");
-            buffer[index -= 2] = 0;
+            buffer[--index] = 0;
             continue;
         }
 
         ++index;
-
         putchar(ch);
 
         if (ch == '\n') {
