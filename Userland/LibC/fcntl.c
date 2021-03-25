@@ -4,7 +4,7 @@
 
 int close(int fd)
 {
-    abort();
+    return sys$close(fd);
 }
 
 int creat(const char *path, mode_t mode)

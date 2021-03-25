@@ -24,3 +24,8 @@ int sys$open(const char *path, int flags, int mode)
 {
     return syscall(_SC_open, path, flags, mode);
 }
+
+int sys$close(int fd)
+{
+    return syscall(_SC_close, fd, 0, 0);
+}

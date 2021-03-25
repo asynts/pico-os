@@ -16,6 +16,8 @@ namespace Kernel
                 m_file.m_info.m_info->m_size - m_file.m_offset,
             }.copy_trimmed_to(bytes);
 
+            m_file.m_offset += nread;
+
             dbgln("[RamFileHandle::read] nread=%", nread);
             return nread;
         }

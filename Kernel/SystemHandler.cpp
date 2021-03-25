@@ -78,5 +78,10 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
         return fd;
     }
 
+    if (syscall == _SC_close) {
+        dbgln("[syscall_handler] _SC_close not implemented");
+        return 0;
+    }
+
     VERIFY_NOT_REACHED();
 }
