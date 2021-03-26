@@ -4,6 +4,7 @@
 
 #include <Kernel/File.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel
 {
@@ -13,16 +14,15 @@ namespace Kernel
     public:
         Process()
         {
-            auto& stdin_file = *new File { MemoryFileSystem::the().lookup_path("/dev/tty") };
-            i32 stdin_fileno = add_file_handle(stdin_file.create_handle());
+            auto& tty_file = FileSystem::lookup_file("/dev/tty");
+
+            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
             VERIFY(stdin_fileno == 0);
 
-            auto& stdout_file = *new File { MemoryFileSystem::the().lookup_path("/dev/tty") };
-            i32 stdout_fileno = add_file_handle(stdout_file.create_handle());
+            i32 stdout_fileno = add_file_handle(tty_file.create_handle());
             VERIFY(stdout_fileno == 1);
 
-            auto& stderr_file = *new File { MemoryFileSystem::the().lookup_path("/dev/tty") };
-            i32 stderr_fileno = add_file_handle(stderr_file.create_handle());
+            i32 stderr_fileno = add_file_handle(tty_file.create_handle());
             VERIFY(stderr_fileno == 2);
         }
 

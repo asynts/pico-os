@@ -18,7 +18,7 @@ namespace Std {
 
         bool is_valid() const { return m_is_valid; }
 
-        T value() { return *reinterpret_cast<T*>(m_value); }
+        T& value() { return *reinterpret_cast<T*>(m_value); }
         T value_or(T default_)
         {
             if (is_valid())
@@ -26,7 +26,7 @@ namespace Std {
             else
                 return default_;
         }
-        T must()
+        T& must()
         {
             ASSERT(is_valid());
             return value();

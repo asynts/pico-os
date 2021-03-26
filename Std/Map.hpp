@@ -14,6 +14,19 @@ namespace Std {
             m_targets.append(forward<S_>(target));
         }
 
+        template<typename T_>
+        void append(T_&& source, S&& target)
+        {
+            m_sources.append(forward<T_>(source));
+            m_targets.append(move(target));
+        }
+        template<typename T_>
+        void append(T_&& source, const S& target)
+        {
+            m_sources.append(forward<T_>(source));
+            m_targets.append(target);
+        }
+
         Optional<S> lookup(T source)
         {
             for (usize index = 0; index < m_sources.size(); ++index)

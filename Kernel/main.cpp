@@ -67,9 +67,10 @@ int main()
 
     // FIXME: I got the abstractions wrong somehow
     dbgln("[main] Creating /example.txt");
-    auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
-    auto& example_dentry = Kernel::MemoryFileSystem::the().root().add_entry("example.txt", example_file);
-    auto& example_handle = Kernel::File { example_dentry }.create_handle();
+    auto& example_info = Kernel::MemoryFileSystem::the().create_regular();
+    auto& example_dentry = Kernel::MemoryFileSystem::the().root().add_entry("example.txt", example_info);
+    auto& example_file = Kernel::FileSystem::file_from_info(example_info);
+    auto& example_handle = example_file.create_handle();
     example_handle.write({ (const u8*)"Hello, world!\n", 14 });
 
     load_and_execute_shell();

@@ -4,6 +4,7 @@
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/File.hpp>
 #include <Kernel/Process.hpp>
+#include <Kernel/FileSystem/FileSystem.hpp>
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
@@ -61,18 +62,15 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
 
         auto absolute_path = Kernel::compute_absolute_path(path);
 
-        auto& entry = Kernel::MemoryFileSystem::the().lookup_path(absolute_path.view());
+        auto& file = Kernel::FileSystem::lookup_file(absolute_path.view());
 
-        if (flags & O_DIRECTORY) {
-            if (entry.m_info->m_mode & S_IFMT != S_IFDIR)
+        if ((flags & O_DIRECTORY)) {
+            if ((file.m_info.m_mode & S_IFMT) != S_IFDIR)
                 return -ENOTDIR;
         }
 
-        auto& file = *new Kernel::File { entry };
         auto& handle = file.create_handle();
-        i32 fd = Kernel::Process::current().add_file_handle(handle);
-
-        return fd;
+        return Kernel::Process::current().add_file_handle(handle);
     }
 
     if (syscall == _SC_close) {
