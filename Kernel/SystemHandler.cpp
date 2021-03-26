@@ -32,13 +32,11 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
         usize count = arg3.size();
 
         if (fd > 2)
-            dbgln("read(%, %, %)", fd, buffer, count);
+            dbgln("[syscall_handler] read(%, %, %)", fd, buffer, count);
 
         auto& handle = Kernel::Process::current().get_file_handle(fd);
         auto nread =  handle.read({ buffer, count });
 
-        if (fd > 2)
-            dbgln("[isr_svcall] nread=%", nread);
         return nread;
     }
 
@@ -48,7 +46,7 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
         usize count = arg3.size();
 
         if (fd > 2)
-            dbgln("write(%, %, %)", fd, buffer, count);
+            dbgln("[syscall_handler] write(%, %, %)", fd, buffer, count);
 
         auto& handle = Kernel::Process::current().get_file_handle(fd);
         return handle.write({ buffer, count });
@@ -59,7 +57,7 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
         u32 flags = arg2.value<u32>();
         u32 mode = arg3.value<u32>();
 
-        dbgln("open(%, %, %)", path, flags, mode);
+        dbgln("[syscall_handler] open(%, %, %)", path, flags, mode);
 
         auto absolute_path = Kernel::compute_absolute_path(path);
 
@@ -74,7 +72,6 @@ isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument a
         auto& handle = file.create_handle();
         i32 fd = Kernel::Process::current().add_file_handle(handle);
 
-        dbgln("Opened % (fd=%)", path, fd);
         return fd;
     }
 

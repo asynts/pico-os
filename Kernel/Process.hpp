@@ -33,8 +33,6 @@ namespace Kernel
             i32 handle_id = m_next_handle_id++;
             m_handles.append(handle_id, &handle);
 
-            dbgln("Adding file handle fd=% handle=%", handle_id, &handle);
-
             return handle_id;
         }
 

@@ -17,39 +17,31 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
 {
     LoadedExecutable executable;
 
-    dbgln("Loading executable from %", elf.base());
-
     VERIFY(elf.header()->e_phnum == 3);
     VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
 
-    Elf32_Phdr& text_segment = elf.segments()[0];
-    VERIFY(text_segment.p_type == PT_LOAD);
-    VERIFY(text_segment.p_flags == PF_R | PF_X);
+    Elf32_Phdr& readonly_segment = elf.segments()[0];
+    VERIFY(readonly_segment.p_type == PT_LOAD);
+    VERIFY(readonly_segment.p_flags == PF_R | PF_X);
 
-    Elf32_Phdr& data_segment = elf.segments()[1];
-    VERIFY(data_segment.p_type == PT_LOAD);
-    VERIFY(data_segment.p_flags == PF_R | PF_W);
+    Elf32_Phdr& writable_segment = elf.segments()[1];
+    VERIFY(writable_segment.p_type == PT_LOAD);
+    VERIFY(writable_segment.p_flags == PF_R | PF_W);
 
-    executable.m_readonly_base = elf.base_as_u32() + text_segment.p_offset;
-    dbgln("Putting readonly segment at % (inplace)", executable.m_readonly_base);
+    executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
 
-    u8 *data = new u8[data_segment.p_memsz];
-    VERIFY(data != nullptr);
+    u8 *writable = new u8[writable_segment.p_memsz];
+    VERIFY(writable != nullptr);
+    executable.m_writable_base = u32(writable);
 
-    dbgln("Allocated writable segment at % with size %", data, data_segment.p_memsz);
+    __builtin_memcpy(writable, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
-    executable.m_writable_base = u32(data);
-    dbgln("Putting writable segment at % (allocated)", executable.m_writable_base);
+    VERIFY(writable_segment.p_memsz >= writable_segment.p_filesz);
+    __builtin_memset(writable + writable_segment.p_filesz, 0, writable_segment.p_memsz - writable_segment.p_filesz);
 
-    __builtin_memcpy(data, elf.base() + data_segment.p_offset, data_segment.p_filesz);
-
-    VERIFY(data_segment.p_memsz >= data_segment.p_filesz);
-    __builtin_memset(data + data_segment.p_filesz, 0, data_segment.p_memsz - data_segment.p_filesz);
-
-    VERIFY(elf.header()->e_entry >= text_segment.p_vaddr);
-    VERIFY(elf.header()->e_entry - text_segment.p_vaddr < text_segment.p_memsz);
-    executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - text_segment.p_vaddr);
-    dbgln("Putting entry point at %", executable.m_entry);
+    VERIFY(elf.header()->e_entry >= readonly_segment.p_vaddr);
+    VERIFY(elf.header()->e_entry - readonly_segment.p_vaddr < readonly_segment.p_memsz);
+    executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - readonly_segment.p_vaddr);
 
     executable.m_text_base = 0;
     executable.m_data_base = 0;
@@ -81,11 +73,6 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     VERIFY(executable.m_data_base);
     VERIFY(executable.m_stack_base);
     VERIFY(executable.m_bss_base);
-
-    dbgln("Found text section at % in readonly segment", executable.m_text_base);
-    dbgln("Found data section at % in writable segment", executable.m_data_base);
-    dbgln("Found bss section at % in writable segment", executable.m_bss_base);
-    dbgln("Found stack section at % in writable segment", executable.m_stack_base);
 
     executable_for_debugger = &executable;
     inform_debugger_about_executable();

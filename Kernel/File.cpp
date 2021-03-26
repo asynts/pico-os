@@ -2,117 +2,137 @@
 
 namespace Kernel
 {
+    class RamFile final : public VirtualFile {
+    public:
+        using VirtualFile::VirtualFile;
+
+        VirtualFileHandle& create_handle() override;
+    };
     class RamFileHandle final : public VirtualFileHandle
     {
     public:
-        using VirtualFileHandle::VirtualFileHandle;
+        RamFileHandle(RamFile& file)
+            : m_file(file)
+            , m_offset(0)
+        {
+        }
 
         usize read(Bytes bytes) override
         {
-            dbgln("[RamFileHandle::read] bytes=% size=% offset=%", bytes, m_file.m_info.m_info->m_size, m_file.m_offset);
-
             usize nread = ReadonlyBytes {
-                m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
-                m_file.m_info.m_info->m_size - m_file.m_offset,
+                m_file.m_info.m_direct_blocks[0] + m_offset,
+                m_file.m_info.m_size - m_offset,
             }.copy_trimmed_to(bytes);
 
-            m_file.m_offset += nread;
-
-            dbgln("[RamFileHandle::read] nread=%", nread);
+            m_offset += nread;
             return nread;
         }
 
         usize write(ReadonlyBytes bytes) override
         {
-            if (m_file.m_info.m_info->m_direct_blocks[0] == nullptr)
-                m_file.m_info.m_info->m_direct_blocks[0] = new u8[RAM_BLOCK_SIZE];
+            if (m_file.m_info.m_direct_blocks[0] == nullptr)
+                m_file.m_info.m_direct_blocks[0] = new u8[RAM_BLOCK_SIZE];
 
-            VERIFY(m_file.m_info.m_info->m_size + bytes.size() <= RAM_BLOCK_SIZE);
+            VERIFY(m_file.m_info.m_size + bytes.size() <= RAM_BLOCK_SIZE);
 
             bytes.copy_to({
-                m_file.m_info.m_info->m_direct_blocks[0] + m_file.m_offset,
-                RAM_BLOCK_SIZE - m_file.m_offset,
+                m_file.m_info.m_direct_blocks[0] + m_offset,
+                RAM_BLOCK_SIZE - m_offset,
             });
-            m_file.m_offset += bytes.size();
-            m_file.m_info.m_info->m_size = max<u32>(m_file.m_info.m_info->m_size, m_file.m_offset);
+            m_offset += bytes.size();
+            m_file.m_info.m_size = max<u32>(m_file.m_info.m_size, m_offset);
 
             return bytes.size();
         }
-    };
 
+    private:
+        RamFile& m_file;
+        usize m_offset;
+    };
+    VirtualFileHandle& RamFile::create_handle()
+    {
+        return *new RamFileHandle { *this };
+    }
+
+    class FlashFile final : public VirtualFile {
+    public:
+        FlashFile(FileInfo& info)
+            : VirtualFile(info)
+        {
+            m_bytes = { m_info.m_direct_blocks[0], m_info.m_size };
+        }
+
+        VirtualFileHandle& create_handle() override;
+
+        ReadonlyBytes m_bytes;
+    };
     class FlashFileHandle final : public VirtualFileHandle
     {
     public:
-        FlashFileHandle(File& file)
-            : VirtualFileHandle(file)
+        FlashFileHandle(FlashFile& file)
+            : m_file(file)
+            , m_offset(0)
         {
-            m_bytes = { file.m_info.m_info->m_direct_blocks[0], file.m_info.m_info->m_size };
         }
-
-        using VirtualFileHandle::VirtualFileHandle;
 
         usize read(Bytes bytes) override
         {
-            dbgln("FlashFileHandle::read about to copy");
-
-            usize nread = m_bytes.slice(m_offset).copy_trimmed_to(bytes);
+            usize nread = m_file.m_bytes.slice(m_offset).copy_trimmed_to(bytes);
             m_offset += nread;
-
-            dbgln("FlashFileHandle::read copied");
-
-            dbgln("FlashFileHandle::read nread=%", nread);
-
             return nread;
         }
 
         usize write(ReadonlyBytes) override
         {
-            NOT_IMPLEMENTED();
+            VERIFY_NOT_REACHED();
         }
 
     private:
-        ReadonlyBytes m_bytes;
-        usize m_offset = 0;
+        FlashFile& m_file;
+        usize m_offset;
     };
+    VirtualFileHandle& FlashFile::create_handle()
+    {
+        return *new FlashFileHandle { *this };
+    }
 
+    class DeviceFile final : public VirtualFile {
+    public:
+        DeviceFile(FileInfo& info)
+            : VirtualFile(info)
+        {
+            m_device = Device::lookup(m_info.m_devno);
+            VERIFY(m_device);
+        }
+
+        VirtualFileHandle& create_handle() override;
+
+        Device *m_device;
+    };
     class DeviceFileHandle final : public VirtualFileHandle {
     public:
-        explicit DeviceFileHandle(File& file)
-            : VirtualFileHandle(file)
+        explicit DeviceFileHandle(DeviceFile& file)
+            : m_file(file)
+            , m_offset(0)
         {
-            m_device = Device::lookup(file.m_info.m_info->m_devno);
-            VERIFY(m_device);
         }
 
         usize read(Bytes bytes) override
         {
-            return m_device->read(bytes);
+            return m_file.m_device->read(bytes);
         }
 
         usize write(ReadonlyBytes bytes) override
         {
-            return m_device->write(bytes);
+            return m_file.m_device->write(bytes);
         }
 
     private:
-        Device *m_device;
+        DeviceFile& m_file;
+        usize m_offset;
     };
-
-    VirtualFileHandle& File::create_handle()
+    VirtualFileHandle& DeviceFile::create_handle()
     {
-        if ((m_info.m_info->m_mode & S_IFMT) == S_IFDEV) {
-            dbgln("[File::create_handle] Creating DeviceFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
-            return *new DeviceFileHandle { *this };
-        }
-
-        if (m_info.m_info->m_device == RAM_DEVICE_ID) {
-            dbgln("[File::create_handle]Creating RamFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
-            return *new RamFileHandle { *this };
-        } if (m_info.m_info->m_device == FLASH_DEVICE_ID) {
-            dbgln("[File::create_handle]Creating FlashFileHandle for inode=% device=%", m_info.m_info->m_id, m_info.m_info->m_device);
-            return *new FlashFileHandle { *this };
-        }
-
-        VERIFY_NOT_REACHED();
+        return *new DeviceFileHandle { *this };
     }
 }

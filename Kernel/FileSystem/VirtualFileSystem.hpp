@@ -35,7 +35,7 @@ namespace Kernel
 
         VirtualDirectoryEntry& lookup_path(StringView path)
         {
-            dbgln("VirtualFileSystem::lookup_path(%)", path);
+            dbgln("[VirtualFileSystem::lookup_path] path=%", path);
 
             VirtualDirectoryEntry *info = &root();
             iterate_path_components(path, [&](StringView component, bool final) {

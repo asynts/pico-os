@@ -21,15 +21,13 @@ void load_and_execute_shell()
 {
     auto& shell_dentry_info = Kernel::MemoryFileSystem::the().lookup_path("/bin/Shell.elf");
 
-    dbgln("Found Shell.elf: inode=% size=%", shell_dentry_info.m_info->m_id, shell_dentry_info.m_info->m_size);
-
     ElfWrapper elf { shell_dentry_info.m_info->m_direct_blocks[0] };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
     // FIXME: Do this properly
     Kernel::Process::current();
 
-    dbgln("Loading process stack and static base");
+    dbgln("Switching to shell process");
 
     asm volatile(
         "movs r0, #0;"
@@ -45,7 +43,7 @@ void load_and_execute_shell()
         : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
         : "r0");
 
-    panic("Process returned, it shouldn't have\n");
+    VERIFY_NOT_REACHED();
 }
 
 void initialize_uart_debug()
@@ -68,7 +66,7 @@ int main()
     Kernel::ConsoleDevice::the();
 
     // FIXME: I got the abstractions wrong somehow
-    dbgln("Creating /example.txt");
+    dbgln("[main] Creating /example.txt");
     auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
     auto& example_dentry = Kernel::MemoryFileSystem::the().root().add_entry("example.txt", example_file);
     auto& example_handle = Kernel::File { example_dentry }.create_handle();

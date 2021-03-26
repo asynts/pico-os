@@ -16,8 +16,6 @@ namespace Kernel
                 return;
             m_loaded = true;
 
-            dbgln("FlashDirectoryEntry::load_directory_entries() inode=%", m_info->m_id);
-
             auto *begin = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0]);
             auto *end = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0] + m_info->m_size);
 
