@@ -116,6 +116,9 @@ namespace Std {
     };
 
     class Path;
+
+    template<typename... Parameters>
+    void dbgln(const char *fmtstr, const Parameters&...);
 }
 
 [[noreturn]]

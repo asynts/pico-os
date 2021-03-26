@@ -3,6 +3,8 @@
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
 
+#include <pico/printf.h>
+
 namespace Std {
     template<typename T>
     class Vector {
@@ -60,6 +62,8 @@ namespace Std {
         {
             if (capacity <= m_capacity)
                 return;
+
+            printf("[ensure_capacity] capacity=%zu m_capacity=%zu m_size=%zu m_data=%p\n", capacity, m_capacity, m_size, (void*)m_data);
 
             usize new_capacity = round_to_power_of_two(capacity);
             VERIFY(new_capacity >= capacity && new_capacity > m_capacity);

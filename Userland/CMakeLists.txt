@@ -8,7 +8,7 @@ add_custom_target(Shell.1.elf ALL
         -I ${CMAKE_SOURCE_DIR}/Kernel/Interface
         -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
         -Xlinker --nmagic
-        --sysroot=/usr/local/arm-none-pico-eabi
+        --sysroot=/usr/local/arm-none-eabi
         ${SHELL_SOURCES}
         -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf)
 
