@@ -31,6 +31,14 @@ namespace Std {
             ++m_size;
         }
 
+        void extend(Span<const T> values)
+        {
+            ensure_capacity(m_size + values.size());
+
+            for (auto& value : values.iter())
+                append(value);
+        }
+
         bool is_empty() const { return m_size > 0; }
 
         const T* data() const { return m_data; }

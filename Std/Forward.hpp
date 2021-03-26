@@ -114,6 +114,8 @@ namespace Std {
         Continue,
         Break,
     };
+
+    class Path;
 }
 
 [[noreturn]]

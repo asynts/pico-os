@@ -38,6 +38,12 @@ public:
         VERIFY(index <= size());
         return { data() + index, size() - index };
     }
+    StringView substr(usize start, usize end)
+    {
+        VERIFY(start <= end);
+        VERIFY(end <= size());
+        return { data() + start, end - start };
+    }
 
     StringView trim(usize size)
     {

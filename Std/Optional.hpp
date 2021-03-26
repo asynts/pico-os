@@ -28,7 +28,7 @@ namespace Std {
         }
         T& must()
         {
-            ASSERT(is_valid());
+            VERIFY(is_valid());
             return value();
         }
 

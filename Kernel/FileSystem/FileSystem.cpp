@@ -67,7 +67,7 @@ namespace Kernel::FileSystem
         return MemoryFileSystem::the().lookup_path(path);
     }
 
-    VirtualFile& lookup_file(StringView path)
+    VirtualFile& lookup_file(Path path)
     {
         return file_from_info(*MemoryFileSystem::the().lookup_path(path).m_info);
     }

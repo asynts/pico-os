@@ -41,6 +41,8 @@ namespace Kernel
             return *m_handles.lookup(fd).must();
         }
 
+        Path m_working_directory = "/";
+
     private:
         Map<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;

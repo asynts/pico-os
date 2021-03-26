@@ -5,6 +5,7 @@
 #include <Std/Array.hpp>
 #include <Std/Vector.hpp>
 #include <Std/Concepts.hpp>
+#include <Std/String.hpp>
 
 namespace Std {
     class StringBuilder;
@@ -77,6 +78,7 @@ namespace Std {
         usize size() { return m_data.size(); }
 
         StringView view() const { return m_data.span(); }
+        String string() const { return view(); }
 
     private:
         Vector<char> m_data;
@@ -154,6 +156,11 @@ namespace Std {
         {
             builder.appendf("{ %, % }", value.data(), value.size());
         }
+    };
+
+    template<>
+    struct Formatter<Path> {
+        static void format(StringBuilder& builder, const Path&);
     };
 }
 

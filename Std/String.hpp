@@ -21,6 +21,13 @@ namespace Std {
             : String(StringView { str })
         {
         }
+        String(const String& other)
+        {
+            m_buffer = new char[other.m_buffer_size];
+            m_buffer_size = other.m_buffer_size;
+
+            memcpy(m_buffer, other.m_buffer, m_buffer_size);
+        }
         String(String&& other)
         {
             *this = move(other);

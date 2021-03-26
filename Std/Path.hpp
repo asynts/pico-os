@@ -3,7 +3,121 @@
 #include <Std/StringBuilder.hpp>
 #include <Std/StringView.hpp>
 
-namespace Std {
+namespace Std
+{
+    class Lexer {
+    public:
+        explicit Lexer(StringView input)
+            : m_input(input)
+        {
+        }
+
+        bool eof() const
+        {
+            return m_offset >= m_input.size();
+        }
+
+        Optional<char> peek()
+        {
+            if (eof())
+                return {};
+            return m_input[m_offset];
+        }
+        char peek_or_null()
+        {
+            return peek().value_or(0);
+        }
+
+        Optional<char> consume()
+        {
+            if (!eof())
+                return m_input[m_offset++];
+            return {};
+        }
+        Optional<char> consume(char ch)
+        {
+            ASSERT(ch != 0);
+
+            if (peek_or_null() == ch)
+                return consume();
+            return {};
+        }
+
+        StringView consume_until(char ch)
+        {
+            usize offset = m_offset;
+
+            while(!eof() && peek_or_null() != ch)
+                consume();
+
+
+            dbgln("[Lexer::consume_until] m_input='%' offset=% m_offset=%", m_input, offset, m_offset);
+            return m_input.substr(offset, m_offset);
+        }
+
+    private:
+        StringView m_input;
+        usize m_offset = 0;
+    };
+
+    class Path {
+    public:
+        Path(StringView path)
+        {
+            VERIFY(path.size() >= 1);
+
+            Lexer lexer { path };
+
+            m_is_absolute = lexer.consume('/').is_valid();
+
+            while (!lexer.eof())
+            {
+                m_components.append(lexer.consume_until('/'));
+
+                if (!lexer.eof())
+                    lexer.consume('/').must();
+            }
+        }
+        Path(const char *path)
+            : Path(StringView { path })
+        {
+        }
+
+        bool is_absolute() const { return m_is_absolute; }
+        auto components() const { return m_components.iter(); }
+
+        String string() const
+        {
+            StringBuilder builder;
+
+            bool put_slash = m_is_absolute;
+            for (auto& component : components())
+            {
+                if (put_slash)
+                    builder.append('/');
+                else
+                    put_slash = true;
+
+
+                builder.append(component);
+            }
+
+            return builder.string();
+        }
+
+        Path operator/(const Path& rhs) const
+        {
+            Path path = *this;
+            path.m_components.extend(rhs.m_components.span());
+            return path;
+        }
+
+    private:
+        bool m_is_absolute;
+        Vector<String> m_components;
+    };
+
+    // FIXME: Get rid of this
     template<typename Callback>
     void iterate_path_components(StringView path, Callback&& callback)
     {

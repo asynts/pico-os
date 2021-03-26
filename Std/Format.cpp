@@ -1,5 +1,7 @@
 #include <Std/Format.hpp>
 #include <Std/Concepts.hpp>
+#include <Std/String.hpp>
+#include <Std/Path.hpp>
 
 #include <hardware/uart.h>
 
@@ -45,6 +47,12 @@ namespace Std {
         else
             builder.append("false");
     }
+
+    void Formatter<Path>::format(StringBuilder& builder, const Path& value)
+    {
+        builder.append(value.string());
+    }
+
 
     template class Formatter<unsigned char>;
     template class Formatter<unsigned short>;

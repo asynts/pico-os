@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/system.h>
+#include <stdarg.h>
 
 int close(int fd)
 {
@@ -9,12 +10,22 @@ int close(int fd)
 
 int creat(const char *path, mode_t mode)
 {
-    abort();
+    return open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
 }
 
 int open(const char *path, int flags, ...)
 {
-    // FIXME: Deal with O_CREAT
+    if ((flags & O_CREAT))
+    {
+        va_list ap;
+
+        va_start(ap, flags);
+        int mode = va_arg(ap, int);
+        va_end(ap);
+
+        return sys$open(path, flags, mode);
+    }
+
     return sys$open(path, flags, 0);
 }
 

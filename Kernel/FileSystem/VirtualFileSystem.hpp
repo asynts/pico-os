@@ -33,16 +33,16 @@ namespace Kernel
         virtual VirtualDirectoryEntry& root() = 0;
         virtual VirtualDirectoryEntry& create_empty_dentry() = 0;
 
-        VirtualDirectoryEntry& lookup_path(StringView path)
+        VirtualDirectoryEntry& lookup_path(Path path)
         {
             dbgln("[VirtualFileSystem::lookup_path] path=%", path);
 
             VirtualDirectoryEntry *info = &root();
-            iterate_path_components(path, [&](StringView component, bool final) {
+            for (auto& component : path.components())
+            {
                 info->load_directory_entries();
                 info = info->m_entries.lookup(component).must();
-                return IterationDecision::Continue;
-            });
+            }
             return *info;
         }
     };

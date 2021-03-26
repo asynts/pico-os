@@ -9,5 +9,5 @@ namespace Kernel::FileSystem
     VirtualFile& file_from_info(FileInfo&);
 
     VirtualDirectoryEntry& lookup_dentry(StringView path);
-    VirtualFile& lookup_file(StringView path);
+    VirtualFile& lookup_file(Path path);
 }
