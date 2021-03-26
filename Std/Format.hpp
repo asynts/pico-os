@@ -81,7 +81,7 @@ namespace Std {
         String string() const { return view(); }
 
     private:
-        Vector<char> m_data;
+        Vector<char, 256> m_data;
     };
 
     inline void vformat(StringBuilder& builder, StringView fmtstr, TypeErasedFormatParams params)

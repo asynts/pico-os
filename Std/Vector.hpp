@@ -6,21 +6,21 @@
 #include <pico/printf.h>
 
 namespace Std {
-    template<typename T>
+    template<typename T, usize InlineSize = 0>
     class Vector {
     public:
         Vector()
         {
-            m_data = nullptr;
-            m_capacity = 0;
+            m_use_inline_data = true;
             m_size = 0;
+            m_capacity = InlineSize;
+            m_data = nullptr;
         }
         ~Vector()
         {
-            for (usize i=0; i<m_size; ++i)
-                m_data[i].~T();
+            for (usize index = 0; index < m_size; ++index)
+                data()[index].~T();
 
-            // This is different from calling delete because it doesn't call the destructor
             operator delete(m_data);
         }
 
@@ -29,8 +29,7 @@ namespace Std {
         {
             ensure_capacity(m_size + 1);
 
-            new (m_data + m_size) T { forward<T_>(value) };
-
+            new (data() + m_size) T { forward<T_>(value) };
             ++m_size;
         }
 
@@ -42,34 +41,14 @@ namespace Std {
                 append(value);
         }
 
-        bool is_empty() const { return m_size > 0; }
-
-        const T* data() const { return m_data; }
-        T* data() { return m_data; }
-
-        usize size() const { return m_size; }
-
-        const T& operator[](usize index) const { return m_data[index]; }
-        T& operator[](usize index) { return m_data[index]; }
-
-        Span<const T> span() const { return { data(), size() }; }
-        Span<T> span() { return { data(), size() }; }
-
-        SpanIterator<const T> iter() const { return span(); }
-        SpanIterator<T> iter() { return span(); }
-
-    private:
-        void ensure_capacity(usize capacity)
+        void ensure_capacity(usize new_capacity)
         {
-            if (capacity <= m_capacity)
+            if (m_capacity >= new_capacity)
                 return;
 
-            printf("[ensure_capacity] capacity=%zu m_capacity=%zu m_size=%zu m_data=%p\n", capacity, m_capacity, m_size, (void*)m_data);
+            new_capacity = round_to_power_of_two(new_capacity);
 
-            usize new_capacity = round_to_power_of_two(capacity);
-            VERIFY(new_capacity >= capacity && new_capacity > m_capacity);
-
-            T *new_data = reinterpret_cast<T*>(new u8[new_capacity * sizeof(T)]);
+            T *new_data = reinterpret_cast<T*>(new u8[sizeof(T) * new_capacity]);
 
             for (usize i=0; i<m_size; ++i)
             {
@@ -77,15 +56,43 @@ namespace Std {
                 m_data[i].~T();
             }
 
-            // This is different from calling delete because it doesn't call the destructor
             operator delete(m_data);
 
             m_data = new_data;
             m_capacity = new_capacity;
+            m_use_inline_data = false;
         }
 
-        T *m_data;
-        usize m_capacity;
+        const T* data() const
+        {
+            if (m_use_inline_data)
+                return reinterpret_cast<const T*>(m_inline_data);
+            return m_data;
+        }
+        T* data()
+        {
+            if (m_use_inline_data)
+                return reinterpret_cast<T*>(m_inline_data);
+            return m_data;
+        }
+
+        usize size() const { return m_size; }
+
+        Span<T> span() { return { data(), size() }; }
+        Span<const T> span() const { return { data(), size() }; }
+
+        SpanIterator<T> iter() { return span().iter(); }
+        SpanIterator<const T> iter() const { return span().iter(); }
+
+        const T& operator[](usize index) const { return data()[index]; }
+        T& operator[](usize index) { return data()[index]; }
+
+    private:
+        bool m_use_inline_data;
         usize m_size;
+        usize m_capacity;
+
+        u8 m_inline_data[sizeof(T) * InlineSize];
+        T *m_data;
     };
 }
