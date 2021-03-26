@@ -59,7 +59,7 @@ void initialize_uart_debug()
 int main()
 {
     initialize_uart_debug();
-    dbgln("\e[1mBOOT\e[0m");
+    dbgln("\e[0;1mBOOT\e[0m");
 
     Kernel::MemoryFileSystem::the();
     Kernel::FlashFileSystem::the();

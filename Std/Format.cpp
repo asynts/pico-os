@@ -6,8 +6,9 @@
 namespace Std {
     void dbgln_raw(StringView str)
     {
+        uart_write_blocking(uart0, (const u8*)"\e[36m", 5);
         uart_write_blocking(uart0, (const u8*)str.data(), str.size());
-        uart_write_blocking(uart0, (const u8*)"\n", 1);
+        uart_write_blocking(uart0, (const u8*)"\e[0m\n", 5);
     }
 
     template<typename T>
