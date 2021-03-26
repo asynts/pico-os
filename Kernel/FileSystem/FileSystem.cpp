@@ -38,24 +38,24 @@ namespace Kernel::FileSystem
 
     VirtualFile& file_from_info(FileInfo& info)
     {
-        if (auto file = FileSystemRegistry::the().lookup(info.m_device, info.m_id); file.is_valid())
+        if (auto file = FileSystemRegistry::the().lookup(info.m_device, info.m_ino); file.is_valid())
             return *file.value();
 
         // FIXME: Two different filesystems could have device files referencing the same device
         if ((info.m_mode & S_IFMT) == S_IFDEV) {
             auto& file = *new DeviceFile { info };
-            FileSystemRegistry::the().register_info(info.m_device, info.m_id, file);
+            FileSystemRegistry::the().register_info(info.m_device, info.m_ino, file);
             return file;
         }
 
         if (info.m_device == RAM_DEVICE_ID) {
             auto& file = *new RamFile { info };
-            FileSystemRegistry::the().register_info(info.m_device, info.m_id, file);
+            FileSystemRegistry::the().register_info(info.m_device, info.m_ino, file);
             return file;
         }
         if (info.m_device == FLASH_DEVICE_ID) {
             auto& file = *new FlashFile { info };
-            FileSystemRegistry::the().register_info(info.m_device, info.m_id, file);
+            FileSystemRegistry::the().register_info(info.m_device, info.m_ino, file);
             return file;
         }
 

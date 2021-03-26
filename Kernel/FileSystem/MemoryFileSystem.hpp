@@ -40,7 +40,7 @@ namespace Kernel
             auto& info = *new FileInfo;
             info.m_device = RAM_DEVICE_ID;
             info.m_direct_blocks[0] = nullptr;
-            info.m_id = m_next_ino++;
+            info.m_ino = m_next_ino++;
             info.m_mode = S_IFDIR;
             info.m_size = 0;
             return info;
@@ -51,7 +51,7 @@ namespace Kernel
             auto& info = *new FileInfo;
             info.m_device = RAM_DEVICE_ID;
             info.m_direct_blocks[0] = nullptr;
-            info.m_id = m_next_ino++;
+            info.m_ino = m_next_ino++;
             info.m_mode = S_IFDEV;
             info.m_size = 0;
             info.m_devno = device_id;
@@ -63,7 +63,7 @@ namespace Kernel
             auto& info = *new FileInfo;
             info.m_device = RAM_DEVICE_ID;
             info.m_direct_blocks[0] = nullptr;
-            info.m_id = m_next_ino++;
+            info.m_ino = m_next_ino++;
             info.m_mode = S_IFREG;
             info.m_size = 0;
             info.m_devno = 0;

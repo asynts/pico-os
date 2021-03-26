@@ -93,7 +93,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
     });
 
     FileInfo inode;
-    inode.m_id = inode_number;
+    inode.m_ino = inode_number;
     inode.m_mode = mode;
     inode.m_size = stream.size();
     inode.m_device = FLASH_DEVICE_ID;
@@ -133,7 +133,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
 
     m_inode_to_offset[inode_number] = inode_offset;
 
-    return inode.m_id;
+    return inode.m_ino;
 }
 void FileSystem::finalize()
 {
@@ -149,7 +149,7 @@ void FileSystem::finalize()
     // Note that std::map iterators are sorted by the key
     Elf::MemoryStream tab_stream;
     for (auto& [inode_number, inode_offset] : m_inode_to_offset) {
-        size_t lookup_offset = tab_stream.write_object(FlashLookupEntry { .m_id = inode_number, .m_info_raw = inode_offset });
+        size_t lookup_offset = tab_stream.write_object(FlashLookupEntry { .m_ino = inode_number, .m_info_raw = inode_offset });
 
         tab_relocs.add_entry(Elf32_Rel {
             .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(FlashLookupEntry, m_info_raw)),

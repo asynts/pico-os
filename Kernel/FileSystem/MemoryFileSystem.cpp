@@ -15,7 +15,7 @@ namespace Kernel
         info.m_device = RAM_DEVICE_ID;
         info.m_devno = 0;
         info.m_direct_blocks[0] = nullptr;
-        info.m_id = 2;
+        info.m_ino = 2;
         info.m_mode = S_IFDIR;
         info.m_size = 0;
 

@@ -27,7 +27,7 @@
 #endif
 
 struct FileInfo {
-    uint32_t m_id;
+    uint32_t m_ino;
     uint32_t m_device;
     uint32_t m_mode;
     uint32_t m_size;
@@ -57,7 +57,7 @@ struct FlashDirectoryEntryInfo {
 };
 
 struct FlashLookupEntry {
-    uint32_t m_id;
+    uint32_t m_ino;
 
 #ifdef HOST
     uint32_t m_info_raw;
