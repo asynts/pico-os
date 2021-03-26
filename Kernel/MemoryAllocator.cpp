@@ -28,8 +28,6 @@ namespace Kernel
         FreeListEntry *previous = nullptr;
         for (FreeListEntry *entry = m_freelist; entry; entry = entry->m_next)
         {
-            printf("[MemoryAllocator::allocate] entry=%p\n", entry);
-
             if (entry->m_size >= size + sizeof(FreeListEntry))
             {
                 auto *next = reinterpret_cast<FreeListEntry*>(entry->m_data + round_to_word(size));

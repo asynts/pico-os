@@ -20,7 +20,8 @@ namespace Std {
             for (usize i=0; i<m_size; ++i)
                 m_data[i].~T();
 
-            delete m_data;
+            // This is different from calling delete because it doesn't call the destructor
+            operator delete(m_data);
         }
 
         template<typename T_>
@@ -71,9 +72,13 @@ namespace Std {
             T *new_data = reinterpret_cast<T*>(new u8[new_capacity * sizeof(T)]);
 
             for (usize i=0; i<m_size; ++i)
+            {
                 new (new_data + i) T { move(m_data[i]) };
+                m_data[i].~T();
+            }
 
-            delete m_data;
+            // This is different from calling delete because it doesn't call the destructor
+            operator delete(m_data);
 
             m_data = new_data;
             m_capacity = new_capacity;

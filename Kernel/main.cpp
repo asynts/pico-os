@@ -9,6 +9,7 @@
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 #include <Kernel/Process.hpp>
+#include <Kernel/MemoryAllocator.hpp>
 
 #include <pico/stdio.h>
 
@@ -56,11 +57,51 @@ void initialize_uart_debug()
     VERIFY(ch == 0xff);
 }
 
+struct X {
+    X(int i)
+        : m_i(i)
+    {
+        dbgln("X(%)", m_i);
+    }
+    ~X()
+    {
+        dbgln("~X() with x = { % }", m_i);
+    }
+    X(X&& x)
+    {
+        dbgln("X(X&& x) with x = { % }", x.m_i);
+        m_i = x.m_i;
+        x.m_i = 0;
+    }
+    X(const X& x)
+    {
+        dbgln("X(const X& x) with x = { % }", x.m_i);
+        m_i = x.m_i;
+    }
+
+    X& operator=(const X& x)
+    {
+        dbgln("operator=(const X& x) with x = { % }", x.m_i);
+        m_i = x.m_i;
+        return *this;
+    }
+    X& operator=(X&& x)
+    {
+        dbgln("operator=(X&& x) with x = { % }", x.m_i);
+        m_i = x.m_i;
+        x.m_i = 0;
+        return *this;
+    }
+
+    int m_i;
+};
+
 int main()
 {
     initialize_uart_debug();
     dbgln("\e[0;1mBOOT\e[0m");
 
+    Kernel::MemoryAllocator::the();
     Kernel::MemoryFileSystem::the();
     Kernel::FlashFileSystem::the();
     Kernel::ConsoleDevice::the();
