@@ -51,20 +51,53 @@ namespace Kernel
 
         VERIFY_NOT_REACHED();
     }
-    void MemoryAllocator::deallocate(void* pointer)
+    void MemoryAllocator::deallocate(void *pointer)
     {
         if (pointer == nullptr)
             return;
 
         printf("[MemoryAllocator::deallocate] pointer=%p\n", pointer);
 
-        // FIXME: Join adjacent memory blocks
+        auto *target_entry = reinterpret_cast<FreeListEntry*>((u8*)pointer - sizeof(FreeListEntry));
 
-        auto *entry = reinterpret_cast<FreeListEntry*>((u8*)pointer - sizeof(FreeListEntry));
-        entry->m_next = m_freelist;
-        m_freelist = entry;
+        FreeListEntry *previous = nullptr;
+        for (auto *entry = m_freelist; entry; entry = entry->m_next)
+        {
+            if (entry > target_entry)
+            {
+                // Try to merge on the left
+                if (previous && previous->m_data + previous->m_size == (u8*)target_entry) {
+                    previous->m_size += sizeof(FreeListEntry) + target_entry->m_size;
+
+                    // Additionally, try to merge on the right
+                    if (previous->m_data + previous->m_size == (u8*)entry) {
+                        previous->m_size += sizeof(FreeListEntry) + entry->m_size;
+                        previous->m_next = entry->m_next;
+                    }
+
+                    return;
+                }
+
+                // Try to merge on the right
+                if (target_entry->m_data + target_entry->m_size == (u8*)entry) {
+                    target_entry->m_size += sizeof(FreeListEntry) + entry->m_size;
+                    target_entry->m_next = entry->m_next;
+                } else {
+                    target_entry->m_next = entry;
+                }
+
+                if (previous)
+                    previous->m_next = target_entry;
+                else
+                    m_freelist = target_entry;
+            }
+
+            previous = entry;
+        }
+
+        m_freelist = target_entry;
     }
-    void* MemoryAllocator::reallocate(void* pointer, usize size)
+    void* MemoryAllocator::reallocate(void *pointer, usize size)
     {
         printf("[MemoryAllocator::reallocate] pointer=%p size=%zu\n", pointer, size);
 
