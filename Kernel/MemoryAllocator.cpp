@@ -23,8 +23,6 @@ namespace Kernel
 
     void* MemoryAllocator::allocate(usize size)
     {
-        printf("[MemoryAllocator::allocate] size=%zu\n", size);
-
         FreeListEntry *previous = nullptr;
         for (FreeListEntry *entry = m_freelist; entry; entry = entry->m_next)
         {
@@ -42,7 +40,6 @@ namespace Kernel
                 entry->m_next = nullptr;
                 entry->m_size = round_to_word(size);
 
-                printf("[MemoryAllocator::allocate] pointer=%p\n", entry->m_data);
                 return entry->m_data;
             }
 
@@ -55,8 +52,6 @@ namespace Kernel
     {
         if (pointer == nullptr)
             return;
-
-        printf("[MemoryAllocator::deallocate] pointer=%p\n", pointer);
 
         auto *target_entry = reinterpret_cast<FreeListEntry*>((u8*)pointer - sizeof(FreeListEntry));
 
@@ -99,8 +94,6 @@ namespace Kernel
     }
     void* MemoryAllocator::reallocate(void *pointer, usize size)
     {
-        printf("[MemoryAllocator::reallocate] pointer=%p size=%zu\n", pointer, size);
-
         auto *entry = reinterpret_cast<FreeListEntry*>((u8*)pointer - sizeof(FreeListEntry));
 
         if (size < entry->m_size)
