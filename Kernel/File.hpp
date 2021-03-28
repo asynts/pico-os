@@ -2,6 +2,7 @@
 
 #include <Kernel/FileSystem/VirtualFileSystem.hpp>
 #include <Kernel/ConsoleDevice.hpp>
+#include <Kernel/Interface/stat.h>
 
 namespace Kernel
 {
@@ -48,13 +49,18 @@ namespace Kernel
 
         usize read(Bytes bytes) override
         {
-            usize nread = ReadonlyBytes {
-                m_file.m_info.m_direct_blocks[0] + m_offset,
-                m_file.m_info.m_size - m_offset,
-            }.copy_trimmed_to(bytes);
+            if ((m_file.m_info.m_mode & S_IFMT) == S_IFDIR) {
+                // Oops. We don't have access to the dentry here
+                NOT_IMPLEMENTED();
+            } else {
+                usize nread = ReadonlyBytes {
+                    m_file.m_info.m_direct_blocks[0] + m_offset,
+                    m_file.m_info.m_size - m_offset,
+                }.copy_trimmed_to(bytes);
 
-            m_offset += nread;
-            return nread;
+                m_offset += nread;
+                return nread;
+            }
         }
 
         usize write(ReadonlyBytes bytes) override
@@ -107,9 +113,26 @@ namespace Kernel
 
         usize read(Bytes bytes) override
         {
-            usize nread = m_file.m_bytes.slice(m_offset).copy_trimmed_to(bytes);
-            m_offset += nread;
-            return nread;
+            if ((m_file.m_info.m_mode & S_IFMT) == S_IFDIR) {
+                FlashDirectoryEntryInfo entry;
+                usize nread = m_file.m_bytes.slice(m_offset).copy_trimmed_to({ (u8*)&entry, sizeof(entry) });
+
+                if (nread == 0)
+                    return 0;
+
+                VERIFY(nread == sizeof(FlashDirectoryEntryInfo));
+
+                m_offset += nread;
+
+                UserlandDirectoryInfo info;
+                StringView { entry.m_name }.strcpy_to({ info.d_name, sizeof(info.d_name) });
+
+                return ReadonlyBytes { (const u8*)&info, sizeof(info) }.copy_to(bytes);
+            } else {
+                usize nread = m_file.m_bytes.slice(m_offset).copy_trimmed_to(bytes);
+                m_offset += nread;
+                return nread;
+            }
         }
 
         usize write(ReadonlyBytes) override
@@ -132,6 +155,8 @@ namespace Kernel
         DeviceFile(FileInfo& info)
             : VirtualFile(info)
         {
+            VERIFY((info.m_mode & S_IFMT) == S_IFDEV);
+
             m_device = Device::lookup(m_info.m_devno);
             VERIFY(m_device);
         }

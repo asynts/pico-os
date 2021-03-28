@@ -77,6 +77,8 @@ namespace Std
                 if (!lexer.eof())
                     lexer.consume('/').must();
             }
+
+            dbgln("[Path::Path] path=% parsed=%", path, string());
         }
         Path(const char *path)
             : Path(StringView { path })

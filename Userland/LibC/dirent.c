@@ -18,7 +18,16 @@ DIR* opendir(const char *path)
 
 struct dirent* readdir(DIR *dirp)
 {
-    abort();
+    struct dirent *entry = malloc(sizeof(struct dirent));
+
+    ssize_t retval = read(dirp->fd, entry, sizeof(struct dirent));
+
+    if (retval == 0)
+        return NULL;
+
+    assert(retval == sizeof(struct dirent));
+
+    return entry;
 }
 
 int closedir(DIR *dirp)

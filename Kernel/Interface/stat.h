@@ -31,3 +31,13 @@ struct UserlandFileInfo {
     blksize_t st_blksize;
     blkcnt_t st_blocks;
 };
+
+#ifdef USERLAND
+struct dirent {
+#elif defined(KERNEL)
+struct UserlandDirectoryInfo {
+#else
+#error "Neither USERLAND nor KERNEL defined."
+#endif
+    char d_name[256];
+};

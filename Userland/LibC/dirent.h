@@ -1,15 +1,10 @@
 #pragma once
 
 #include <stddef.h>
-
-struct dirent {
-    char d_name[256];
-};
+#include <Kernel/Interface/stat.h>
 
 typedef struct {
     int fd;
-    struct dirent *entries;
-    size_t nentries;
 } DIR;
 
 DIR* opendir(const char *path);

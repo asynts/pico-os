@@ -41,6 +41,7 @@ namespace Kernel
             for (auto& component : path.components())
             {
                 info->load_directory_entries();
+                dbgln("[VirtualFileSystem::lookup_path] component=%", component);
                 info = info->m_entries.lookup(component).must();
             }
             return *info;
