@@ -27,6 +27,8 @@ namespace Kernel
 
         virtual usize read(Bytes) = 0;
         virtual usize write(ReadonlyBytes) = 0;
+
+        virtual FileInfo& info() = 0;
     };
 
     class RamFile final : public VirtualFile {
@@ -72,6 +74,11 @@ namespace Kernel
             return bytes.size();
         }
 
+        FileInfo& info() override
+        {
+            return m_file.m_info;
+        }
+
     private:
         RamFile& m_file;
         usize m_offset;
@@ -110,6 +117,11 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
+        FileInfo& info() override
+        {
+            return m_file.m_info;
+        }
+
     private:
         FlashFile& m_file;
         usize m_offset;
@@ -144,6 +156,11 @@ namespace Kernel
         usize write(ReadonlyBytes bytes) override
         {
             return m_file.m_device->write(bytes);
+        }
+
+        FileInfo& info() override
+        {
+            return m_file.m_info;
         }
 
     private:

@@ -29,3 +29,8 @@ int sys$close(int fd)
 {
     return syscall(_SC_close, fd, 0, 0);
 }
+
+int sys$fstat(int fd, struct stat *statbuf)
+{
+    return syscall(_SC_fstat, fd, statbuf, 0);
+}

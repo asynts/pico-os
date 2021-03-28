@@ -80,7 +80,8 @@ int printf(const char *format, ...)
                     size_t value = va_arg(ap, size_t);
                     buffer_size = format_integer(0, value, 8 * sizeof(size_t), buffer);
                 } else {
-                    abort();
+                    unsigned value = va_arg(ap, unsigned);
+                    buffer_size = format_integer(0, value, 8 * sizeof(unsigned), buffer);
                 }
 
                 for (size_t index = 0; index < buffer_size; ++index)
@@ -103,9 +104,16 @@ int printf(const char *format, ...)
                         is_negative = 1;
                     }
 
-                    buffer_size = format_integer(is_negative, (size_t)value, 8 *sizeof(ssize_t), buffer);
+                    buffer_size = format_integer(is_negative, (size_t)value, 8 * sizeof(ssize_t), buffer);
                 } else {
-                    abort();
+                    int value = va_arg(ap, int);
+                    int is_negative = 0;
+                    if (value < 0) {
+                        value = -value;
+                        is_negative = 1;
+                    }
+
+                    buffer_size = format_integer(is_negative, (size_t)value, 8 * sizeof(int), buffer);
                 }
 
                 for (size_t index = 0; index < buffer_size; ++index)

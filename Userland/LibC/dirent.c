@@ -3,6 +3,7 @@
 #include <sys/system.h>
 #include <assert.h>
 #include <malloc.h>
+#include <fcntl.h>
 
 DIR* opendir(const char *path)
 {
@@ -22,5 +23,7 @@ struct dirent* readdir(DIR *dirp)
 
 int closedir(DIR *dirp)
 {
-    abort();
+    int retval = close(dirp->fd);
+    assert(retval == 0);
+    return 0;
 }

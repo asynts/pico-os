@@ -33,6 +33,29 @@ int main(int argc, char **argv)
                 prefix = " ";
             }
             printf("\n");
+        } else if (strcmp(program, "stat") == 0) {
+            const char *path = strtok_r(NULL, " ", &saveptr);
+            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            assert(path != NULL);
+
+            int fd = open(path, O_RDONLY);
+            assert(fd >= 2);
+
+            struct stat statbuf;
+            int retval = fstat(fd, &statbuf);
+            assert(retval == 0);
+
+            printf("st_dev: %u\n", statbuf.st_dev);
+            printf("st_ino: %u\n", statbuf.st_ino);
+            printf("st_mode: %u\n", statbuf.st_mode);
+            printf("st_rdev: %u\n", statbuf.st_rdev);
+            printf("st_size: %i\n", statbuf.st_size);
+            printf("st_blksize: %u\n", statbuf.st_blksize);
+            printf("st_blocks: %u\n", statbuf.st_blocks);
+
+            retval = close(fd);
+            assert(retval == 0);
         } else if (strcmp(program, "ls") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);

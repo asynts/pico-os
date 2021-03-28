@@ -4,8 +4,9 @@ add_custom_target(Shell.1.elf ALL
     COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
         -std=gnu11 -Og -g -static -nostdlib -fcolor-diagnostics
         -fropi -frwpi
+        -DUSERLAND
         -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
-        -I ${CMAKE_SOURCE_DIR}/Kernel/Interface
+        -I ${CMAKE_SOURCE_DIR}
         -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
         -Xlinker --nmagic
         --sysroot=/usr/local/arm-none-eabi

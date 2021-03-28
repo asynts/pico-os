@@ -6,6 +6,8 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 
+#include <Kernel/Interface/stat.h>
+
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
@@ -80,6 +82,26 @@ namespace Kernel
 
         if (syscall == _SC_close) {
             dbgln("[syscall_handler] _SC_close not implemented");
+            return 0;
+        }
+
+        if (syscall == _SC_fstat) {
+            i32 fd = arg1.fd();
+            UserlandFileInfo *statbuf = arg2.pointer<UserlandFileInfo>();
+
+            auto& handle = Kernel::Process::current().get_file_handle(fd);
+
+            statbuf->st_dev = handle.info().m_device;
+            statbuf->st_ino = handle.info().m_ino;
+            statbuf->st_mode = handle.info().m_mode;
+            statbuf->st_rdev = handle.info().m_devno;
+            statbuf->st_size = handle.info().m_size;
+
+            // FIXME: Do this properly
+            assert(RAM_BLOCK_SIZE == FLASH_BLOCK_SIZE);
+            statbuf->st_blksize = RAM_BLOCK_SIZE;
+            statbuf->st_blocks = handle.info().m_size / RAM_BLOCK_SIZE;
+
             return 0;
         }
 
