@@ -13,6 +13,16 @@ namespace Std {
 
     template<typename T>
     struct Formatter {
+        using __no_formatter_defined = void;
+    };
+
+    template<typename T, typename = void>
+    struct HasFormatter {
+        static constexpr bool value = true;
+    };
+    template<typename T>
+    struct HasFormatter<T, typename Formatter<T>::__no_formatter_defined> {
+        static constexpr bool value = false;
     };
 
     using FormatFunction = void(*)(StringBuilder&, const void*);
@@ -133,7 +143,7 @@ namespace Std {
 
     template<>
     struct Formatter<StringView> {
-        static void format(StringBuilder& builder, StringView);
+        static void format(StringBuilder&, StringView);
     };
     template<>
     struct Formatter<String> : Formatter<StringView> {
@@ -147,7 +157,7 @@ namespace Std {
 
     template<>
     struct Formatter<bool> {
-        static void format(StringBuilder& builder, bool);
+        static void format(StringBuilder&, bool);
     };
 
     template<typename T>
@@ -160,8 +170,11 @@ namespace Std {
 
     template<>
     struct Formatter<Path> {
-        static void format(StringBuilder& builder, const Path&);
+        static void format(StringBuilder&, const Path&);
     };
+
+    static_assert(HasFormatter<int>::value == true);
+    static_assert(HasFormatter<double>::value == false);
 }
 
 using Std::dbgln;
