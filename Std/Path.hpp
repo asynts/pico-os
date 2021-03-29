@@ -51,7 +51,6 @@ namespace Std
                 consume();
 
 
-            dbgln("[Lexer::consume_until] m_input='%' offset=% m_offset=%", m_input, offset, m_offset);
             return m_input.substr(offset, m_offset);
         }
 
@@ -77,8 +76,6 @@ namespace Std
                 if (!lexer.eof())
                     lexer.consume('/').must();
             }
-
-            dbgln("[Path::Path] path=% parsed=%", path, string());
         }
         Path(const char *path)
             : Path(StringView { path })
@@ -91,6 +88,11 @@ namespace Std
         String string() const
         {
             StringBuilder builder;
+
+            if (m_is_absolute && components().size() == 0) {
+                builder.append('/');
+                return builder.string();
+            }
 
             bool put_slash = m_is_absolute;
             for (auto& component : components())
