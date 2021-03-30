@@ -1,50 +1,43 @@
 #pragma once
 
-#include <Std/Forward.hpp>
-#include <Std/String.hpp>
 #include <Std/Map.hpp>
-#include <Std/Path.hpp>
-
-#include <Kernel/Interface/vfs.h>
+#include <Std/String.hpp>
 
 namespace Kernel
 {
     using namespace Std;
 
-    struct VirtualFileSystem;
-
-    struct VirtualDirectoryEntry {
-        String m_name;
-        FileInfo *m_info;
-        VirtualFileSystem *m_fs;
-        bool m_keep;
-        Map<String, VirtualDirectoryEntry*> m_entries;
-        bool m_loaded = false;
-
-        virtual void load_directory_entries() = 0;
-
-        VirtualDirectoryEntry& add_entry(StringView name, FileInfo& info, bool keep = false);
-    };
+    class VirtualFile;
+    class VirtualFileHandle;
+    class VirtualDirectoryEntry;
+    class VirtualFileSystem;
 
     class VirtualFileSystem {
     public:
-        virtual ~VirtualFileSystem() = default;
+        virtual VirtualFile& create_file() = 0;
+        virtual VirtualFileHandle& create_file_handle() = 0;
+        virtual VirtualDirectoryEntry& create_directory_entry() = 0;
+    };
 
-        virtual VirtualDirectoryEntry& root() = 0;
-        virtual VirtualDirectoryEntry& create_empty_dentry() = 0;
+    class VirtualFile {
+    public:
+        u32 m_ino;
+        u32 m_flags;
+        u32 m_size;
+        u32 m_device;
 
-        VirtualDirectoryEntry& lookup_path(Path path)
-        {
-            dbgln("[VirtualFileSystem::lookup_path] path=%", path);
+        virtual VirtualFileSystem& filesystem() = 0;
+    };
 
-            VirtualDirectoryEntry *info = &root();
-            for (auto& component : path.components())
-            {
-                info->load_directory_entries();
-                dbgln("[VirtualFileSystem::lookup_path] component=%", component);
-                info = info->m_entries.lookup(component).must();
-            }
-            return *info;
-        }
+    class VirtualDirectoryEntry {
+    public:
+        virtual VirtualFile& file() = 0;
+
+        Map<String, VirtualDirectoryEntry*> m_entries;
+    };
+
+    class VirtualFileHandle {
+    public:
+        virtual VirtualFile& file() = 0;
     };
 }

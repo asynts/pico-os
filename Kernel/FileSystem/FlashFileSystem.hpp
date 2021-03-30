@@ -6,40 +6,45 @@
 
 namespace Kernel
 {
-    struct FlashDirectoryEntry final : VirtualDirectoryEntry
-    {
-        FlashDirectoryEntry();
+    using namespace Std;
 
-        void load_directory_entries() override
-        {
-            if (m_loaded)
-                return;
-            m_loaded = true;
-
-            auto *begin = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0]);
-            auto *end = reinterpret_cast<FlashDirectoryEntryInfo*>(m_info->m_direct_blocks[0] + m_info->m_size);
-
-            for (auto *entry = begin; entry < end; ++entry)
-                add_entry(entry->m_name, *entry->m_info);
-        }
-    };
+    class FlashFileSystem;
+    class FlashFile;
+    class FlashDirectoryEntry;
+    class FlashFileHandle;
 
     class FlashFileSystem final
         : public Singleton<FlashFileSystem>
         , public VirtualFileSystem
     {
     public:
-        VirtualDirectoryEntry& root() override { return *m_root; }
+        VirtualFile& create_file() override;
+        VirtualFileHandle& create_file_handle() override;
+        VirtualDirectoryEntry& create_directory_entry() override;
+    };
 
-        VirtualDirectoryEntry& create_empty_dentry() override
-        {
-            return *new FlashDirectoryEntry;
-        }
+    class FlashFile final
+        : public VirtualFile
+    {
+    public:
+        VirtualFileSystem& filesystem() override { return FlashFileSystem::the(); }
+    };
 
-    private:
-        friend Singleton<FlashFileSystem>;
-        FlashFileSystem();
+    class FlashDirectoryEntry final
+        : public VirtualDirectoryEntry
+    {
+    public:
+        VirtualFile& file() override { return *m_file; }
 
-        VirtualDirectoryEntry *m_root;
+        FlashFile *m_file;
+    };
+
+    class FlashFileHandle final
+        : public VirtualFileHandle
+    {
+    public:
+        VirtualFile& file() override { return *m_file; }
+
+        FlashFile *m_file;
     };
 }

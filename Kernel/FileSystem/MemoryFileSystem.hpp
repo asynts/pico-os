@@ -1,80 +1,52 @@
 #pragma once
 
-#include <Std/Forward.hpp>
-#include <Std/String.hpp>
-#include <Std/Map.hpp>
 #include <Std/Singleton.hpp>
-#include <Std/Format.hpp>
 
 #include <Kernel/FileSystem/VirtualFileSystem.hpp>
-#include <Kernel/Interface/vfs.h>
 
 namespace Kernel
 {
     using namespace Std;
 
-    struct MemoryDirectoryEntry final : VirtualDirectoryEntry
-    {
-        MemoryDirectoryEntry();
-
-        void load_directory_entries() override
-        {
-            m_loaded = true;
-        }
-    };
+    class MemoryFileSystem;
+    class MemoryFile;
+    class MemoryFileHandle;
+    class MemoryDirectoryEntry;
 
     class MemoryFileSystem final
         : public Singleton<MemoryFileSystem>
         , public VirtualFileSystem
     {
     public:
-        VirtualDirectoryEntry& root() override { return *m_root; }
+        VirtualFile& create_file() override;
+        VirtualFileHandle& create_file_handle() override;
+        VirtualDirectoryEntry& create_directory_entry() override;
+    };
 
-        VirtualDirectoryEntry& create_empty_dentry() override
-        {
-            return *new MemoryDirectoryEntry;
-        }
+    class MemoryFile final
+        : public VirtualFile
+    {
+    public:
+        VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
+    };
 
-        FileInfo& create_directory()
-        {
-            auto& info = *new FileInfo;
-            info.m_device = RAM_DEVICE_ID;
-            info.m_direct_blocks[0] = nullptr;
-            info.m_ino = m_next_ino++;
-            info.m_mode = S_IFDIR;
-            info.m_size = 0;
-            return info;
-        }
+    class MemoryDirectoryEntry final
+        : public VirtualDirectoryEntry
+    {
+    public:
+        VirtualFile& file() override { return *m_file; }
+        Map<String, VirtualDirectoryEntry*>& entries() { return m_entries; }
 
-        FileInfo& create_device(u32 device_id)
-        {
-            auto& info = *new FileInfo;
-            info.m_device = RAM_DEVICE_ID;
-            info.m_direct_blocks[0] = nullptr;
-            info.m_ino = m_next_ino++;
-            info.m_mode = S_IFDEV;
-            info.m_size = 0;
-            info.m_devno = device_id;
-            return info;
-        }
+        MemoryFile *m_file;
+        Map<String, VirtualDirectoryEntry*> m_entries;
+    };
 
-        FileInfo& create_regular()
-        {
-            auto& info = *new FileInfo;
-            info.m_device = RAM_DEVICE_ID;
-            info.m_direct_blocks[0] = nullptr;
-            info.m_ino = m_next_ino++;
-            info.m_mode = S_IFREG;
-            info.m_size = 0;
-            info.m_devno = 0;
-            return info;
-        }
+    class MemoryFileHandle final
+        : public VirtualFileHandle
+    {
+    public:
+        VirtualFile& file() override { return *m_file; }
 
-    private:
-        friend Singleton<MemoryFileSystem>;
-        MemoryFileSystem();
-
-        MemoryDirectoryEntry *m_root;
-        u32 m_next_ino = 3;
+        MemoryFile *m_file;
     };
 }
