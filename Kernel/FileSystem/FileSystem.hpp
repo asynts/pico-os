@@ -6,5 +6,5 @@
 
 namespace Kernel::FileSystem
 {
-    VirtualDirectoryEntry& lookup(Path)
+    VirtualDirectoryEntry& lookup(Path);
 }

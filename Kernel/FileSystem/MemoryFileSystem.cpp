@@ -5,6 +5,7 @@ namespace Kernel
     VirtualFile& MemoryFileSystem::create_file() { return *new MemoryFile; }
     VirtualFileHandle& MemoryFileSystem::create_file_handle() { return *new MemoryFileHandle; }
     VirtualDirectoryEntry& MemoryFileSystem::create_directory_entry() { return *new MemoryDirectoryEntry; }
+    VirtualDirectoryEntry& MemoryFileSystem::root() { return *m_root; }
 
     MemoryFileSystem::MemoryFileSystem()
     {
@@ -20,5 +21,7 @@ namespace Kernel
         root_directory_entry.m_entries.append("..", &root_directory_entry);
 
         m_root = &root_directory_entry;
+
+        m_next_ino = 3;
     }
 }

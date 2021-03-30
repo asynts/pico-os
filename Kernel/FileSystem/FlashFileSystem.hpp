@@ -19,7 +19,7 @@ namespace Kernel
         , public VirtualFileSystem
     {
     public:
-        VirtualDirectoryEntry& root() override { return *m_root; }
+        VirtualDirectoryEntry& root() override;
 
         VirtualFile& create_file() override;
         VirtualFileHandle& create_file_handle() override;

@@ -2,7 +2,6 @@
 
 #include <Std/Map.hpp>
 
-#include <Kernel/File.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel
@@ -13,9 +12,9 @@ namespace Kernel
     public:
         Process()
         {
-            auto& tty_file = FileSystem::lookup_file("/dev/tty");
+            auto& tty_dentry = FileSystem::lookup("/dev/tty");
 
-            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
+            i32 stdin_fileno = add_file_handle(tty_dentry.file().create_handle());
             VERIFY(stdin_fileno == 0);
 
             i32 stdout_fileno = add_file_handle(tty_file.create_handle());

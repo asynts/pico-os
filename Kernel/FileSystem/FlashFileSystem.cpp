@@ -18,6 +18,7 @@ namespace Kernel
     VirtualFile& FlashFileSystem::create_file() { return *new FlashFile; }
     VirtualFileHandle& FlashFileSystem::create_file_handle() { return *new FlashFileHandle; }
     VirtualDirectoryEntry& FlashFileSystem::create_directory_entry() { return *new FlashDirectoryEntry; }
+    VirtualDirectoryEntry& FlashFileSystem::root() { return *m_root; }
 
     FlashFileSystem::FlashFileSystem()
     {

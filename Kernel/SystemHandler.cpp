@@ -2,7 +2,6 @@
 #include <Kernel/Interface/syscalls.h>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
-#include <Kernel/File.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 

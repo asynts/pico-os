@@ -1,5 +1,6 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel
 {
@@ -8,9 +9,15 @@ namespace Kernel
     ConsoleDevice::ConsoleDevice()
         : Device(1, 0)
     {
-        auto& info = MemoryFileSystem::the().create_device(device_id());
+        auto& file = *new MemoryFile;
+        file.m_device = device_id();
+        file.m_mode = ModeFlags::DEVICE;
+        file.m_size = 0;
 
-        MemoryFileSystem::the().lookup_path("/dev")
-            .add_entry("tty", info, true);
+        auto& directory_entry = *new MemoryDirectoryEntry;
+        directory_entry.m_file = &file;
+
+        auto& parent_dentry = FileSystem::lookup("/dev");
+        parent_dentry.m_entries.append("tty", directory_entry);
     }
 }

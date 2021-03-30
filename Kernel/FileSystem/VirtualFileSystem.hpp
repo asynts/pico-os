@@ -14,6 +14,7 @@ namespace Kernel
 
     enum class ModeFlags {
         DIRECTORY,
+        DEVICE,
     };
 
     class VirtualFileSystem {
@@ -33,6 +34,12 @@ namespace Kernel
         u32 m_device;
 
         virtual VirtualFileSystem& filesystem() = 0;
+
+        VirtualFileHandle& create_file_handle()
+        {
+            auto& handle = filesystem().create_file_handle();
+            handle. // FUCK
+        }
     };
 
     class VirtualDirectoryEntry {
