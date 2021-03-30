@@ -3,7 +3,6 @@
 #include <Std/Map.hpp>
 
 #include <Kernel/File.hpp>
-#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel

@@ -18,9 +18,17 @@ namespace Kernel
         , public VirtualFileSystem
     {
     public:
+        VirtualDirectoryEntry& root() override { return *m_root; }
+
         VirtualFile& create_file() override;
         VirtualFileHandle& create_file_handle() override;
         VirtualDirectoryEntry& create_directory_entry() override;
+
+    private:
+        friend Singleton<MemoryFileSystem>;
+        MemoryFileSystem();
+
+        MemoryDirectoryEntry *m_root;
     };
 
     class MemoryFile final
@@ -35,10 +43,10 @@ namespace Kernel
     {
     public:
         VirtualFile& file() override { return *m_file; }
-        Map<String, VirtualDirectoryEntry*>& entries() { return m_entries; }
+
+        void load() override { /* nop */ }
 
         MemoryFile *m_file;
-        Map<String, VirtualDirectoryEntry*> m_entries;
     };
 
     class MemoryFileHandle final

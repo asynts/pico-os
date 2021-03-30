@@ -12,8 +12,14 @@ namespace Kernel
     class VirtualDirectoryEntry;
     class VirtualFileSystem;
 
+    enum class ModeFlags {
+        DIRECTORY,
+    };
+
     class VirtualFileSystem {
     public:
+        virtual VirtualDirectoryEntry& root() = 0;
+
         virtual VirtualFile& create_file() = 0;
         virtual VirtualFileHandle& create_file_handle() = 0;
         virtual VirtualDirectoryEntry& create_directory_entry() = 0;
@@ -22,7 +28,7 @@ namespace Kernel
     class VirtualFile {
     public:
         u32 m_ino;
-        u32 m_flags;
+        ModeFlags m_mode;
         u32 m_size;
         u32 m_device;
 
@@ -33,7 +39,19 @@ namespace Kernel
     public:
         virtual VirtualFile& file() = 0;
 
+        void ensure_loaded()
+        {
+            if (!m_loaded)
+                load();
+
+            m_loaded = true;
+        }
+
         Map<String, VirtualDirectoryEntry*> m_entries;
+        bool m_loaded = false;
+
+    protected:
+        virtual void load() = 0;
     };
 
     class VirtualFileHandle {

@@ -27,7 +27,7 @@ add_subdirectory(Userland)
 file(GLOB_RECURSE Kernel_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Kernel/*.S Std/*.cpp)
 
 add_executable(Kernel ${Kernel_SOURCES})
-target_link_libraries(Kernel pico_stdlib project_options LibEmbeddedFiles)
+target_link_libraries(Kernel pico_stdlib pico_printf project_options LibEmbeddedFiles)
 target_compile_definitions(Kernel PRIVATE KERNEL)
 pico_enable_stdio_uart(Kernel 1)
 pico_add_extra_outputs(Kernel)
