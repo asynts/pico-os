@@ -30,7 +30,7 @@ void load_and_execute_shell()
     // FIXME: Do this properly
     Kernel::Process::current();
 
-    dbgln("Switching to shell process");
+    dbgln("[load_and_execute_shell] Switching to shell process");
 
     asm volatile(
         "movs r0, #0;"

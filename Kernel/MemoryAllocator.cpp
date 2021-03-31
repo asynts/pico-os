@@ -5,6 +5,8 @@
 extern "C" u8 __end__[];
 extern "C" u8 __HeapLimit[];
 
+constexpr bool debug_MemoryAllocator = false;
+
 namespace Kernel
 {
     static usize round_to_word(usize size)
@@ -23,6 +25,9 @@ namespace Kernel
 
     void* MemoryAllocator::allocate(usize size)
     {
+        if (debug_MemoryAllocator)
+            printf("[MemoryAllocator::allocate] size=%zu", size);
+
         FreeListEntry *previous = nullptr;
         for (FreeListEntry *entry = m_freelist; entry; entry = entry->m_next)
         {
@@ -40,6 +45,8 @@ namespace Kernel
                 entry->m_next = nullptr;
                 entry->m_size = round_to_word(size);
 
+                if (debug_MemoryAllocator)
+                    printf(" pointer=%p\n", entry->m_data);
                 return entry->m_data;
             }
 
@@ -50,6 +57,9 @@ namespace Kernel
     }
     void MemoryAllocator::deallocate(void *pointer)
     {
+        if (debug_MemoryAllocator)
+            printf("[MemoryAllocator::deallocate] pointer=%p\n", pointer);
+
         if (pointer == nullptr)
             return;
 
@@ -85,6 +95,8 @@ namespace Kernel
                     previous->m_next = target_entry;
                 else
                     m_freelist = target_entry;
+
+                return;
             }
 
             previous = entry;
