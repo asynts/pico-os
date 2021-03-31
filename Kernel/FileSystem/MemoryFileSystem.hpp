@@ -21,7 +21,7 @@ namespace Kernel
         VirtualDirectoryEntry& root() override;
 
         VirtualFile& create_file() override;
-        VirtualFileHandle& create_file_handle() override;
+        VirtualFileHandle& create_file_handle(VirtualFile&) override;
         VirtualDirectoryEntry& create_directory_entry() override;
 
         u32 next_ino() { return m_next_ino++; }
@@ -44,6 +44,8 @@ namespace Kernel
         }
 
         VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
+
+        Vector<u8, 0x200> m_data;
     };
 
     class MemoryDirectoryEntry final
@@ -63,6 +65,21 @@ namespace Kernel
     public:
         VirtualFile& file() override { return *m_file; }
 
+        KernelResult<usize> read(Bytes bytes) override
+        {
+            usize nread = m_file->m_data.span().slice(m_offset).copy_trimmed_to(bytes);
+            m_offset += nread;
+
+            return nread;
+        }
+        KernelResult<usize> write(ReadonlyBytes bytes) override
+        {
+            m_file->m_data.extend(bytes);
+            m_offset += bytes.size();
+            return bytes.size();
+        }
+
         MemoryFile *m_file;
+        usize m_offset = 0;
     };
 }

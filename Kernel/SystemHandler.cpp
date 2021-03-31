@@ -41,9 +41,7 @@ namespace Kernel
                 dbgln("[syscall_handler] read(%, %, %)", fd, buffer, count);
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
-            auto nread =  handle.read({ buffer, count });
-
-            return nread;
+            return handle.read({ buffer, count }).must();
         }
 
         if (syscall == _SC_write) {
@@ -55,7 +53,7 @@ namespace Kernel
                 dbgln("[syscall_handler] write(%, %, %)", fd, buffer, count);
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
-            return handle.write({ buffer, count });
+            return handle.write({ buffer, count }).must();
         }
 
         if (syscall == _SC_open) {
@@ -68,10 +66,11 @@ namespace Kernel
             if (!path.is_absolute())
                 path = Process::current().m_working_directory / path;
 
-            auto& file = Kernel::FileSystem::lookup_file(path);
+            auto& dentry = Kernel::FileSystem::lookup(path);
+            auto& file = dentry.file();
 
             if ((flags & O_DIRECTORY)) {
-                if ((file.m_info.m_mode & S_IFMT) != S_IFDIR)
+                if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory)
                     return -ENOTDIR;
             }
 
@@ -90,16 +89,17 @@ namespace Kernel
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
 
-            statbuf->st_dev = handle.info().m_device;
-            statbuf->st_ino = handle.info().m_ino;
-            statbuf->st_mode = handle.info().m_mode;
-            statbuf->st_rdev = handle.info().m_devno;
-            statbuf->st_size = handle.info().m_size;
+            // FIXME: Reimplement device numbers
+            statbuf->st_dev = 0;
+
+            statbuf->st_ino = handle.file().m_ino;
+            statbuf->st_mode = (u32)handle.file().m_mode;
+            statbuf->st_rdev = handle.file().m_device;
+            statbuf->st_size = handle.file().m_size;
 
             // FIXME: Do this properly
-            assert(RAM_BLOCK_SIZE == FLASH_BLOCK_SIZE);
-            statbuf->st_blksize = RAM_BLOCK_SIZE;
-            statbuf->st_blocks = handle.info().m_size / RAM_BLOCK_SIZE;
+            statbuf->st_blksize = 1;
+            statbuf->st_blocks = handle.file().m_size;
 
             return 0;
         }

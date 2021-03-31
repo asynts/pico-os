@@ -16,9 +16,16 @@ extern "C" FlashFileInfo __flash_root;
 namespace Kernel
 {
     VirtualFile& FlashFileSystem::create_file() { return *new FlashFile; }
-    VirtualFileHandle& FlashFileSystem::create_file_handle() { return *new FlashFileHandle; }
     VirtualDirectoryEntry& FlashFileSystem::create_directory_entry() { return *new FlashDirectoryEntry; }
     VirtualDirectoryEntry& FlashFileSystem::root() { return *m_root; }
+
+    VirtualFileHandle& FlashFileSystem::create_file_handle(VirtualFile& file)
+    {
+        // FIXME: This is a bit ugly
+        auto& handle = *new FlashFileHandle;
+        handle.m_file = dynamic_cast<FlashFile*>(&file);
+        return handle;
+    }
 
     FlashFileSystem::FlashFileSystem()
     {

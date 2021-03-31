@@ -3,6 +3,8 @@
 #include <Std/Map.hpp>
 #include <Std/String.hpp>
 
+#include <Kernel/Result.hpp>
+
 namespace Kernel
 {
     using namespace Std;
@@ -12,9 +14,10 @@ namespace Kernel
     class VirtualDirectoryEntry;
     class VirtualFileSystem;
 
-    enum class ModeFlags {
-        DIRECTORY,
-        DEVICE,
+    enum class ModeFlags : u32 {
+        Format,
+        Directory,
+        Device,
     };
 
     class VirtualFileSystem {
@@ -22,7 +25,7 @@ namespace Kernel
         virtual VirtualDirectoryEntry& root() = 0;
 
         virtual VirtualFile& create_file() = 0;
-        virtual VirtualFileHandle& create_file_handle() = 0;
+        virtual VirtualFileHandle& create_file_handle(VirtualFile&) = 0;
         virtual VirtualDirectoryEntry& create_directory_entry() = 0;
     };
 
@@ -35,10 +38,9 @@ namespace Kernel
 
         virtual VirtualFileSystem& filesystem() = 0;
 
-        VirtualFileHandle& create_file_handle()
+        VirtualFileHandle& create_handle()
         {
-            auto& handle = filesystem().create_file_handle();
-            handle. // FUCK
+            return filesystem().create_file_handle(*this);
         }
     };
 
@@ -64,5 +66,8 @@ namespace Kernel
     class VirtualFileHandle {
     public:
         virtual VirtualFile& file() = 0;
+
+        virtual KernelResult<usize> read(Bytes) = 0;
+        virtual KernelResult<usize> write(ReadonlyBytes) = 0;
     };
 }

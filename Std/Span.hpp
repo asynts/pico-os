@@ -55,7 +55,12 @@ namespace Std {
             return count;
         }
 
-        Span slice(usize offset) const
+        Span<const T> slice(usize offset) const
+        {
+            VERIFY(offset <= size());
+            return { data() + offset, size() - offset };
+        }
+        Span<T> slice(usize offset)
         {
             VERIFY(offset <= size());
             return { data() + offset, size() - offset };

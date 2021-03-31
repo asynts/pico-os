@@ -18,6 +18,6 @@ namespace Kernel
         directory_entry.m_file = &file;
 
         auto& parent_dentry = FileSystem::lookup("/dev");
-        parent_dentry.m_entries.append("tty", directory_entry);
+        parent_dentry.m_entries.append("tty", &directory_entry);
     }
 }
