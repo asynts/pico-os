@@ -18,7 +18,7 @@ namespace Kernel
     {
         auto& root_file = *new MemoryFile;
         root_file.m_ino = 2;
-        root_file.m_mode = ModeFlags::DIRECTORY;
+        root_file.m_mode = ModeFlags::Directory;
         root_file.m_size = 0;
 
         auto& root_directory_entry = *new MemoryDirectoryEntry;

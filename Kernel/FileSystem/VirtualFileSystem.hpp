@@ -18,7 +18,13 @@ namespace Kernel
         Format,
         Directory,
         Device,
+        Regular,
     };
+
+    inline ModeFlags operator&(ModeFlags lhs, ModeFlags rhs)
+    {
+        return static_cast<ModeFlags>(static_cast<u32>(lhs) & static_cast<u32>(rhs));
+    }
 
     class VirtualFileSystem {
     public:
@@ -27,6 +33,8 @@ namespace Kernel
         virtual VirtualFile& create_file() = 0;
         virtual VirtualFileHandle& create_file_handle(VirtualFile&) = 0;
         virtual VirtualDirectoryEntry& create_directory_entry() = 0;
+
+        VirtualFile& create_regular();
     };
 
     class VirtualFile {

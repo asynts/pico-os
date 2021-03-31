@@ -20,11 +20,11 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     VERIFY(elf.header()->e_phnum == 3);
     VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
 
-    Elf32_Phdr& readonly_segment = elf.segments()[0];
+    auto& readonly_segment = elf.segments()[0];
     VERIFY(readonly_segment.p_type == PT_LOAD);
     VERIFY(readonly_segment.p_flags == PF_R | PF_X);
 
-    Elf32_Phdr& writable_segment = elf.segments()[1];
+    auto& writable_segment = elf.segments()[1];
     VERIFY(writable_segment.p_type == PT_LOAD);
     VERIFY(writable_segment.p_flags == PF_R | PF_W);
 
@@ -48,7 +48,7 @@ LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     executable.m_stack_base = 0;
     executable.m_bss_base = 0;
     for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
-        Elf32_Shdr& section = elf.sections()[section_index];
+        auto& section = elf.sections()[section_index];
 
         if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
             executable.m_stack_base = executable.m_writable_base + section.sh_addr;

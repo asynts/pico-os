@@ -41,10 +41,20 @@ namespace Kernel
         MemoryFile()
         {
             m_ino = MemoryFileSystem::the().next_ino();
+            m_size = 0;
         }
 
         VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
 
+        ReadonlyBytes span() const { return m_data.span(); }
+        Bytes span() { return m_data.span(); }
+
+        void append(ReadonlyBytes bytes)
+        {
+            m_data.extend(bytes);
+        }
+
+    private:
         Vector<u8, 0x200> m_data;
     };
 
@@ -67,14 +77,14 @@ namespace Kernel
 
         KernelResult<usize> read(Bytes bytes) override
         {
-            usize nread = m_file->m_data.span().slice(m_offset).copy_trimmed_to(bytes);
+            usize nread = m_file->span().slice(m_offset).copy_trimmed_to(bytes);
             m_offset += nread;
 
             return nread;
         }
         KernelResult<usize> write(ReadonlyBytes bytes) override
         {
-            m_file->m_data.extend(bytes);
+            m_file->append(bytes);
             m_offset += bytes.size();
             return bytes.size();
         }

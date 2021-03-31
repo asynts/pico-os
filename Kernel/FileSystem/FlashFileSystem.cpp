@@ -31,7 +31,7 @@ namespace Kernel
     {
         auto& root_file = *new FlashFile;
         root_file.m_ino = 2;
-        root_file.m_mode = ModeFlags::DIRECTORY;
+        root_file.m_mode = ModeFlags::Directory;
         root_file.m_size = 0;
         root_file.m_data = { __flash_root.m_data, __flash_root.m_size };
 

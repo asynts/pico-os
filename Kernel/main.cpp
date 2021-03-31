@@ -20,9 +20,10 @@ extern "C" {
 
 void load_and_execute_shell()
 {
-    auto& shell_dentry_info = Kernel::MemoryFileSystem::the().lookup_path("/bin/Shell.elf");
+    auto& shell_dentry = Kernel::FileSystem::lookup("/bin/Shell.elf");
+    auto& shell_file = dynamic_cast<Kernel::FlashFile&>(shell_dentry.file());
 
-    ElfWrapper elf { shell_dentry_info.m_info->m_direct_blocks[0] };
+    ElfWrapper elf { shell_file.m_data.data() };
     LoadedExecutable executable = load_executable_into_memory(elf);
 
     // FIXME: Do this properly
@@ -67,13 +68,14 @@ int main()
     Kernel::FlashFileSystem::the();
     Kernel::ConsoleDevice::the();
 
-    // FIXME: I got the abstractions wrong somehow
+    // FIXME: This is really ugly, not sure how to fix it
     dbgln("[main] Creating /example.txt");
-    auto& example_info = Kernel::MemoryFileSystem::the().create_regular();
-    auto& example_dentry = Kernel::MemoryFileSystem::the().root().add_entry("example.txt", example_info);
-    auto& example_file = Kernel::FileSystem::file_from_info(example_info);
+    auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
+    auto& example_dentry = dynamic_cast<Kernel::MemoryDirectoryEntry&>(Kernel::MemoryFileSystem::the().create_directory_entry());
+    example_dentry.m_file = dynamic_cast<Kernel::MemoryFile*>(&example_file);
     auto& example_handle = example_file.create_handle();
     example_handle.write({ (const u8*)"Hello, world!\n", 14 });
+    Kernel::FileSystem::lookup("/").m_entries.append("example.txt", &example_dentry);
 
     load_and_execute_shell();
 

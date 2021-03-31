@@ -9,9 +9,10 @@ namespace Kernel
     ConsoleDevice::ConsoleDevice()
         : Device(1, 0)
     {
+        // FIXME: Create a method for this
         auto& file = *new MemoryFile;
         file.m_device = device_id();
-        file.m_mode = ModeFlags::DEVICE;
+        file.m_mode = ModeFlags::Device;
         file.m_size = 0;
 
         auto& directory_entry = *new MemoryDirectoryEntry;

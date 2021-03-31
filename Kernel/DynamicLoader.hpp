@@ -3,27 +3,21 @@
 
 class ElfWrapper {
 public:
-    explicit ElfWrapper(u8 *base)
+    explicit ElfWrapper(const u8 *base)
         : m_base(base)
     {
     }
 
-    u8* base() { return m_base; }
+    const u8* base() { return m_base; }
     u32 base_as_u32() { return reinterpret_cast<u32>(m_base); }
 
     usize offset() { return m_offset; }
 
-    Elf32_Ehdr* header() { return reinterpret_cast<Elf32_Ehdr*>(m_base); }
-    Elf32_Phdr* segments() { return reinterpret_cast<Elf32_Phdr*>(m_base + header()->e_phoff); }
-    Elf32_Shdr* sections() { return reinterpret_cast<Elf32_Shdr*>(m_base + header()->e_shoff); }
+    const Elf32_Ehdr* header() { return reinterpret_cast<const Elf32_Ehdr*>(m_base); }
+    const Elf32_Phdr* segments() { return reinterpret_cast<const Elf32_Phdr*>(m_base + header()->e_phoff); }
+    const Elf32_Shdr* sections() { return reinterpret_cast<const Elf32_Shdr*>(m_base + header()->e_shoff); }
 
-    char* section_name_base() { return reinterpret_cast<char*>(m_base + sections()[header()->e_shstrndx].sh_offset); }
-
-    void append(void *data, usize size)
-    {
-        __builtin_memcpy(m_base + m_offset, data, size);
-        m_offset += size;
-    }
+    const char* section_name_base() { return reinterpret_cast<const char*>(m_base + sections()[header()->e_shstrndx].sh_offset); }
 
     void consume(usize size)
     {
@@ -31,7 +25,7 @@ public:
     }
 
 private:
-    u8 *m_base;
+    const u8 *m_base;
     usize m_offset = 0;
 };
 
