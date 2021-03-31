@@ -1,4 +1,5 @@
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/FileSystem.hpp>
 
 // FIXME: Remove redundant fields
 // FIXME: Move into interface
@@ -22,14 +23,6 @@ namespace Kernel
     VirtualFile& FlashFileSystem::create_file() { return *new FlashFile; }
     VirtualDirectoryEntry& FlashFileSystem::create_directory_entry() { return *new FlashDirectoryEntry; }
     VirtualDirectoryEntry& FlashFileSystem::root() { return *m_root; }
-
-    VirtualFileHandle& FlashFileSystem::create_file_handle(VirtualFile& file)
-    {
-        // FIXME: This is a bit ugly
-        auto& handle = *new FlashFileHandle;
-        handle.m_file = dynamic_cast<FlashFile*>(&file);
-        return handle;
-    }
 
     FlashFileSystem::FlashFileSystem()
     {
@@ -65,5 +58,12 @@ namespace Kernel
 
             m_entries.append(entry->m_name, &dentry);
         }
+    }
+
+    VirtualFileHandle& FlashFile::create_handle()
+    {
+        auto& handle = *new FlashFileHandle;
+        handle.m_file = this;
+        return handle;
     }
 }

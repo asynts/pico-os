@@ -21,7 +21,6 @@ namespace Kernel
         VirtualDirectoryEntry& root() override;
 
         VirtualFile& create_file() override;
-        VirtualFileHandle& create_file_handle(VirtualFile&) override;
         VirtualDirectoryEntry& create_directory_entry() override;
 
         u32 next_ino() { return m_next_ino++; }
@@ -49,6 +48,8 @@ namespace Kernel
         ReadonlyBytes span() const { return m_data.span(); }
         Bytes span() { return m_data.span(); }
 
+        VirtualFileHandle& create_handle() override;
+
         void append(ReadonlyBytes bytes)
         {
             m_data.extend(bytes);
@@ -66,7 +67,7 @@ namespace Kernel
 
         void load() override { /* nop */ }
 
-        MemoryFile *m_file;
+        VirtualFile *m_file;
     };
 
     class MemoryFileHandle final

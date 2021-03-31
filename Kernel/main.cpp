@@ -8,6 +8,7 @@
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/DeviceFileSystem.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/MemoryAllocator.hpp>
 
@@ -66,7 +67,7 @@ int main()
     Kernel::MemoryAllocator::the();
     Kernel::MemoryFileSystem::the();
     Kernel::FlashFileSystem::the();
-    Kernel::ConsoleDevice::the();
+    Kernel::DeviceFileSystem::the();
 
     // FIXME: This is really ugly, not sure how to fix it
     dbgln("[main] Creating /example.txt");

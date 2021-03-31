@@ -22,7 +22,6 @@ namespace Kernel
         VirtualDirectoryEntry& root() override;
 
         VirtualFile& create_file() override;
-        VirtualFileHandle& create_file_handle(VirtualFile&) override;
         VirtualDirectoryEntry& create_directory_entry() override;
 
     private:
@@ -37,6 +36,8 @@ namespace Kernel
     {
     public:
         VirtualFileSystem& filesystem() override { return FlashFileSystem::the(); }
+
+        VirtualFileHandle& create_handle() override;
 
         ReadonlyBytes m_data;
     };

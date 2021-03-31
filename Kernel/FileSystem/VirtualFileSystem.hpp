@@ -31,7 +31,6 @@ namespace Kernel
         virtual VirtualDirectoryEntry& root() = 0;
 
         virtual VirtualFile& create_file() = 0;
-        virtual VirtualFileHandle& create_file_handle(VirtualFile&) = 0;
         virtual VirtualDirectoryEntry& create_directory_entry() = 0;
 
         VirtualFile& create_regular();
@@ -45,11 +44,7 @@ namespace Kernel
         u32 m_device;
 
         virtual VirtualFileSystem& filesystem() = 0;
-
-        VirtualFileHandle& create_handle()
-        {
-            return filesystem().create_file_handle(*this);
-        }
+        virtual VirtualFileHandle& create_handle() = 0;
     };
 
     class VirtualDirectoryEntry {

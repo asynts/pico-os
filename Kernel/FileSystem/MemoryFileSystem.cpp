@@ -1,19 +1,12 @@
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel
 {
     VirtualFile& MemoryFileSystem::create_file() { return *new MemoryFile; }
     VirtualDirectoryEntry& MemoryFileSystem::create_directory_entry() { return *new MemoryDirectoryEntry; }
     VirtualDirectoryEntry& MemoryFileSystem::root() { return *m_root; }
-
-    VirtualFileHandle& MemoryFileSystem::create_file_handle(VirtualFile& file)
-    {
-        // FIXME: This is a bit ugly
-        auto& handle = *new MemoryFileHandle;
-        handle.m_file = dynamic_cast<MemoryFile*>(&file);
-        return handle;
-    }
 
     MemoryFileSystem::MemoryFileSystem()
     {
@@ -41,5 +34,12 @@ namespace Kernel
         root_directory_entry.m_entries.append("bin", &bin_dentry);
 
         m_next_ino = 3;
+    }
+
+    VirtualFileHandle& MemoryFile::create_handle()
+    {
+        auto& handle = *new MemoryFileHandle;
+        handle.m_file = this;
+        return handle;
     }
 }

@@ -17,4 +17,16 @@ namespace Kernel::FileSystem
 
         return *directory_entry;
     }
+
+    static Map<u32, VirtualFile*> devices;
+
+    void add_device(u32 device, VirtualFile& file)
+    {
+        devices.append(device, &file);
+    }
+
+    VirtualFileHandle& create_handle_for_device(u32 device)
+    {
+        return devices.lookup(device).must()->create_handle();
+    }
 }
