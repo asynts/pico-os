@@ -54,6 +54,11 @@ namespace Kernel
 
     class VirtualDirectoryEntry {
     public:
+        VirtualDirectoryEntry()
+        {
+            m_entries.append(".", this);
+        }
+
         virtual VirtualFile& file() = 0;
 
         void ensure_loaded()
@@ -62,6 +67,12 @@ namespace Kernel
                 load();
 
             m_loaded = true;
+        }
+
+        void set_parent(VirtualDirectoryEntry& parent)
+        {
+            VERIFY(!m_entries.lookup("..").is_valid());
+            m_entries.append("..", &parent);
         }
 
         Map<String, VirtualDirectoryEntry*> m_entries;

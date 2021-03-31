@@ -47,10 +47,7 @@ namespace Kernel
     public:
         VirtualFile& file() override { return *m_file; }
 
-        void load() override
-        {
-            NOT_IMPLEMENTED();
-        }
+        void load() override;
 
         FlashFile *m_file;
         bool m_loaded = false;

@@ -10,6 +10,10 @@ struct FlashFileInfo {
     u32 m_devno;
     u8 *m_data;
 };
+struct FlashDirectoryEntryInfo {
+    char m_name[252];
+    FlashFileInfo *m_info;
+};
 
 extern "C" FlashFileInfo __flash_root;
 
@@ -39,5 +43,27 @@ namespace Kernel
         root_directory_entry.m_file = &root_file;
 
         m_root = &root_directory_entry;
+    }
+
+    void FlashDirectoryEntry::load()
+    {
+        auto *begin = reinterpret_cast<const FlashDirectoryEntryInfo*>(m_file->m_data.data());
+        auto *end = reinterpret_cast<const FlashDirectoryEntryInfo*>(m_file->m_data.data() + m_file->m_data.size());
+
+        for (auto *entry = begin; entry < end; ++entry)
+        {
+            // FIXME: Deal with hardlinks
+            auto& file = *new FlashFile;
+            file.m_data = { entry->m_info->m_data, entry->m_info->m_size };
+            file.m_device = entry->m_info->m_devno;
+            file.m_ino = entry->m_info->m_ino;
+            file.m_mode = static_cast<ModeFlags>(entry->m_info->m_mode);
+            file.m_size = entry->m_info->m_size;
+
+            auto& dentry = *new FlashDirectoryEntry;
+            dentry.m_file = &file;
+
+            m_entries.append(entry->m_name, &dentry);
+        }
     }
 }

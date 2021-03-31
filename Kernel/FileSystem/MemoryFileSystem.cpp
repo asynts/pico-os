@@ -1,4 +1,5 @@
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
 
 namespace Kernel
 {
@@ -28,6 +29,16 @@ namespace Kernel
         root_directory_entry.m_entries.append("..", &root_directory_entry);
 
         m_root = &root_directory_entry;
+
+        auto& dev_file = *new MemoryFile;
+        dev_file.m_device = 0;
+        dev_file.m_mode = ModeFlags::Directory;
+        auto& dev_dentry = *new MemoryDirectoryEntry;
+        dev_dentry.m_file = &dev_file;
+        root_directory_entry.m_entries.append("dev", &dev_dentry);
+
+        auto& bin_dentry = FlashFileSystem::the().root();
+        root_directory_entry.m_entries.append("bin", &bin_dentry);
 
         m_next_ino = 3;
     }
