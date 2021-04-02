@@ -159,6 +159,10 @@ namespace Std {
     struct Formatter<bool> {
         static void format(StringBuilder&, bool);
     };
+    template<>
+    struct Formatter<char> {
+        static void format(StringBuilder&, char);
+    };
 
     template<typename T>
     struct Formatter<Span<T>> {

@@ -56,6 +56,10 @@ namespace Std {
         else
             builder.append("false");
     }
+    void Formatter<char>::format(StringBuilder& builder, char value)
+    {
+        builder.append(value);
+    }
 
     void Formatter<Path>::format(StringBuilder& builder, const Path& value)
     {
