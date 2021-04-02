@@ -71,7 +71,7 @@ namespace Std {
 
         operator Span<const T>() const { return span(); }
 
-        Span<const T> span() const { return *this; }
+        Span<const T> span() const { return { data(), size() }; }
         Span<T> span() { return *this; }
 
         SpanIterator<const T> iter() const;

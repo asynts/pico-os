@@ -9,7 +9,8 @@
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
 
-namespace Std {
+namespace Std
+{
     template<typename T, usize InlineSize = 0>
     class Vector {
     public:
@@ -25,10 +26,10 @@ namespace Std {
             for (usize index = 0; index < m_size; ++index)
                 data()[index].~T();
 
-            operator delete(m_data);
+            operator delete[](m_data);
         }
 
-        template<typename T_>
+        template<typename T_ = T>
         void append(T_&& value)
         {
             ensure_capacity(m_size + 1);

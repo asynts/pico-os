@@ -1,5 +1,11 @@
 #pragma once
 
+// Otherwise IntelliSense will be incorrect.
+#ifndef TEST
+# warning "TEST not defined"
+# define TEST
+#endif
+
 #include <iostream>
 #include <functional>
 #include <vector>
