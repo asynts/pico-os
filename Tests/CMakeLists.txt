@@ -16,11 +16,16 @@ target_link_libraries(LibStd project_options)
 
 file(GLOB Tests_SOURCES CONFIGURE_DEPENDS *.cpp)
 
-foreach(source ${Tests_SOURCES})
+add_library(LibTests ${Tests_SOURCES})
+target_link_libraries(LibTests LibStd project_options)
+
+file(GLOB Std_TESTS CONFIGURE_DEPENDS Std/*.cpp)
+
+foreach(source ${Std_TESTS})
     get_filename_component(name ${source} NAME_WE)
 
     add_executable(${name} ${source})
-    target_link_libraries(${name} LibStd project_options)
+    target_link_libraries(${name} LibTests LibStd project_options)
 
     add_test(NAME ${name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${name})
 endforeach()

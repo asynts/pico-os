@@ -30,7 +30,12 @@ namespace Std {
             else
                 return default_;
         }
-        T& must()
+        T&& must() &&
+        {
+            VERIFY(is_valid());
+            return move(value());
+        }
+        T& must() &
         {
             VERIFY(is_valid());
             return value();

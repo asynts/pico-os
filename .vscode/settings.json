@@ -9,4 +9,5 @@
     "editor.snippetSuggestions": "none",
     "C_Cpp.autoAddFileAssociations": false,
     "editor.minimap.enabled": false,
+    "C_Cpp.errorSquiggles": "Disabled",
 }

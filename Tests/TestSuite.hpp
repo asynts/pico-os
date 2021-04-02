@@ -44,7 +44,7 @@ namespace Tests
         return tests;
     }
 
-    void run()
+    inline void run()
     {
         for (auto *test : tests())
         {
@@ -80,6 +80,61 @@ namespace Tests
     {
         return dump_span(std::span { span.data(), span.size() });
     }
+
+    struct Tracker
+    {
+        static constexpr bool debug = false;
+
+        static size_t m_create_count;
+        static size_t m_move_count;
+        static size_t m_copy_count;
+        static size_t m_destroy_count;
+
+        static void clear()
+        {
+            m_create_count = 0;
+            m_move_count = 0;
+            m_copy_count = 0;
+            m_destroy_count = 0;
+        }
+
+        static void assert(std::optional<size_t> create_count, std::optional<size_t> move_count, std::optional<size_t> copy_count, std::optional<size_t> destory_count)
+        {
+            if (create_count)
+                ASSERT(m_create_count == *create_count);
+            if (move_count)
+                ASSERT(m_move_count == *move_count);
+            if (copy_count)
+                ASSERT(m_copy_count == *copy_count);
+            if (destory_count)
+                ASSERT(m_destroy_count == *destory_count);
+        }
+
+        Tracker()
+        {
+            m_create_count++;
+            if (debug)
+                std::cout << "Tracker()\n";
+        }
+        Tracker(const Tracker&)
+        {
+            m_copy_count++;
+            if (debug)
+                std::cout << "Tracker(const Tracker&)\n";
+        }
+        Tracker(Tracker&&)
+        {
+            m_move_count++;
+            if (debug)
+                std::cout << "Tracker(Tracker&&)\n";
+        }
+        ~Tracker()
+        {
+            m_destroy_count++;
+            if (debug)
+                std::cout << "~Tracker()\n";
+        }
+    };
 }
 
 #define TEST_CASE(name) \

@@ -61,7 +61,7 @@ namespace Std
                 m_data[i].~T();
             }
 
-            operator delete(m_data);
+            operator delete[](m_data);
 
             m_data = new_data;
             m_capacity = new_capacity;
