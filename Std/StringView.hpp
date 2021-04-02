@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef TEST
+# include <stdio.h>
+#else
+# include <pico/printf.h>
+#endif
+
 #include <Std/Span.hpp>
 #include <Std/Optional.hpp>
 
@@ -53,6 +59,12 @@ public:
 
     void strcpy_to(Span<char> other) const
     {
+        printf("[StringView::strcpy_to] this='%*s' size=%zu other.data=%p other.size=%zu\n",
+            (int)size(), data(),
+            size(),
+            (void*)other.data(),
+            other.size());
+
         VERIFY(other.size() >= size() + 1);
 
         __builtin_memcpy(other.data(), data(), size());

@@ -9,8 +9,13 @@ using i16 = signed short;
 using i32 = signed int;
 using i64 = signed long long;
 
+#ifdef TEST
+using usize = long unsigned int;
+using isize = i64;
+#else
 using usize = u32;
 using isize = i32;
+#endif
 
 static_assert(sizeof(u8) == 1);
 static_assert(sizeof(u16) == 2);
@@ -21,21 +26,21 @@ static_assert(sizeof(i16) == 2);
 static_assert(sizeof(i32) == 4);
 static_assert(sizeof(i64) == 8);
 
+#ifndef TEST
 constexpr void* operator new(usize count, void* ptr)
 {
     return ptr;
 }
-
 constexpr void* operator new[](usize count, void* ptr)
 {
     return ptr;
 }
-
 // Defined by the SDK.
 void* operator new(usize);
-void* operator new(usize);
+void* operator new[](usize);
 void operator delete(void*);
 void operator delete[](void*);
+#endif
 
 template<typename T>
 struct RemoveReference {

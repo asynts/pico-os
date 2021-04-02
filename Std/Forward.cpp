@@ -2,7 +2,13 @@
 #include <Std/Format.hpp>
 
 #include <stdlib.h>
-#include <pico/printf.h>
+
+#ifdef TEST
+# include <stdio.h>
+# include <stdarg.h>
+#else
+# include <pico/printf.h>
+#endif
 
 void __crash(const char *format, ...)
 {

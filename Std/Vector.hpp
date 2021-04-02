@@ -1,9 +1,13 @@
 #pragma once
 
+#ifdef TEST
+# include <stdio.h>
+#else
+# include <pico/printf.h>
+#endif
+
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
-
-#include <pico/printf.h>
 
 namespace Std {
     template<typename T, usize InlineSize = 0>

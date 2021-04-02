@@ -140,4 +140,15 @@ namespace Std {
 
     using Bytes = Span<u8>;
     using ReadonlyBytes = Span<const u8>;
+
+    template<typename T>
+    ReadonlyBytes bytes_from(const T& value)
+    {
+        return ReadonlyBytes { reinterpret_cast<const u8*>(&value), sizeof(value) };
+    }
+    template<typename T>
+    Bytes bytes_from(T& value)
+    {
+        return Bytes { reinterpret_cast<u8*>(&value), sizeof(value) };
+    }
 }

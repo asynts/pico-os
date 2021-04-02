@@ -6,6 +6,7 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 find_package(Tools MODULE)
+find_package(Tests MODULE)
 
 # FIXME: The SDK doesn't seem to expose this to CMake, ugh...
 add_compile_definitions(PICO_HEAP_SIZE=0x10000)

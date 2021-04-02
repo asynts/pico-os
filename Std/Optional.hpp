@@ -2,6 +2,10 @@
 
 #include <Std/Forward.hpp>
 
+#ifdef TEST
+# include <new>
+#endif
+
 namespace Std {
     template<typename T>
     class Optional {

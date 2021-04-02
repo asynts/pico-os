@@ -76,6 +76,8 @@ int main(int argc, char **argv)
             assert(filename != NULL);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
 
+            printf("About to call open\n");
+
             int fd = open(filename, O_RDONLY);
 
             char buffer[0x1000];
