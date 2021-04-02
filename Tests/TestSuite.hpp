@@ -3,6 +3,9 @@
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <span>
+
+#include <Std/Span.hpp>
 
 namespace Tests
 {
@@ -44,6 +47,32 @@ namespace Tests
 
             test->m_func();
         }
+    }
+
+    template<typename T, usize Size>
+    void dump_span(std::span<T, Size> span)
+    {
+        std::cout << "{ ";
+
+        auto prefix = "";
+        for (T& value : span) {
+            std::cout << prefix;
+
+            if (std::is_same_v<std::remove_const_t<T>, char>)
+                std::cout << "'" << value << "'";
+            else
+                std::cout << value;
+
+            prefix = ", ";
+        }
+
+        std::cout << " }\n";
+    }
+
+    template<typename T>
+    void dump_span(Std::Span<T> span)
+    {
+        return dump_span(std::span { span.data(), span.size() });
     }
 }
 
