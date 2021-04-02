@@ -21,4 +21,6 @@ foreach(source ${Tests_SOURCES})
 
     add_executable(${name} ${source})
     target_link_libraries(${name} LibStd project_options)
+
+    add_test(NAME ${name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${name})
 endforeach()
