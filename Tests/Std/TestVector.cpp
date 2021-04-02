@@ -65,4 +65,34 @@ TEST_CASE(vector_inline_no_create)
     Tests::Tracker::assert(0, {}, {}, {});
 }
 
+TEST_CASE(vector_copy)
+{
+    Std::Vector<int> vec1;
+    vec1.append(1);
+
+    Std::Vector<int> vec2 { vec1 };
+    vec2.append(2);
+    vec2.append(3);
+
+    ASSERT(vec1.size() == 1);
+    ASSERT(vec2.size() == 3);
+
+    vec1.append(1);
+
+    ASSERT(vec1.size() == 2);
+    ASSERT(vec2.size() == 3);
+}
+
+TEST_CASE(vector_move)
+{
+    Std::Vector<long> vec1;
+    vec1.append(1);
+
+    Std::Vector<long> vec2 { std::move(vec1) };
+    vec2.append(2);
+
+    ASSERT(vec1.size() == 0);
+    ASSERT(vec2.size() == 2);
+}
+
 TEST_MAIN();

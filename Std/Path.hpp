@@ -58,6 +58,8 @@ namespace Std
 
         Path operator/(const Path& rhs) const
         {
+            ASSERT(!rhs.is_absolute());
+
             Path path = *this;
             path.m_components.extend(rhs.m_components.span());
             return path;

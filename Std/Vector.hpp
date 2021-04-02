@@ -16,10 +16,7 @@ namespace Std
     public:
         Vector()
         {
-            m_use_inline_data = true;
-            m_size = 0;
-            m_capacity = InlineSize;
-            m_data = nullptr;
+            initialize();
         }
         ~Vector()
         {
@@ -27,6 +24,26 @@ namespace Std
                 data()[index].~T();
 
             operator delete[](m_data);
+        }
+        Vector(const Vector<T>& other)
+        {
+            initialize();
+            extend(other.span());
+        }
+        Vector(Vector<T>&& other)
+        {
+            if (other.m_use_inline_data) {
+                initialize();
+                extend(other.span());
+                other.initialize();
+            } else {
+                m_use_inline_data = false;
+                m_size = other.m_size;
+                m_capacity = other.m_capacity;
+                m_data = other.m_data;
+
+                other.initialize();
+            }
         }
 
         template<typename T_ = T>
@@ -93,6 +110,14 @@ namespace Std
         T& operator[](usize index) { return data()[index]; }
 
     private:
+        void initialize()
+        {
+            m_use_inline_data = true;
+            m_size = 0;
+            m_capacity = InlineSize;
+            m_data = nullptr;
+        }
+
         bool m_use_inline_data;
         usize m_size;
         usize m_capacity;
