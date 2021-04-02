@@ -2,7 +2,8 @@
 
 #include <Std/StringView.hpp>
 
-namespace Std {
+namespace Std
+{
     class String {
     public:
         String()
@@ -34,7 +35,7 @@ namespace Std {
         }
         ~String()
         {
-            delete m_buffer;
+            delete[] m_buffer;
         }
 
         const char* data() const { return m_buffer; }
