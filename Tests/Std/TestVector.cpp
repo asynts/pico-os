@@ -95,4 +95,25 @@ TEST_CASE(vector_move)
     ASSERT(vec2.size() == 2);
 }
 
+TEST_CASE(vector_clear)
+{
+    Std::Vector<Tests::Tracker> vec;
+
+    vec.append({});
+    vec.append({});
+    vec.append({});
+
+    ASSERT(vec.size() == 3);
+    usize capacity = vec.capacity();
+
+    Tests::Tracker::clear();
+
+    vec.clear();
+
+    Tests::Tracker::assert(0, 0, 0, 3);
+
+    ASSERT(vec.size() == 0);
+    ASSERT(vec.capacity() == capacity);
+}
+
 TEST_MAIN();

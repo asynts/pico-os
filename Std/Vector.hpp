@@ -16,34 +16,27 @@ namespace Std
     public:
         Vector()
         {
-            initialize();
+            m_use_inline_data = true;
+            m_size = 0;
+            m_capacity = InlineSize;
+            m_data = nullptr;
         }
         ~Vector()
         {
-            for (usize index = 0; index < m_size; ++index)
-                data()[index].~T();
+            clear();
 
             operator delete[](m_data);
+            m_data = nullptr;
         }
-        Vector(const Vector<T>& other)
+        Vector(const Vector& other)
+            : Vector()
         {
-            initialize();
-            extend(other.span());
+            *this = other;
         }
-        Vector(Vector<T>&& other)
+        Vector(Vector&& other)
+            : Vector()
         {
-            if (other.m_use_inline_data) {
-                initialize();
-                extend(other.span());
-                other.initialize();
-            } else {
-                m_use_inline_data = false;
-                m_size = other.m_size;
-                m_capacity = other.m_capacity;
-                m_data = other.m_data;
-
-                other.initialize();
-            }
+            *this = move(other);
         }
 
         template<typename T_ = T>
@@ -99,6 +92,7 @@ namespace Std
         }
 
         usize size() const { return m_size; }
+        usize capacity() const { return m_capacity; }
 
         Span<T> span() { return { data(), size() }; }
         Span<const T> span() const { return { data(), size() }; }
@@ -109,15 +103,46 @@ namespace Std
         const T& operator[](usize index) const { return data()[index]; }
         T& operator[](usize index) { return data()[index]; }
 
-    private:
-        void initialize()
+        void clear()
         {
-            m_use_inline_data = true;
+            for (usize index = 0; index < m_size; ++index)
+                data()[index].~T();
+
             m_size = 0;
-            m_capacity = InlineSize;
-            m_data = nullptr;
         }
 
+        Vector& operator=(const Vector& other)
+        {
+            clear();
+            extend(other.span());
+            return *this;
+        }
+        Vector& operator=(Vector&& other)
+        {
+            clear();
+
+            if (other.m_use_inline_data) {
+                extend(other.span());
+                other.clear();
+            } else {
+                if (m_data)
+                    operator delete[](m_data);
+
+                m_use_inline_data = false;
+                m_capacity = other.m_capacity;
+                m_size = other.m_size;
+                m_data = other.m_data;
+
+                other.m_use_inline_data = true;
+                other.m_capacity = InlineSize;
+                other.m_size = 0;
+                other.m_data = nullptr;
+            }
+
+            return *this;
+        }
+
+    private:
         bool m_use_inline_data;
         usize m_size;
         usize m_capacity;

@@ -28,6 +28,11 @@ namespace Std
             : Path(StringView { path })
         {
         }
+        Path(const Path& path)
+            : m_is_absolute(path.m_is_absolute)
+            , m_components(path.m_components)
+        {
+        }
 
         bool is_absolute() const { return m_is_absolute; }
         auto components() const { return m_components.iter(); }
