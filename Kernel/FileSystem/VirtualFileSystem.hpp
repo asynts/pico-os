@@ -15,10 +15,10 @@ namespace Kernel
     class VirtualFileSystem;
 
     enum class ModeFlags : u32 {
-        Format,
-        Directory,
-        Device,
-        Regular,
+        Format    = 0b1111,
+        Directory = 0b0001,
+        Device    = 0b0010,
+        Regular   = 0b0011,
     };
 
     inline ModeFlags operator&(ModeFlags lhs, ModeFlags rhs)

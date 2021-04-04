@@ -70,8 +70,10 @@ namespace Kernel
             auto& file = dentry.file();
 
             if ((flags & O_DIRECTORY)) {
-                if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory)
+                if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory) {
+                    dbgln("[syscall_handler] Not a directory, ENOTDIR");
                     return -ENOTDIR;
+                }
             }
 
             auto& handle = file.create_handle();
