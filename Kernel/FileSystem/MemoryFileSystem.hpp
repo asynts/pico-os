@@ -3,6 +3,7 @@
 #include <Std/Singleton.hpp>
 
 #include <Kernel/FileSystem/VirtualFileSystem.hpp>
+#include <Kernel/Interface/stat.h>
 
 namespace Kernel
 {
@@ -33,9 +34,7 @@ namespace Kernel
         u32 m_next_ino;
     };
 
-    class MemoryFile final
-        : public VirtualFile
-    {
+    class MemoryFile final : public VirtualFile {
     public:
         MemoryFile()
         {
@@ -56,23 +55,10 @@ namespace Kernel
         }
 
     private:
-        Vector<u8, 0x200> m_data;
+        Vector<u8> m_data;
     };
 
-    class MemoryDirectoryEntry final
-        : public VirtualDirectoryEntry
-    {
-    public:
-        VirtualFile& file() override { return *m_file; }
-
-        void load() override { /* nop */ }
-
-        VirtualFile *m_file;
-    };
-
-    class MemoryFileHandle final
-        : public VirtualFileHandle
-    {
+    class MemoryFileHandle final : public VirtualFileHandle {
     public:
         VirtualFile& file() override { return *m_file; }
 
@@ -91,6 +77,52 @@ namespace Kernel
         }
 
         MemoryFile *m_file;
+        usize m_offset = 0;
+    };
+
+    // FIXME: Hook this up
+    class MemoryDirectory final : public VirtualFile {
+    public:
+        MemoryDirectory()
+        {
+            m_ino = MemoryFileSystem::the().next_ino();
+            m_size = 0;
+            m_mode = ModeFlags::Directory;
+
+            m_entries.append(".", this);
+            m_entries.append("..", this);
+        }
+
+        VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
+
+        VirtualFileHandle& create_handle() override;
+
+        Map<String, VirtualFile*> m_entries;
+    };
+
+    class MemoryDirectoryHandle final : public VirtualFileHandle {
+    public:
+        VirtualFile& file() override { return *m_file; }
+
+        KernelResult<usize> read(Bytes bytes) override
+        {
+            UserlandDirectoryInfo info;
+
+            // FIXME: Implement iterators for Std::Map, maybe do it properly now?
+            auto iter = m_file->m_entries.iter();
+            for (usize index = 0; index < m_offset; ++index)
+                ++iter;
+            iter->key.strcpy_to({ info.d_name, sizeof(info.d_name) });
+
+            ++m_offset;
+            return bytes_from(info).copy_to(bytes);
+        }
+        KernelResult<usize> write(ReadonlyBytes bytes) override
+        {
+            VERIFY_NOT_REACHED();
+        }
+
+        MemoryDirectory *m_file;
         usize m_offset = 0;
     };
 }

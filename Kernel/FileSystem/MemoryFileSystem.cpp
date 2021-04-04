@@ -40,6 +40,8 @@ namespace Kernel
     {
         auto& handle = *new MemoryFileHandle;
         handle.m_file = this;
+
+        dbgln("[MemoryFile::create_handle] Created handle % for file % (ino=%)", &handle, this, m_ino);
         return handle;
     }
 }
