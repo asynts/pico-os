@@ -9,8 +9,6 @@ namespace Std
 
     // FIXME: Add iterator capabilities
 
-    // FIXME: Add remove operation
-
     template<typename T>
     class SortedSet {
     public:
@@ -26,8 +24,8 @@ namespace Std
 
         T* search(const T& value)
         {
-            Node *parent_node = nullptr;
-            Node *node = search_impl(value, &parent_node, m_root);
+            Node *parent = nullptr;
+            Node *node = search_impl(value, &parent, m_root);
 
             if (node != nullptr)
                 return &node->m_value;
@@ -43,51 +41,48 @@ namespace Std
                 builder.append("nil");
         }
 
-        template<typename T_ = T>
-        T& insert(T_&& value)
+        T& insert(const T& value)
         {
-            Node *parent_node = nullptr;
-            Node *node = search_impl(value, &parent_node, m_root);
+            return insert_impl(value);
+        }
+        T& insert(T&& value)
+        {
+            return insert_impl(move(value));
+        }
 
-            if (node) {
-                node->m_value = forward<T_>(value);
+        const T* min() const
+        {
+            return const_cast<SortedSet*>(this)->min();
+        }
+        T* min()
+        {
+            Node *parent = nullptr;
+            Node *node = min_impl(m_root, &parent);
 
-                return node->m_value;
-            } else if (parent_node == nullptr) {
-                node = m_root = new Node;
-                ++m_size;
+            if (node)
+                return &node->m_value;
+            else
+                return nullptr;
+        }
 
-                node->m_value = forward<T_>(value);
-                node->m_parent = nullptr;
-                node->m_left = nullptr;
-                node->m_right = nullptr;
+        void remove(const T& value)
+        {
+            Node *parent = nullptr;
+            Node *node = search_impl(value, &parent, m_root);
 
-                return node->m_value;
-            } else if (value < parent_node->m_value) {
-                ASSERT(parent_node->m_left == nullptr);
-                node = parent_node->m_left = new Node;
-                ++m_size;
+            if (node == nullptr)
+                return;
 
-                node->m_value = forward<T_>(value);
-                node->m_parent = parent_node;
-                node->m_left = nullptr;
-                node->m_right = nullptr;
+            if (node->m_left == nullptr || node->m_right == nullptr)
+                return remove_impl(node, parent);
 
-                return node->m_value;
-            } else {
-                ASSERT(value > parent_node->m_value);
+            Node *min_in_right_parent = node;
+            Node *min_in_right = min_impl(node->m_right, &min_in_right_parent);
+            ASSERT(min_in_right);
 
-                ASSERT(parent_node->m_right == nullptr);
-                node = parent_node->m_right = new Node;
-                ++m_size;
+            node->m_value = move(min_in_right->m_value);
 
-                node->m_value = forward<T_>(value);
-                node->m_parent = parent_node;
-                node->m_left = nullptr;
-                node->m_right = nullptr;
-
-                return node->m_value;
-            }
+            remove_impl(min_in_right, min_in_right_parent);
         }
 
         usize size() const { return m_size; }
@@ -119,26 +114,108 @@ namespace Std
                 builder.append(')');
             }
 
+            void replace_child(Node *old, Node *new_)
+            {
+                if (m_left == old)
+                    m_left = new_;
+                else if (m_right == old)
+                    m_right = new_;
+                else
+                    ASSERT_NOT_REACHED();
+            }
+
             T m_value;
             Node *m_parent;
             Node *m_left;
             Node *m_right;
         };
 
-        Node* search_impl(const T& value, Node **parent_node, Node *subtree)
+        template<typename T_>
+        T& insert_impl(T_&& value)
+        {
+            Node *parent = nullptr;
+            Node *node = search_impl(value, &parent, m_root);
+
+            if (node) {
+                node->m_value = forward<T_>(value);
+
+                return node->m_value;
+            } else if (parent == nullptr) {
+                node = m_root = new Node;
+                ++m_size;
+
+                node->m_value = forward<T_>(value);
+                node->m_parent = nullptr;
+                node->m_left = nullptr;
+                node->m_right = nullptr;
+
+                return node->m_value;
+            } else if (value < parent->m_value) {
+                ASSERT(parent->m_left == nullptr);
+                node = parent->m_left = new Node;
+                ++m_size;
+
+                node->m_value = forward<T_>(value);
+                node->m_parent = parent;
+                node->m_left = nullptr;
+                node->m_right = nullptr;
+
+                return node->m_value;
+            } else {
+                ASSERT(value > parent->m_value);
+
+                ASSERT(parent->m_right == nullptr);
+                node = parent->m_right = new Node;
+                ++m_size;
+
+                node->m_value = forward<T_>(value);
+                node->m_parent = parent;
+                node->m_left = nullptr;
+                node->m_right = nullptr;
+
+                return node->m_value;
+            }
+        }
+
+        Node* search_impl(const T& value, Node **parent, Node *subtree)
         {
             if (subtree == nullptr)
                 return nullptr;
 
             if (value < subtree->m_value) {
-                *parent_node = subtree;
-                return search_impl(value, parent_node, subtree->m_left);
+                *parent = subtree;
+                return search_impl(value, parent, subtree->m_left);
             } else if (value > subtree->m_value) {
-                *parent_node = subtree;
-                return search_impl(value, parent_node, subtree->m_right);
+                *parent = subtree;
+                return search_impl(value, parent, subtree->m_right);
             } else {
                 return subtree;
             }
+        }
+
+        Node* min_impl(Node* subtree, Node **parent)
+        {
+            if (subtree == nullptr)
+                return nullptr;
+
+            if (subtree->m_left == nullptr)
+                return subtree;
+
+            *parent = subtree;
+            return min_impl(subtree->m_left, parent);
+        }
+
+        void remove_impl(Node *node, Node *parent)
+        {
+            ASSERT(node->m_left == nullptr || node->m_right == nullptr);
+
+            if (node->m_left == nullptr)
+                parent->replace_child(node, node->m_right);
+            else
+                parent->replace_child(node, node->m_left);
+
+            delete node;
+            --m_size;
         }
 
         Node *m_root;

@@ -33,4 +33,37 @@ TEST_CASE(sortedset_tree)
     ASSERT(Std::String::format("%", set) == "(nil 0x00000001 ((nil 0x00000002 nil) 0x00000003 ((nil 0x00000004 nil) 0x00000007 (nil 0x00000009 (nil 0x0000000f nil)))))");
 }
 
+TEST_CASE(sortedset_remove)
+{
+    Std::SortedSet<int> set;
+
+    set.insert(3);
+    set.insert(5);
+    set.insert(4);
+    set.insert(5);
+    set.insert(7);
+
+    ASSERT(set.size() == 4);
+    ASSERT(set.search(9) == nullptr);
+    ASSERT(set.search(5) != nullptr);
+
+    set.remove(5);
+
+    ASSERT(set.size() == 3);
+    ASSERT(set.search(5) == nullptr);
+    ASSERT(set.search(4) != nullptr);
+
+    set.remove(4);
+
+    ASSERT(set.size() == 2);
+    ASSERT(set.search(7) != nullptr);
+    ASSERT(set.search(4) == nullptr);
+}
+
+// FIXME: Test min
+
+// FIXME: Add more tests for remove operation
+
+// FIXME: Test weird types
+
 TEST_MAIN();
