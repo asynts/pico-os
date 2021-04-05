@@ -195,6 +195,11 @@ namespace Std {
         return dbgln(StringView { fmtstr }, parameters...);
     }
 
+    inline void dbgln()
+    {
+        dbgln_raw("");
+    }
+
     template<typename T>
     requires Concepts::Integral<T>
     struct Formatter<T> {

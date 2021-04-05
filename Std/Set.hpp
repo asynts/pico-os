@@ -97,6 +97,11 @@ namespace Std
 
             void dump(StringBuilder& builder) const
             {
+                if (m_left == nullptr && m_right == nullptr) {
+                    builder.appendf("%", m_value);
+                    return;
+                }
+
                 builder.append('(');
 
                 if (m_left)
@@ -209,10 +214,13 @@ namespace Std
         {
             ASSERT(node->m_left == nullptr || node->m_right == nullptr);
 
-            if (node->m_left == nullptr)
+            if (node->m_left == nullptr) {
                 parent->replace_child(node, node->m_right);
-            else
+                node->m_right = nullptr;
+            } else {
                 parent->replace_child(node, node->m_left);
+                node->m_left = nullptr;
+            }
 
             delete node;
             --m_size;
