@@ -37,6 +37,16 @@ namespace Std
                 return nullptr;
         }
 
+        Optional<Value> get_opt(const Key& key) const
+        {
+            Node *node = m_hash.search({ key, {} });
+
+            if (node)
+                return node->m_value.value();
+            else
+                return nullptr;
+        }
+
         void remove(const Key& key)
         {
             m_hash.remove({ key, {} });
