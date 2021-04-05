@@ -130,7 +130,6 @@ namespace Std
             }
 
             T m_value;
-            Node *m_parent;
             Node *m_left;
             Node *m_right;
         };
@@ -150,7 +149,6 @@ namespace Std
                 ++m_size;
 
                 node->m_value = forward<T_>(value);
-                node->m_parent = nullptr;
                 node->m_left = nullptr;
                 node->m_right = nullptr;
 
@@ -161,7 +159,6 @@ namespace Std
                 ++m_size;
 
                 node->m_value = forward<T_>(value);
-                node->m_parent = parent;
                 node->m_left = nullptr;
                 node->m_right = nullptr;
 
@@ -174,7 +171,6 @@ namespace Std
                 ++m_size;
 
                 node->m_value = forward<T_>(value);
-                node->m_parent = parent;
                 node->m_left = nullptr;
                 node->m_right = nullptr;
 
