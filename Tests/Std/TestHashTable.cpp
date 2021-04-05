@@ -33,6 +33,11 @@ struct A {
     {
         return m_value > other.m_value;
     }
+
+    u32 hash() const
+    {
+        return m_hash;
+    }
 };
 
 template<>

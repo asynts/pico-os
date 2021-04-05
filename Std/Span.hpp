@@ -151,4 +151,13 @@ namespace Std {
     {
         return Bytes { reinterpret_cast<u8*>(&value), sizeof(value) };
     }
+
+    template<typename T, typename S>
+    requires Concepts::HasSizeOf<T, sizeof(S)>
+    T bit_cast(S input)
+    {
+        T output;
+        bytes_from(input).copy_to(bytes_from(output));
+        return output;
+    }
 }

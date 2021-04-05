@@ -245,4 +245,18 @@ TEST_CASE(sortedset_custom_2)
     ASSERT(Std::String::format("%", set) == "([-0x00000004.x] [0x0000002a.foo] nil)");
 }
 
+TEST_CASE(sortedset_remove_root)
+{
+    Std::SortedSet<int> set;
+
+    set.insert(3);
+
+    ASSERT(set.size() == 1);
+
+    set.remove(3);
+
+    ASSERT(set.size() == 0);
+    ASSERT(set.search(3) == nullptr);
+}
+
 TEST_MAIN();

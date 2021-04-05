@@ -20,6 +20,11 @@ namespace Std {
     struct RemoveConst<const T> {
         using Type = T;
     };
+
+    template<typename T, T Value>
+    struct IntegralConstant {
+        static constexpr T value = Value;
+    };
 }
 
 namespace Std::Concepts {
@@ -37,4 +42,7 @@ namespace Std::Concepts {
                     || Same<T, signed int>
                     || Same<T, signed long>
                     || Same<T, signed long long>;
+
+    template<typename T, usize Size>
+    concept HasSizeOf = IntegralConstant<bool, sizeof(T) == Size>::value;
 }

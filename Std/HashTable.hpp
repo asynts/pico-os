@@ -1,11 +1,26 @@
 #pragma
 
 #include <Std/SortedSet.hpp>
+#include <Std/Concepts.hpp>
 
 namespace Std
 {
     template<typename T>
     struct Hash {
+    };
+
+    template<typename T>
+    concept HashDefinedByMember = requires (const T& t) {
+        { t.hash() } -> Concepts::Same<u32>;
+    };
+
+    template<typename T>
+    requires HashDefinedByMember<T>
+    struct Hash<T> {
+        static u32 compute(const T& value)
+        {
+            return value.hash();
+        }
     };
 
     template<>
@@ -21,6 +36,15 @@ namespace Std
             value ^= value >> 16;
 
             return value;
+        }
+    };
+
+    template<typename T>
+    requires Concepts::Integral<T> && Concepts::HasSizeOf<T, 4>
+    struct Hash<T> {
+        static u32 compute(T value)
+        {
+            return Hash<u32>::compute(bit_cast<u32>(value));
         }
     };
 

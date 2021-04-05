@@ -208,6 +208,7 @@ namespace Std
 
         void remove_impl(Node *node, Node *parent)
         {
+            ASSERT(parent);
             ASSERT(node->m_left == nullptr || node->m_right == nullptr);
 
             if (node->m_left == nullptr) {
