@@ -192,9 +192,7 @@ namespace Std {
     template<typename... Parameters>
     void dbgln(const char *fmtstr, const Parameters&... parameters)
     {
-        StringBuilder builder;
-        vformat(builder, fmtstr, VariadicFormatParams { parameters... });
-        dbgln_raw(builder.view());
+        return dbgln(StringView { fmtstr }, parameters...);
     }
 
     template<typename T>
@@ -207,8 +205,12 @@ namespace Std {
     struct Formatter<T*> {
         static void format(StringBuilder& builder, T *value)
         {
-            static_assert(sizeof(T*) == 4);
-            return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
+            if constexpr(sizeof(T*) == 4) {
+                return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
+            } else {
+                static_assert(sizeof(T*) == 8);
+                return Formatter<u64>::format(builder, reinterpret_cast<u64>(value));
+            }
         }
     };
 

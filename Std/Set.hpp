@@ -11,8 +11,6 @@ namespace Std
 
     // FIXME: Add remove operation
 
-    // FIXME: Test this thoroughly
-
     template<typename T>
     class SortedSet {
     public:
@@ -43,8 +41,6 @@ namespace Std
                 m_root->dump(builder);
             else
                 builder.append("nil");
-
-            dbgln("%", builder.string());
         }
 
         template<typename T_ = T>
@@ -73,6 +69,7 @@ namespace Std
 
                 // FIXME: We sometimes hit this assertion
                 ASSERT(parent_node->m_left == nullptr);
+
                 node = parent_node->m_left = new Node;
                 ++m_size;
 
@@ -85,10 +82,12 @@ namespace Std
             } else {
                 ASSERT(value > parent_node->m_value);
 
-                if (parent_node->m_left != nullptr)
+                if (parent_node->m_right != nullptr)
                     dbgln("parent_node->m_right == nullptr\n%", *this);
 
+                // FIXME: We sometimes hit this assertion
                 ASSERT(parent_node->m_right == nullptr);
+
                 node = parent_node->m_right = new Node;
                 ++m_size;
 
@@ -160,7 +159,7 @@ namespace Std
     struct Formatter<SortedSet<T>> {
         static void format(StringBuilder& builder, const SortedSet<T>& value)
         {
-            value.dump(builder);
+            return value.dump(builder);
         }
     };
 }
