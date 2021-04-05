@@ -139,8 +139,110 @@ TEST_CASE(sortedset_remove_6)
     ASSERT(Std::String::format("%", set) == "(nil 0x00000002 0x00000003)");
 }
 
-// FIXME: Test min
+TEST_CASE(sortedset_min)
+{
+    Std::SortedSet<int> set;
 
-// FIXME: Test weird types
+    set.insert(1);
+    set.insert(42);
+    set.insert(18);
+    set.insert(7);
+    set.insert(3);
+    set.insert(2);
+    set.insert(1);
+    set.insert(-3);
+
+    ASSERT(set.size() == 7);
+    ASSERT(set.min() != nullptr);
+    ASSERT(*set.min() == -3);
+}
+
+struct A {
+    int m_major;
+    int m_minor;
+
+    bool operator<(const A& other) const
+    {
+        if (m_major < other.m_major)
+            return true;
+
+        if (m_major > other.m_major)
+            return false;
+
+        return m_minor < other.m_minor;
+    }
+    bool operator>(const A& other) const
+    {
+        if (m_major > other.m_major)
+            return true;
+
+        if (m_major < other.m_major)
+            return false;
+
+        return m_minor > other.m_minor;
+    }
+};
+
+template<>
+struct Std::Formatter<A> {
+    static void format(Std::StringBuilder& builder, const A& value)
+    {
+        builder.appendf("[%.%]", value.m_major, value.m_minor);
+    }
+};
+
+TEST_CASE(sortedset_custom_1)
+{
+    Std::SortedSet<A> set;
+
+    set.insert({ 1, 3 });
+    set.insert({ 4, 6 });
+    set.insert({ 1, 4 });
+    set.insert({ 1, 2 });
+
+    ASSERT(Std::String::format("%", set) == "([0x00000001.0x00000002] [0x00000001.0x00000003] ([0x00000001.0x00000004] [0x00000004.0x00000006] nil))");
+}
+
+struct B {
+    int m_indicator;
+    Std::StringView m_piggyback;
+
+    bool operator<(const B& other) const
+    {
+        return m_indicator < other.m_indicator;
+    }
+
+    bool operator>(const B& other) const
+    {
+        return m_indicator > other.m_indicator;
+    }
+};
+
+template<>
+struct Std::Formatter<B> {
+    static void format(Std::StringBuilder& builder, const B& value)
+    {
+        builder.appendf("[%.%]", value.m_indicator, value.m_piggyback);
+    }
+};
+
+TEST_CASE(sortedset_custom_2)
+{
+    Std::SortedSet<B> set;
+
+    set.insert({ 42, "foo" });
+    set.insert({ 13, "bar" });
+    set.insert({ -4, "x" });
+
+    ASSERT(Std::String::format("%", set) == "(([-0x00000004.x] [0x0000000d.bar] nil) [0x0000002a.foo] nil)");
+
+    set.insert({ 13, "baz" });
+
+    ASSERT(Std::String::format("%", set) == "(([-0x00000004.x] [0x0000000d.baz] nil) [0x0000002a.foo] nil)");
+
+    set.remove({ 13, "y" });
+
+    ASSERT(Std::String::format("%", set) == "([-0x00000004.x] [0x0000002a.foo] nil)");
+}
 
 TEST_MAIN();
