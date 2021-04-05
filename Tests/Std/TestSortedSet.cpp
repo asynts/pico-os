@@ -1,6 +1,6 @@
 #include <Tests/TestSuite.hpp>
 
-#include <Std/Set.hpp>
+#include <Std/SortedSet.hpp>
 
 TEST_CASE(sortedset)
 {
