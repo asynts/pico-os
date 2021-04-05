@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/Forward.hpp>
+#include <Std/StringBuilder.hpp>
 
 namespace Std
 {
@@ -36,8 +37,18 @@ namespace Std
                 return nullptr;
         }
 
+        void dump(StringBuilder& builder) const
+        {
+            if (m_root)
+                m_root->dump(builder);
+            else
+                builder.append("nil");
+
+            dbgln("%", builder.string());
+        }
+
         template<typename T_ = T>
-        T& insert(T&& value)
+        T& insert(T_&& value)
         {
             Node *parent_node;
             Node *node = search_impl(value, &parent_node, m_root);
@@ -57,6 +68,9 @@ namespace Std
 
                 return node->m_value;
             } else if (value < parent_node->m_value) {
+                if (parent_node->m_left != nullptr)
+                    dbgln("parent_node->m_left == nullptr\n%", *this);
+
                 // FIXME: We sometimes hit this assertion
                 ASSERT(parent_node->m_left == nullptr);
                 node = parent_node->m_left = new Node;
@@ -70,6 +84,11 @@ namespace Std
                 return node->m_value;
             } else {
                 ASSERT(value > parent_node->m_value);
+
+                if (parent_node->m_left != nullptr)
+                    dbgln("parent_node->m_right == nullptr\n%", *this);
+
+                ASSERT(parent_node->m_right == nullptr);
                 node = parent_node->m_right = new Node;
                 ++m_size;
 
@@ -90,6 +109,25 @@ namespace Std
             {
                 delete m_left;
                 delete m_right;
+            }
+
+            void dump(StringBuilder& builder) const
+            {
+                builder.append('(');
+
+                if (m_left)
+                    m_left->dump(builder);
+                else
+                    builder.append("nil");
+
+                builder.appendf(" % ", m_value);
+
+                if (m_right)
+                    m_right->dump(builder);
+                else
+                    builder.append("nil");
+
+                builder.append(')');
             }
 
             T m_value;
@@ -116,5 +154,13 @@ namespace Std
 
         Node *m_root;
         usize m_size;
+    };
+
+    template<typename T>
+    struct Formatter<SortedSet<T>> {
+        static void format(StringBuilder& builder, const SortedSet<T>& value)
+        {
+            value.dump(builder);
+        }
     };
 }
