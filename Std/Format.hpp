@@ -120,10 +120,10 @@ namespace Std {
             return *this;
         }
 
-        bool operator==(const String& other) const
-        {
-            return view() == other.view();
-        }
+        int operator<=>(const String& other) const { return view() <=> other.view(); }
+
+        // FIXME: The compile should be able to generate this?
+        bool operator==(const String& other) const { return (*this <=> other) == 0; }
 
     private:
         char *m_buffer;

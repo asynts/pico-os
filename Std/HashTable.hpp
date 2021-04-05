@@ -38,6 +38,23 @@ namespace Std
             return value;
         }
     };
+    template<>
+    struct Hash<StringView> {
+        static u32 compute(StringView value)
+        {
+            // http://www.cse.yorku.ca/~oz/hash.html
+
+            u32 hash = 5381;
+
+            for (char ch : value.iter())
+                hash = ((hash << 5) + hash) + ch;
+
+            return hash;
+        }
+    };
+    template<>
+    struct Hash<String> : Hash<StringView> {
+    };
 
     template<typename T>
     requires Concepts::Integral<T> && Concepts::HasSizeOf<T, 4>
