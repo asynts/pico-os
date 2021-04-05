@@ -39,12 +39,18 @@ namespace Std
             *this = move(other);
         }
 
-        template<typename T_ = T>
-        void append(T_&& value)
+        void append(const T& value)
         {
             ensure_capacity(m_size + 1);
 
-            new (data() + m_size) T { forward<T_>(value) };
+            new (data() + m_size) T { value };
+            ++m_size;
+        }
+        void append(T&& value)
+        {
+            ensure_capacity(m_size + 1);
+
+            new (data() + m_size) T { move(value) };
             ++m_size;
         }
 
@@ -64,11 +70,13 @@ namespace Std
             new_capacity = round_to_power_of_two(new_capacity);
 
             T *new_data = reinterpret_cast<T*>(new u8[sizeof(T) * new_capacity]);
+            ASSERT(new_data != nullptr);
 
+            ASSERT(new_capacity > m_size);
             for (usize i=0; i<m_size; ++i)
             {
-                new (new_data + i) T { move(m_data[i]) };
-                m_data[i].~T();
+                new (new_data + i) T { move(data()[i]) };
+                data()[i].~T();
             }
 
             operator delete[](m_data);
@@ -125,8 +133,7 @@ namespace Std
                 extend(other.span());
                 other.clear();
             } else {
-                if (m_data)
-                    operator delete[](m_data);
+                operator delete[](m_data);
 
                 m_use_inline_data = false;
                 m_capacity = other.m_capacity;

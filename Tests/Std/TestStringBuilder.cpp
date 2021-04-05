@@ -15,4 +15,18 @@ TEST_CASE(stringbuilder)
     ASSERT(builder.string().view() == "foo bar baz");
 }
 
+TEST_CASE(stringbuilder_exceed_inline_capacity)
+{
+    Std::StringBuilder builder;
+
+    for (usize i = 0; i < 513; ++i)
+        builder.append('a' + i % 26);
+
+    auto string = builder.string();
+    ASSERT(string.size() == 513);
+
+    for (usize i = 0; i < 513; ++i)
+        ASSERT(string.data()[i] == 'a' + i % 26);
+}
+
 TEST_MAIN();

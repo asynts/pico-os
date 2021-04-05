@@ -116,4 +116,17 @@ TEST_CASE(vector_clear)
     ASSERT(vec.capacity() == capacity);
 }
 
+TEST_CASE(vector_exceed_inline_capacity)
+{
+    Std::Vector<int, 128> vec;
+
+    for (usize i = 0; i < 130; ++i)
+        vec.append(i % 13);
+
+    ASSERT(vec.size() == 130);
+
+    for (usize i = 0; i < 130; ++i)
+        ASSERT(vec.data()[i] == i % 13);
+}
+
 TEST_MAIN();
