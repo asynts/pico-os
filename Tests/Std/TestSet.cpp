@@ -94,9 +94,52 @@ TEST_CASE(sortedset_remove_3)
     ASSERT(Std::String::format("%", set) == "(nil 0x00000001 0x00000003)");
 }
 
-// FIXME: Test min
+TEST_CASE(sortedset_remove_4)
+{
+    Std::SortedSet<int> set;
 
-// FIXME: Add more tests for remove operation
+    set.insert(1);
+    set.insert(3);
+    set.insert(2);
+
+    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 (0x00000002 0x00000003 nil))");
+
+    set.remove(3);
+
+    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 0x00000002)");
+}
+
+TEST_CASE(sortedset_remove_5)
+{
+    Std::SortedSet<int> set;
+
+    set.insert(2);
+    set.insert(1);
+    set.insert(3);
+
+    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000002 0x00000003)");
+
+    set.remove(2);
+
+    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000003 nil)");
+}
+
+TEST_CASE(sortedset_remove_6)
+{
+    Std::SortedSet<int> set;
+
+    set.insert(2);
+    set.insert(1);
+    set.insert(3);
+
+    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000002 0x00000003)");
+
+    set.remove(1);
+
+    ASSERT(Std::String::format("%", set) == "(nil 0x00000002 0x00000003)");
+}
+
+// FIXME: Test min
 
 // FIXME: Test weird types
 
