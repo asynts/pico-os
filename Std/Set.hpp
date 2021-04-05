@@ -26,7 +26,7 @@ namespace Std
 
         T* search(const T& value)
         {
-            Node *parent_node;
+            Node *parent_node = nullptr;
             Node *node = search_impl(value, &parent_node, m_root);
 
             if (node != nullptr)
@@ -46,7 +46,7 @@ namespace Std
         template<typename T_ = T>
         T& insert(T_&& value)
         {
-            Node *parent_node;
+            Node *parent_node = nullptr;
             Node *node = search_impl(value, &parent_node, m_root);
 
             if (node) {
@@ -64,12 +64,7 @@ namespace Std
 
                 return node->m_value;
             } else if (value < parent_node->m_value) {
-                if (parent_node->m_left != nullptr)
-                    dbgln("parent_node->m_left == nullptr\n%", *this);
-
-                // FIXME: We sometimes hit this assertion
                 ASSERT(parent_node->m_left == nullptr);
-
                 node = parent_node->m_left = new Node;
                 ++m_size;
 
@@ -82,12 +77,7 @@ namespace Std
             } else {
                 ASSERT(value > parent_node->m_value);
 
-                if (parent_node->m_right != nullptr)
-                    dbgln("parent_node->m_right == nullptr\n%", *this);
-
-                // FIXME: We sometimes hit this assertion
                 ASSERT(parent_node->m_right == nullptr);
-
                 node = parent_node->m_right = new Node;
                 ++m_size;
 

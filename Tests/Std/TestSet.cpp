@@ -30,7 +30,7 @@ TEST_CASE(sortedset_tree)
     set.insert(15);
     set.insert(4);
 
-    // ASSERT(Std::String::format("%", set) == "(nil 1 ((nil 2 nil) 3 ((nil 4 nil) 7 (nil 9 (nil 15 nil)))))");
+    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 ((nil 0x00000002 nil) 0x00000003 ((nil 0x00000004 nil) 0x00000007 (nil 0x00000009 (nil 0x0000000f nil)))))");
 }
 
 TEST_MAIN();
