@@ -22,6 +22,136 @@ namespace Std
             delete m_root;
         }
 
+        struct Node {
+            Node(const T& value)
+                : m_value(value)
+            {
+                m_left = nullptr;
+                m_right = nullptr;
+                m_parent = nullptr;
+            }
+            Node(T&& value)
+                : m_value(move(value))
+            {
+                m_left = nullptr;
+                m_right = nullptr;
+                m_parent = nullptr;
+            }
+
+            ~Node()
+            {
+                delete m_left;
+                delete m_right;
+            }
+
+            void dump(StringBuilder& builder) const
+            {
+                if (m_left == nullptr && m_right == nullptr) {
+                    builder.appendf("%", m_value);
+                    return;
+                }
+
+                builder.append('(');
+
+                if (m_left)
+                    m_left->dump(builder);
+                else
+                    builder.append("nil");
+
+                builder.appendf(" % ", m_value);
+
+                if (m_right)
+                    m_right->dump(builder);
+                else
+                    builder.append("nil");
+
+                builder.append(')');
+            }
+
+            void replace_child(Node *old, Node *new_)
+            {
+                if (m_left == old) {
+                    if (m_left != nullptr)
+                        m_left->m_parent = nullptr;
+
+                    m_left = new_;
+                    if (m_left)
+                        m_left->m_parent = this;
+                } else if (m_right == old) {
+                    if (m_right != nullptr)
+                        m_right->m_parent = nullptr;
+
+                    m_right = new_;
+                    if (m_right)
+                        m_right->m_parent = this;
+                } else {
+                    ASSERT_NOT_REACHED();
+                }
+            }
+
+            T m_value;
+            Node *m_left;
+            Node *m_right;
+            Node *m_parent;
+        };
+
+        class InorderIterator {
+        public:
+            InorderIterator(SortedSet& set, Node *root)
+                : m_set(set)
+                , m_current(root)
+            {
+            }
+
+            InorderIterator begin() { return *this; }
+            InorderIterator end() { return { m_set, nullptr }; }
+
+            const T& operator*() const { return m_current->m_value; }
+            T& operator*() { return m_current->m_value; }
+
+            InorderIterator& operator++()
+            {
+                ASSERT(m_current);
+
+                if (m_current->m_right != nullptr) {
+                    Node *parent = nullptr;
+                    m_current = m_set.min_impl(m_current->m_right, &parent);
+
+                    return *this;
+                }
+
+                while (m_current->m_parent && m_current->m_parent->m_left != m_current)
+                    m_current = m_current->m_parent;
+
+                if (m_current->m_parent == nullptr) {
+                    m_current = nullptr;
+                    return *this;
+                }
+
+                m_current = m_current->m_parent;
+                return *this;
+            }
+            InorderIterator operator++(int)
+            {
+                InorderIterator copy = *this;
+                operator++();
+                return copy;
+            }
+
+            bool operator==(InorderIterator& other) const
+            {
+                return m_current == other.m_current;
+            }
+            bool operator!=(InorderIterator& other) const
+            {
+                return !operator==(other);
+            }
+
+        private:
+            SortedSet& m_set;
+            Node *m_current;
+        };
+
         T* search(const T& value)
         {
             Node *parent = nullptr;
@@ -85,68 +215,17 @@ namespace Std
             remove_impl(min_in_right, min_in_right_parent);
         }
 
+        InorderIterator inorder()
+        {
+            Node *parent = nullptr;
+            Node *min = min_impl(m_root, &parent);
+
+            return InorderIterator { *this, min };
+        }
+
         usize size() const { return m_size; }
 
     private:
-        struct Node {
-            Node(const T& value)
-                : m_value(value)
-            {
-                m_left = nullptr;
-                m_right = nullptr;
-            }
-            Node(T&& value)
-                : m_value(move(value))
-            {
-                m_left = nullptr;
-                m_right = nullptr;
-            }
-
-            ~Node()
-            {
-                delete m_left;
-                delete m_right;
-            }
-
-            void dump(StringBuilder& builder) const
-            {
-                if (m_left == nullptr && m_right == nullptr) {
-                    builder.appendf("%", m_value);
-                    return;
-                }
-
-                builder.append('(');
-
-                if (m_left)
-                    m_left->dump(builder);
-                else
-                    builder.append("nil");
-
-                builder.appendf(" % ", m_value);
-
-                if (m_right)
-                    m_right->dump(builder);
-                else
-                    builder.append("nil");
-
-                builder.append(')');
-            }
-
-            void replace_child(Node *old, Node *new_)
-            {
-                if (m_left == old)
-                    m_left = new_;
-                else if (m_right == old)
-                    m_right = new_;
-                else
-                    ASSERT_NOT_REACHED();
-            }
-
-            T m_value;
-            Node *m_left;
-            Node *m_right;
-        };
-
         template<typename T_>
         T& insert_impl(T_&& value)
         {
@@ -165,6 +244,7 @@ namespace Std
             } else if (value < parent->m_value) {
                 ASSERT(parent->m_left == nullptr);
                 node = parent->m_left = new Node { forward<T_>(value) };
+                node->m_parent = parent;
                 ++m_size;
 
                 return node->m_value;
@@ -173,6 +253,7 @@ namespace Std
 
                 ASSERT(parent->m_right == nullptr);
                 node = parent->m_right = new Node { forward<T_>(value) };
+                node->m_parent = parent;
                 ++m_size;
 
                 return node->m_value;
@@ -232,6 +313,7 @@ namespace Std
                 node->m_left = nullptr;
             }
 
+            node->m_parent = nullptr;
             delete node;
             --m_size;
         }

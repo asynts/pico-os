@@ -277,4 +277,33 @@ TEST_CASE(sortedset_destructor)
     Tests::Tracker::assert(2, 2, 0, 3);
 }
 
+TEST_CASE(sortedset_iterator)
+{
+    Std::SortedSet<int> set;
+
+    set.insert(4);
+    set.insert(1);
+    set.insert(8);
+    set.insert(2);
+    set.insert(7);
+    set.insert(6);
+    set.insert(3);
+    set.insert(5);
+
+    auto iter = set.inorder();
+
+    ASSERT(iter != iter.end());
+
+    ASSERT(*iter++ == 1);
+    ASSERT(*iter++ == 2);
+    ASSERT(*iter++ == 3);
+    ASSERT(*iter++ == 4);
+    ASSERT(*iter++ == 5);
+    ASSERT(*iter++ == 6);
+    ASSERT(*iter++ == 7);
+    ASSERT(*iter++ == 8);
+
+    ASSERT(iter == iter.end());
+}
+
 TEST_MAIN();
