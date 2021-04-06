@@ -89,6 +89,19 @@ namespace Std
 
     private:
         struct Node {
+            Node(const T& value)
+                : m_value(value)
+            {
+                m_left = nullptr;
+                m_right = nullptr;
+            }
+            Node(T&& value)
+                : m_value(move(value))
+            {
+                m_left = nullptr;
+                m_right = nullptr;
+            }
+
             ~Node()
             {
                 delete m_left;
@@ -145,34 +158,22 @@ namespace Std
 
                 return node->m_value;
             } else if (parent == nullptr) {
-                node = m_root = new Node;
+                node = m_root = new Node { forward<T_>(value) };
                 ++m_size;
-
-                node->m_value = forward<T_>(value);
-                node->m_left = nullptr;
-                node->m_right = nullptr;
 
                 return node->m_value;
             } else if (value < parent->m_value) {
                 ASSERT(parent->m_left == nullptr);
-                node = parent->m_left = new Node;
+                node = parent->m_left = new Node { forward<T_>(value) };
                 ++m_size;
-
-                node->m_value = forward<T_>(value);
-                node->m_left = nullptr;
-                node->m_right = nullptr;
 
                 return node->m_value;
             } else {
                 ASSERT(value > parent->m_value);
 
                 ASSERT(parent->m_right == nullptr);
-                node = parent->m_right = new Node;
+                node = parent->m_right = new Node { forward<T_>(value) };
                 ++m_size;
-
-                node->m_value = forward<T_>(value);
-                node->m_left = nullptr;
-                node->m_right = nullptr;
 
                 return node->m_value;
             }

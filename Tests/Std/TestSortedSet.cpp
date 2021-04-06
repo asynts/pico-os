@@ -259,4 +259,22 @@ TEST_CASE(sortedset_remove_root)
     ASSERT(set.search(3) == nullptr);
 }
 
+TEST_CASE(sortedset_destructor)
+{
+    Tests::Tracker::clear();
+
+    {
+        Std::SortedSet<Tests::Tracker> set;
+
+        Tests::Tracker::assert(0, 0, 0, 0);
+
+        set.insert({ 1 });
+        set.insert({ 1 });
+
+        Tests::Tracker::assert(2, 2, 0, 2);
+    }
+
+    Tests::Tracker::assert(2, 2, 0, 3);
+}
+
 TEST_MAIN();

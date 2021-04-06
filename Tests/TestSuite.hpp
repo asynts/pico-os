@@ -12,6 +12,7 @@
 #include <span>
 
 #include <Std/Span.hpp>
+#include <Std/Format.hpp>
 
 namespace Tests
 {
@@ -110,32 +111,72 @@ namespace Tests
                 ASSERT(m_destroy_count == *destory_count);
         }
 
-        Tracker()
+        static void dump()
         {
-            m_create_count++;
+            std::cout << "create=" << m_create_count << ", move=" << m_move_count << ", copy=" << m_copy_count << ", destroy=" << m_destroy_count << '\n';
+        }
+
+        Tracker()
+            : m_value(0)
+        {
+            ++m_create_count;
             if (debug)
                 std::cout << "Tracker()\n";
         }
-        Tracker(const Tracker&)
+        Tracker(int value)
+            : m_value(value)
         {
-            m_copy_count++;
+            ++m_create_count;
+            if (debug)
+                std::cout << "Tracker(" << value << ")\n";
+        }
+        Tracker(const Tracker& other)
+        {
+            m_value = other.m_value;
+            ++m_copy_count;
             if (debug)
                 std::cout << "Tracker(const Tracker&)\n";
         }
-        Tracker(Tracker&&)
+        Tracker(Tracker&& other)
         {
-            m_move_count++;
+            m_value = exchange(other.m_value, 0);
+            ++m_move_count;
             if (debug)
                 std::cout << "Tracker(Tracker&&)\n";
         }
         ~Tracker()
         {
-            m_destroy_count++;
+            ++m_destroy_count;
             if (debug)
                 std::cout << "~Tracker()\n";
         }
+
+        Tracker& operator=(const Tracker& other)
+        {
+            ++m_copy_count;
+            m_value = other.m_value;
+            return *this;
+        }
+        Tracker& operator=(Tracker&& other)
+        {
+            ++m_move_count;
+            m_value = exchange(other.m_value, 0);
+            return *this;
+        }
+
+        auto operator<=>(const Tracker& other) const = default;
+
+        int m_value;
     };
 }
+
+template<>
+struct Std::Formatter<Tests::Tracker> {
+    static void format(Std::StringBuilder& builder, const Tests::Tracker& value)
+    {
+        builder.appendf("%", value.m_value);
+    }
+};
 
 #define TEST_CASE(name) \
     void __test_func_##name(); \
