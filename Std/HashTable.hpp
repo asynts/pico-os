@@ -97,7 +97,6 @@ namespace Std
             return m_set.size();
         }
 
-    private:
         struct Node {
             u32 m_hash;
             T m_value;
@@ -124,6 +123,45 @@ namespace Std
             }
         };
 
+        class Iterator {
+        public:
+            explicit Iterator(SortedSet<Node>::InorderIterator iterator)
+                : m_iterator(iterator)
+            {
+            }
+
+            Iterator begin() { return Iterator { m_iterator.begin() }; }
+            Iterator end() { return Iterator { m_iterator.end() }; }
+
+            const T& operator*() const { return (*m_iterator).m_value; }
+            T& operator*() { return (*m_iterator).m_value; }
+
+            Iterator& operator++()
+            {
+                ++m_iterator;
+                return *this;
+            }
+            Iterator operator++(int)
+            {
+                return { m_iterator++ };
+            }
+
+            bool operator==(Iterator other) const
+            {
+                return m_iterator == other.m_iterator;
+            }
+            bool operator!=(Iterator other) const
+            {
+                return !operator==(other);
+            }
+
+        private:
+            SortedSet<Node>::InorderIterator m_iterator;
+        };
+
+        Iterator iter() { return Iterator { m_set.inorder() }; }
+
+    private:
         SortedSet<Node> m_set;
     };
 }

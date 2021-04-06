@@ -70,4 +70,37 @@ TEST_CASE(hashtable_collisions)
     ASSERT(hash.search({ 3, 7 }) == nullptr);
 }
 
+TEST_CASE(hashtable_iterator)
+{
+    Std::HashTable<int> hash;
+
+    hash.insert(14);
+    hash.insert(72);
+    hash.insert(3);
+    hash.insert(0);
+
+    bool did_see_14 = false;
+    bool did_see_72 = false;
+    bool did_see_3 = false;
+    bool did_see_0 = false;
+
+    for (int value : hash.iter()) {
+        if (value == 14)
+            ASSERT(std::exchange(did_see_14, true) == false);
+        else if (value == 72)
+            ASSERT(std::exchange(did_see_72, true) == false);
+        else if (value == 3)
+            ASSERT(std::exchange(did_see_3, true) == false);
+        else if (value == 0)
+            ASSERT(std::exchange(did_see_0, true) == false);
+        else
+            ASSERT_NOT_REACHED();
+    }
+
+    ASSERT(did_see_14);
+    ASSERT(did_see_72);
+    ASSERT(did_see_3);
+    ASSERT(did_see_0);
+}
+
 TEST_MAIN();

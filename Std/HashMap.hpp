@@ -57,7 +57,6 @@ namespace Std
             return m_hash.size();
         }
 
-    private:
         struct Node {
             Key m_key;
             Optional<Value> m_value;
@@ -74,6 +73,9 @@ namespace Std
             }
         };
 
+        HashTable<Node>::Iterator iter() { return m_hash.iter(); }
+
+    private:
         HashTable<Node> m_hash;
     };
 }
