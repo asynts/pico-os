@@ -11,7 +11,6 @@ namespace Kernel
 
     class FlashFileSystem;
     class FlashFile;
-    class FlashDirectoryEntry;
     class FlashFileHandle;
 
     class FlashFileSystem final
@@ -19,21 +18,18 @@ namespace Kernel
         , public VirtualFileSystem
     {
     public:
-        VirtualDirectoryEntry& root() override;
+        VirtualFile& root() override;
 
         VirtualFile& create_file() override;
-        VirtualDirectoryEntry& create_directory_entry() override;
 
     private:
         friend Singleton<FlashFileSystem>;
         FlashFileSystem();
 
-        FlashDirectoryEntry *m_root;
+        FlashFile *m_root;
     };
 
-    class FlashFile final
-        : public VirtualFile
-    {
+    class FlashFile final : public VirtualFile {
     public:
         VirtualFileSystem& filesystem() override { return FlashFileSystem::the(); }
 
@@ -42,21 +38,7 @@ namespace Kernel
         ReadonlyBytes m_data;
     };
 
-    class FlashDirectoryEntry final
-        : public VirtualDirectoryEntry
-    {
-    public:
-        VirtualFile& file() override { return *m_file; }
-
-        void load() override;
-
-        FlashFile *m_file;
-        bool m_loaded = false;
-    };
-
-    class FlashFileHandle final
-        : public VirtualFileHandle
-    {
+    class FlashFileHandle final : public VirtualFileHandle {
     public:
         VirtualFile& file() override { return *m_file; }
 

@@ -36,13 +36,17 @@ namespace Std
             else
                 return nullptr;
         }
+        const Value* get(const Key& key) const
+        {
+            return const_cast<HashMap*>(this)->get(key);
+        }
 
         Optional<Value> get_opt(const Key& key) const
         {
-            Node *node = m_hash.search({ key, {} });
+            const Node *node = m_hash.search({ key, {} });
 
             if (node)
-                return node->m_value.value();
+                return node->m_value;
             else
                 return nullptr;
         }

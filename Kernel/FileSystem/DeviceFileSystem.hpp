@@ -16,9 +16,8 @@ namespace Kernel
     {
     public:
         // FIXME: Looks like I choose the wrong abstractions
-        VirtualDirectoryEntry& root() override { VERIFY_NOT_REACHED(); }
+        VirtualFile& root() override { VERIFY_NOT_REACHED(); }
         VirtualFile& create_file() override { VERIFY_NOT_REACHED(); }
-        VirtualDirectoryEntry& create_directory_entry() override { VERIFY_NOT_REACHED(); }
 
     private:
         friend Singleton<DeviceFileSystem>;

@@ -3,7 +3,6 @@
 #include <hardware/uart.h>
 
 #include <Std/Span.hpp>
-#include <Std/Map.hpp>
 #include <Std/Singleton.hpp>
 
 #include <Kernel/FileSystem/DeviceFileSystem.hpp>

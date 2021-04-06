@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Std/Map.hpp>
+#include <Std/HashMap.hpp>
 
 #include <Kernel/FileSystem/FileSystem.hpp>
 
@@ -12,8 +12,7 @@ namespace Kernel
     public:
         Process()
         {
-            auto& tty_dentry = FileSystem::lookup("/dev/tty");
-            auto& tty_file = tty_dentry.file();
+            auto& tty_file = FileSystem::lookup("/dev/tty");
 
             i32 stdin_fileno = add_file_handle(tty_file.create_handle());
             VERIFY(stdin_fileno == 0);
@@ -30,20 +29,20 @@ namespace Kernel
         i32 add_file_handle(VirtualFileHandle& handle)
         {
             i32 handle_id = m_next_handle_id++;
-            m_handles.append(handle_id, &handle);
+            m_handles.set(handle_id, &handle);
 
             return handle_id;
         }
 
         VirtualFileHandle& get_file_handle(i32 fd)
         {
-            return *m_handles.lookup(fd).must();
+            return *m_handles.get_opt(fd).must();
         }
 
         Path m_working_directory = "/";
 
     private:
-        Map<i32, VirtualFileHandle*> m_handles;
+        HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
     };
 }

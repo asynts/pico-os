@@ -86,6 +86,10 @@ namespace Std
             else
                 return nullptr;
         }
+        const T* search(const T& value) const
+        {
+            return const_cast<HashTable*>(this)->search(value);
+        }
 
         void remove(const T& value)
         {

@@ -3,30 +3,29 @@
 
 namespace Kernel::FileSystem
 {
-    VirtualDirectoryEntry& lookup(Path path)
+    VirtualFile& lookup(Path path)
     {
         VERIFY(path.is_absolute());
 
-        VirtualDirectoryEntry *directory_entry = &MemoryFileSystem::the().root();
+        VirtualFile *file = &MemoryFileSystem::the().root();
 
         for (auto& component : path.components()) {
-            directory_entry->ensure_loaded();
-
-            directory_entry = directory_entry->m_entries.lookup(component).must();
+            // FIXME: Figure this out
+            ASSERT_NOT_REACHED();
         }
 
-        return *directory_entry;
+        return *file;
     }
 
-    static Map<u32, VirtualFile*> devices;
+    static HashMap<u32, VirtualFile*> devices;
 
     void add_device(u32 device, VirtualFile& file)
     {
-        devices.append(device, &file);
+        devices.set(device, &file);
     }
 
     VirtualFileHandle& create_handle_for_device(u32 device)
     {
-        return devices.lookup(device).must()->create_handle();
+        return devices.get_opt(device).must()->create_handle();
     }
 }

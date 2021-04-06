@@ -6,7 +6,7 @@
 
 namespace Kernel::FileSystem
 {
-    VirtualDirectoryEntry& lookup(Path);
+    VirtualFile& lookup(Path);
 
     void add_device(u32 device, VirtualFile&);
     VirtualFileHandle& create_handle_for_device(u32 device);

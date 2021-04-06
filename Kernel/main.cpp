@@ -21,8 +21,7 @@ extern "C" {
 
 void load_and_execute_shell()
 {
-    auto& shell_dentry = Kernel::FileSystem::lookup("/bin/Shell.elf");
-    auto& shell_file = dynamic_cast<Kernel::FlashFile&>(shell_dentry.file());
+    auto& shell_file = dynamic_cast<Kernel::FlashFile&>(Kernel::FileSystem::lookup("/bin/Shell.elf"));
 
     ElfWrapper elf { shell_file.m_data.data() };
     LoadedExecutable executable = load_executable_into_memory(elf);
@@ -72,11 +71,11 @@ int main()
     // FIXME: This is really ugly, not sure how to fix it
     dbgln("[main] Creating /example.txt");
     auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
-    auto& example_dentry = dynamic_cast<Kernel::MemoryDirectoryEntry&>(Kernel::MemoryFileSystem::the().create_directory_entry());
-    example_dentry.m_file = dynamic_cast<Kernel::MemoryFile*>(&example_file);
     auto& example_handle = example_file.create_handle();
     example_handle.write({ (const u8*)"Hello, world!\n", 14 });
-    Kernel::FileSystem::lookup("/").m_entries.append("example.txt", &example_dentry);
+
+    // FIXME: Figure this out
+    // Kernel::FileSystem::lookup("/").m_entries.set("example.txt", &example_file);
 
     load_and_execute_shell();
 

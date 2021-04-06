@@ -66,8 +66,7 @@ namespace Kernel
             if (!path.is_absolute())
                 path = Process::current().m_working_directory / path;
 
-            auto& dentry = Kernel::FileSystem::lookup(path);
-            auto& file = dentry.file();
+            auto& file = Kernel::FileSystem::lookup(path);
 
             if ((flags & O_DIRECTORY)) {
                 if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory) {

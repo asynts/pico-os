@@ -101,6 +101,11 @@ namespace Std {
             delete[] m_buffer;
         }
 
+        void strcpy_to(Span<char> other) const
+        {
+            return view().strcpy_to(other);
+        }
+
         template<typename... Parameters>
         static String format(StringView fmtstr, const Parameters&...);
 

@@ -11,18 +11,17 @@ namespace Kernel
 
     class MemoryFileSystem;
     class MemoryFile;
+    class MemoryDirectory;
     class MemoryFileHandle;
-    class MemoryDirectoryEntry;
 
     class MemoryFileSystem final
         : public Singleton<MemoryFileSystem>
         , public VirtualFileSystem
     {
     public:
-        VirtualDirectoryEntry& root() override;
+        VirtualFile& root() override;
 
         VirtualFile& create_file() override;
-        VirtualDirectoryEntry& create_directory_entry() override;
 
         u32 next_ino() { return m_next_ino++; }
 
@@ -30,8 +29,8 @@ namespace Kernel
         friend Singleton<MemoryFileSystem>;
         MemoryFileSystem();
 
-        MemoryDirectoryEntry *m_root;
-        u32 m_next_ino;
+        MemoryDirectory *m_root;
+        u32 m_next_ino = 2;
     };
 
     class MemoryFile final : public VirtualFile {
@@ -89,15 +88,15 @@ namespace Kernel
             m_size = 0;
             m_mode = ModeFlags::Directory;
 
-            m_entries.append(".", this);
-            m_entries.append("..", this);
+            m_entries.set(".", this);
+            m_entries.set("..", this);
         }
 
         VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
 
         VirtualFileHandle& create_handle() override;
 
-        Map<String, VirtualFile*> m_entries;
+        HashMap<String, VirtualFile*> m_entries;
     };
 
     class MemoryDirectoryHandle final : public VirtualFileHandle {
@@ -112,7 +111,7 @@ namespace Kernel
             auto iter = m_file->m_entries.iter();
             for (usize index = 0; index < m_offset; ++index)
                 ++iter;
-            iter->key.strcpy_to({ info.d_name, sizeof(info.d_name) });
+            (*iter).m_key.strcpy_to({ info.d_name, sizeof(info.d_name) });
 
             ++m_offset;
             return bytes_from(info).copy_to(bytes);

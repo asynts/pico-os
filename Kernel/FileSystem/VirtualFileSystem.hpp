@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Std/Map.hpp>
+#include <Std/HashMap.hpp>
 #include <Std/String.hpp>
 
 #include <Kernel/Result.hpp>
@@ -28,10 +28,9 @@ namespace Kernel
 
     class VirtualFileSystem {
     public:
-        virtual VirtualDirectoryEntry& root() = 0;
+        virtual VirtualFile& root() = 0;
 
         virtual VirtualFile& create_file() = 0;
-        virtual VirtualDirectoryEntry& create_directory_entry() = 0;
 
         VirtualFile& create_regular();
     };
@@ -45,36 +44,6 @@ namespace Kernel
 
         virtual VirtualFileSystem& filesystem() = 0;
         virtual VirtualFileHandle& create_handle() = 0;
-    };
-
-    class VirtualDirectoryEntry {
-    public:
-        VirtualDirectoryEntry()
-        {
-            m_entries.append(".", this);
-        }
-
-        virtual VirtualFile& file() = 0;
-
-        void ensure_loaded()
-        {
-            if (!m_loaded)
-                load();
-
-            m_loaded = true;
-        }
-
-        void set_parent(VirtualDirectoryEntry& parent)
-        {
-            VERIFY(!m_entries.lookup("..").is_valid());
-            m_entries.append("..", &parent);
-        }
-
-        Map<String, VirtualDirectoryEntry*> m_entries;
-        bool m_loaded = false;
-
-    protected:
-        virtual void load() = 0;
     };
 
     class VirtualFileHandle {

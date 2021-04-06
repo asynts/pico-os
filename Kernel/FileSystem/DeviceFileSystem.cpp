@@ -9,11 +9,10 @@ namespace Kernel
     {
         MemoryFileSystem::the();
 
+        // FIXME: Do we still need this?
         FileSystem::add_device(0x00010001, ConsoleFile::the());
 
-        auto& console_dentry = *new MemoryDirectoryEntry;
-        console_dentry.m_file = &ConsoleFile::the();
-
-        FileSystem::lookup("/dev").m_entries.append("tty", &console_dentry);
+        // FIXME: Figure this out
+        // FileSystem::lookup("/dev").m_entries.set("tty", &ConsoleFile::the());
     }
 }

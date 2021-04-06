@@ -5,35 +5,22 @@
 namespace Kernel
 {
     VirtualFile& MemoryFileSystem::create_file() { return *new MemoryFile; }
-    VirtualDirectoryEntry& MemoryFileSystem::create_directory_entry() { return *new MemoryDirectoryEntry; }
-    VirtualDirectoryEntry& MemoryFileSystem::root() { return *m_root; }
+    VirtualFile& MemoryFileSystem::root() { return *m_root; }
 
     MemoryFileSystem::MemoryFileSystem()
     {
-        auto& root_file = *new MemoryFile;
-        root_file.m_ino = 2;
-        root_file.m_mode = ModeFlags::Directory;
-        root_file.m_size = 0;
+        m_root = new MemoryDirectory;
+        ASSERT(m_root->m_ino == 2);
 
-        auto& root_directory_entry = *new MemoryDirectoryEntry;
-        root_directory_entry.m_file = &root_file;
-        root_directory_entry.m_loaded = true;
-        root_directory_entry.m_entries.append(".", &root_directory_entry);
-        root_directory_entry.m_entries.append("..", &root_directory_entry);
-
-        m_root = &root_directory_entry;
+        m_root->m_entries.set(".", m_root);
+        m_root->m_entries.set("..", m_root);
 
         auto& dev_file = *new MemoryFile;
         dev_file.m_device = 0;
         dev_file.m_mode = ModeFlags::Directory;
-        auto& dev_dentry = *new MemoryDirectoryEntry;
-        dev_dentry.m_file = &dev_file;
-        root_directory_entry.m_entries.append("dev", &dev_dentry);
 
-        auto& bin_dentry = FlashFileSystem::the().root();
-        root_directory_entry.m_entries.append("bin", &bin_dentry);
-
-        m_next_ino = 3;
+        m_root->m_entries.set("dev", &dev_file);
+        m_root->m_entries.set("bin", &FlashFileSystem::the().root());
     }
 
     VirtualFileHandle& MemoryFile::create_handle()
@@ -43,5 +30,10 @@ namespace Kernel
 
         dbgln("[MemoryFile::create_handle] Created handle % for file % (ino=%)", &handle, this, m_ino);
         return handle;
+    }
+
+    VirtualFileHandle& MemoryDirectory::create_handle()
+    {
+        NOT_IMPLEMENTED();
     }
 }

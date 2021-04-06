@@ -21,43 +21,12 @@ extern "C" FlashFileInfo __flash_root;
 namespace Kernel
 {
     VirtualFile& FlashFileSystem::create_file() { return *new FlashFile; }
-    VirtualDirectoryEntry& FlashFileSystem::create_directory_entry() { return *new FlashDirectoryEntry; }
-    VirtualDirectoryEntry& FlashFileSystem::root() { return *m_root; }
+    VirtualFile& FlashFileSystem::root() { return *m_root; }
 
     FlashFileSystem::FlashFileSystem()
     {
-        auto& root_file = *new FlashFile;
-        root_file.m_ino = 2;
-        root_file.m_mode = ModeFlags::Directory;
-        root_file.m_size = 0;
-        root_file.m_data = { __flash_root.m_data, __flash_root.m_size };
-
-        auto& root_directory_entry = *new FlashDirectoryEntry;
-        root_directory_entry.m_file = &root_file;
-
-        m_root = &root_directory_entry;
-    }
-
-    void FlashDirectoryEntry::load()
-    {
-        auto *begin = reinterpret_cast<const FlashDirectoryEntryInfo*>(m_file->m_data.data());
-        auto *end = reinterpret_cast<const FlashDirectoryEntryInfo*>(m_file->m_data.data() + m_file->m_data.size());
-
-        for (auto *entry = begin; entry < end; ++entry)
-        {
-            // FIXME: Deal with hardlinks
-            auto& file = *new FlashFile;
-            file.m_data = { entry->m_info->m_data, entry->m_info->m_size };
-            file.m_device = entry->m_info->m_devno;
-            file.m_ino = entry->m_info->m_ino;
-            file.m_mode = static_cast<ModeFlags>(entry->m_info->m_mode);
-            file.m_size = entry->m_info->m_size;
-
-            auto& dentry = *new FlashDirectoryEntry;
-            dentry.m_file = &file;
-
-            m_entries.append(entry->m_name, &dentry);
-        }
+        // FIXME: Figure this out
+        m_root = nullptr;
     }
 
     VirtualFileHandle& FlashFile::create_handle()
