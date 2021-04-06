@@ -115,6 +115,8 @@ namespace Std {
 
         String& operator=(String&& other)
         {
+            delete[] m_buffer;
+
             m_buffer = exchange(other.m_buffer, nullptr);
             m_buffer_size = exchange(other.m_buffer_size, 0);
             return *this;
@@ -126,7 +128,7 @@ namespace Std {
         bool operator==(const String& other) const { return (*this <=> other) == 0; }
 
     private:
-        char *m_buffer;
+        char *m_buffer = nullptr;
         usize m_buffer_size;
     };
 
