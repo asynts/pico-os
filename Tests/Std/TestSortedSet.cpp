@@ -143,6 +143,8 @@ TEST_CASE(sortedset_min)
 {
     Std::SortedSet<int> set;
 
+    ASSERT(set.min() == nullptr);
+
     set.insert(1);
     set.insert(42);
     set.insert(18);
