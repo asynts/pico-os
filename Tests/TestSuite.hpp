@@ -99,16 +99,52 @@ namespace Tests
             m_destroy_count = 0;
         }
 
-        static void assert(std::optional<size_t> create_count, std::optional<size_t> move_count, std::optional<size_t> copy_count, std::optional<size_t> destory_count)
+        static void assert(
+            std::optional<size_t> create_count,
+            std::optional<size_t> move_count,
+            std::optional<size_t> copy_count,
+            std::optional<size_t> destroy_count,
+            std::string_view filename = __builtin_FILE(),
+            size_t line = __builtin_LINE())
         {
+            if (debug) {
+                std::cout << "current: ";
+                dump();
+
+                std::cout << "asserting: create=";
+                if (create_count.has_value())
+                    std::cout << *create_count;
+                else
+                    std::cout << "?";
+
+                std::cout << ", move=";
+                if (move_count.has_value())
+                    std::cout << *move_count;
+                else
+                    std::cout << "?";
+
+                std::cout << ", copy=";
+                if (copy_count.has_value())
+                    std::cout << *copy_count;
+                else
+                    std::cout << "?";
+
+                std::cout << ", destroy=";
+                if (destroy_count.has_value())
+                    std::cout << *destroy_count;
+                else
+                    std::cout << "?";
+                std::cout << "\n" << filename << ":" << line << "\n";
+            }
+
             if (create_count)
                 ASSERT(m_create_count == *create_count);
             if (move_count)
                 ASSERT(m_move_count == *move_count);
             if (copy_count)
                 ASSERT(m_copy_count == *copy_count);
-            if (destory_count)
-                ASSERT(m_destroy_count == *destory_count);
+            if (destroy_count)
+                ASSERT(m_destroy_count == *destroy_count);
         }
 
         static void dump()
