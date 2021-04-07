@@ -57,6 +57,8 @@ int main(int argc, char **argv)
             printf("st_size: %i\n", statbuf.st_size);
             printf("st_blksize: %u\n", statbuf.st_blksize);
             printf("st_blocks: %u\n", statbuf.st_blocks);
+            printf("st_uid: %u\n", statbuf.st_uid);
+            printf("st_gid: %u\n", statbuf.st_gid);
 
             retval = close(fd);
             assert(retval == 0);

@@ -30,8 +30,18 @@ namespace Kernel
     public:
         virtual ~VirtualFile() = default;
 
+        VirtualFile()
+        {
+            m_ino = 0;
+            m_mode = ModeFlags::Invalid;
+            m_owning_user = 0;
+            m_owning_group = 0;
+        }
+
         u32 m_ino;
         ModeFlags m_mode;
+        u32 m_owning_user;
+        u32 m_owning_group;
 
         virtual VirtualFileHandle& create_handle() = 0;
     };

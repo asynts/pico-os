@@ -28,6 +28,8 @@
 namespace Kernel
 {
     enum class ModeFlags : u32 {
+        Invalid = 0,
+
         Format    = 0b1111 << 0,
         Directory = 0b0001 << 0,
         Device    = 0b0010 << 0,
@@ -57,6 +59,8 @@ typedef unsigned int mode_t;
 typedef int off_t;
 typedef unsigned int blksize_t;
 typedef unsigned int blkcnt_t;
+typedef unsigned int uid_t;
+typedef unsigned int gid_t;
 
 #ifdef KERNEL
 namespace Kernel
@@ -78,6 +82,8 @@ struct Kernel::UserlandFileInfo {
     off_t st_size;
     blksize_t st_blksize;
     blkcnt_t st_blocks;
+    uid_t st_uid;
+    gid_t st_gid;
 };
 
 #ifdef USERLAND

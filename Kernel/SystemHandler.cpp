@@ -100,6 +100,8 @@ namespace Kernel
 
             statbuf->st_ino = file.m_ino;
             statbuf->st_mode = static_cast<u32>(file.m_mode);
+            statbuf->st_uid = file.m_owning_user;
+            statbuf->st_gid = file.m_owning_group;
 
             return 0;
         }
@@ -122,6 +124,8 @@ namespace Kernel
 
             statbuf->st_ino = file.m_ino;
             statbuf->st_mode = static_cast<u32>(file.m_mode);
+            statbuf->st_uid = file.m_owning_user;
+            statbuf->st_gid = file.m_owning_group;
 
             return 0;
         }
