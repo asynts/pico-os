@@ -18,7 +18,29 @@ int execle(const char *pathname, ...)
     abort();
 }
 
+// FIXME: Do this properly
+int geteuid(void)
+{
+    return 0;
+}
+int getegid(void)
+{
+    return 0;
+}
+
 int access(const char *pathname, int mode)
 {
-    abort();
+    assert(mode == X_OK);
+
+    struct stat statbuf;
+    int retval = stat(pathname, &statbuf);
+    assert(retval == 0);
+
+    if (statbuf.st_uid == geteuid() && (statbuf.st_mode & S_IXUSR))
+        return 0;
+    if (statbuf.st_gid == getegid() && (statbuf.st_mode & S_IXGRP))
+        return 0;
+
+    // FIXME: Set errno
+    return -1;
 }

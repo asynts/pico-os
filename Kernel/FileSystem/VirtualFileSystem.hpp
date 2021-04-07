@@ -14,11 +14,6 @@ namespace Kernel
     class VirtualFileHandle;
     class VirtualFileSystem;
 
-    inline ModeFlags operator&(ModeFlags lhs, ModeFlags rhs)
-    {
-        return static_cast<ModeFlags>(static_cast<u32>(lhs) & static_cast<u32>(rhs));
-    }
-
     class VirtualFileSystem {
     public:
         virtual ~VirtualFileSystem() = default;

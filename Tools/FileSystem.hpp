@@ -9,14 +9,22 @@
 
 #define HOST
 #include <Kernel/Interface/vfs.h>
+#include <Kernel/Interface/stat.h>
 
 class FileSystem {
 public:
     explicit FileSystem(Elf::Generator& generator);
     ~FileSystem();
 
-    uint32_t add_file(Elf::MemoryStream&, uint32_t mode = FLASH_TYPE_REG, uint32_t inode_number = 0, size_t *load_offset = nullptr);
-    uint32_t add_host_file(std::string_view path);
+    uint32_t add_file(
+        Elf::MemoryStream&,
+        Kernel::ModeFlags mode = Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultPermissions,
+        uint32_t inode_number = 0,
+        size_t *load_offset = nullptr);
+
+    uint32_t add_host_file(
+        std::string_view path,
+        Kernel::ModeFlags mode = Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultPermissions);
 
     uint32_t add_directory(std::map<std::string, uint32_t>& files, uint32_t inode_number = 0);
     uint32_t add_root_directory(std::map<std::string, uint32_t>& files);

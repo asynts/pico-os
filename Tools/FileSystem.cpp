@@ -33,13 +33,13 @@ FileSystem::~FileSystem()
 {
     assert(m_finalized);
 }
-uint32_t FileSystem::add_host_file(std::string_view path)
+uint32_t FileSystem::add_host_file(std::string_view path, Kernel::ModeFlags mode)
 {
     // FIXME: We don't have to map the file into memory
     Elf::MemoryStream stream;
     stream.write_bytes(Elf::mmap_file(path));
 
-    return add_file(stream);
+    return add_file(stream, mode);
 }
 uint32_t FileSystem::add_directory(std::map<std::string, uint32_t>& files, uint32_t inode_number)
 {
@@ -61,7 +61,7 @@ uint32_t FileSystem::add_directory(std::map<std::string, uint32_t>& files, uint3
     }
 
     size_t load_offset;
-    inode_number = add_file(stream, FLASH_TYPE_DIR, inode_number, &load_offset);
+    inode_number = add_file(stream, Kernel::ModeFlags::Directory, inode_number, &load_offset);
 
     for (auto& relocation : directory_relocations) {
         relocation.r_offset += load_offset;
@@ -74,7 +74,7 @@ uint32_t FileSystem::add_root_directory(std::map<std::string, uint32_t>& files)
 {
     return add_directory(files, 2);
 }
-uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t inode_number, size_t *load_offset)
+uint32_t FileSystem::add_file(Elf::MemoryStream& stream, Kernel::ModeFlags mode, uint32_t inode_number, size_t *load_offset)
 {
     if (inode_number == 0)
         inode_number = m_next_inode++;
@@ -94,7 +94,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, uint32_t mode, uint32_t
 
     FileInfo inode;
     inode.m_ino = inode_number;
-    inode.m_mode = mode;
+    inode.m_mode = static_cast<uint32_t>(mode);
     inode.m_size = stream.size();
     inode.m_device = FLASH_DEVICE_ID;
 

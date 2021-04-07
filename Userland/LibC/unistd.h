@@ -14,3 +14,6 @@ pid_t fork(void);
 int execle(const char *pathname, ...);
 
 int access(const char *pathname, int mode);
+
+int geteuid(void);
+int getegid(void);

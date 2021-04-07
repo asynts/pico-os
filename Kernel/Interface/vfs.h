@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+// FIXME: Remove this file for stat.h
+
 // In this filesystem `m_direct_blocks[0]` is null and `DirectoryEntryInfo`s are generated
 // with `m_keep` set.
 #define RAM_BLOCK_SIZE 0x1000
@@ -15,16 +17,6 @@
 #define FLASH_DEVICE_ID 2
 #define FLASH_BLOCK_SIZE 0x1000
 #define FLASH_BLOCK_ENTRIES 0x400
-
-#ifdef HOST
-# define FLASH_TYPE_DIR 1
-# define FLASH_TYPE_REG 2
-#else
-# define S_IFMT 0xf
-# define S_IFDIR 1
-# define S_IFREG 2
-# define S_IFDEV 3
-#endif
 
 struct FileInfo {
     uint32_t m_ino;

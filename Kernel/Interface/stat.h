@@ -1,7 +1,7 @@
 #pragma once
 
-#if !defined(USERLAND) && !defined(KERNEL)
-# error "Neither USERLAND nor KERNEL defined."
+#if !defined(USERLAND) && !defined(KERNEL) && !defined(HOST)
+# error "USERLAND, KERNEL or HOST needs to be defined"
 #endif
 
 #ifdef USERLAND
@@ -24,12 +24,11 @@
 #define S_IROTH (0b0001 << 12)
 #define S_IWOTH (0b0010 << 12)
 #define S_IXOTH (0b0100 << 12)
-#elif defined(KERNEL)
+#elif defined(KERNEL) || defined(HOST)
 namespace Kernel
 {
-    enum class ModeFlags : u32 {
-        Invalid = 0,
-
+    static_assert(sizeof(unsigned int) == 4);
+    enum class ModeFlags : unsigned int {
         Format    = 0b1111 << 0,
         Directory = 0b0001 << 0,
         Device    = 0b0010 << 0,
@@ -49,10 +48,24 @@ namespace Kernel
         OthersReadAccess    = 0b0001 << 12,
         OthersWriteAccess   = 0b0010 << 12,
         OthersExecuteAccess = 0b0100 << 12,
+
+        Invalid = 0,
+        DefaultPermissions = UserReadAccess | UserWriteAccess | GroupReadAccess | GroupWriteAccess | OthersReadAccess,
+        DefaultExecutablePermissions = DefaultPermissions | UserExecuteAccess | GroupExecuteAccess | OthersExecuteAccess,
     };
+
+    inline ModeFlags operator|(ModeFlags lhs, ModeFlags rhs)
+    {
+        return static_cast<ModeFlags>(static_cast<unsigned int>(lhs) | static_cast<unsigned int>(rhs));
+    }
+    inline ModeFlags operator&(ModeFlags lhs, ModeFlags rhs)
+    {
+        return static_cast<ModeFlags>(static_cast<unsigned int>(lhs) & static_cast<unsigned int>(rhs));
+    }
 }
 #endif
 
+#ifndef HOST
 typedef unsigned int dev_t;
 typedef unsigned int ino_t;
 typedef unsigned int mode_t;
@@ -62,19 +75,19 @@ typedef unsigned int blkcnt_t;
 typedef unsigned int uid_t;
 typedef unsigned int gid_t;
 
-#ifdef KERNEL
+# ifdef KERNEL
 namespace Kernel
 {
     struct UserlandFileInfo;
     struct UserlandDirectoryInfo;
 }
-#endif
+# endif
 
-#ifdef USERLAND
+# ifdef USERLAND
 struct stat {
-#elif defined(KERNEL)
+# elif defined(KERNEL)
 struct Kernel::UserlandFileInfo {
-#endif
+# endif
     dev_t st_dev;
     ino_t st_ino;
     mode_t st_mode;
@@ -86,10 +99,11 @@ struct Kernel::UserlandFileInfo {
     gid_t st_gid;
 };
 
-#ifdef USERLAND
+# ifdef USERLAND
 struct dirent {
-#elif defined(KERNEL)
+# elif defined(KERNEL)
 struct Kernel::UserlandDirectoryInfo {
-#endif
+# endif
     char d_name[256];
 };
+#endif
