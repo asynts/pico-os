@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 char* strchr(const char *str, int ch)
 {
@@ -67,6 +68,21 @@ void* memset(void *dest, int ch, size_t count)
     return dest;
 }
 
+void* __aeabi_memcpy(void *dest, const void *src, size_t count)
+{
+    char *dest_ = dest;
+    const char *src_ = src;
+
+    for (size_t i = 0; i < count; ++i)
+        dest_[i] = src_[i];
+
+    return dest;
+}
+void* memcpy(void *dest, const void *src, size_t count)
+{
+    return __aeabi_memcpy(dest, src, count);
+}
+
 size_t strlen(const char *str)
 {
     size_t length = 0;
@@ -74,4 +90,21 @@ size_t strlen(const char *str)
         ++length;
 
     return length;
+}
+
+char* strdup(const char *str)
+{
+    char *copy = malloc(strlen(str) + 1);
+    return strcpy(copy, str);
+}
+
+char* strcpy(char *dest, const char *src)
+{
+    return memcpy(dest, src, strlen(src) + 1);
+}
+
+char* strcat(char *dest, const char *src)
+{
+    strcpy(dest + strlen(dest), src);
+    return dest;
 }

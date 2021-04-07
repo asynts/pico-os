@@ -9,6 +9,10 @@
 #include <readline/readline.h>
 #include <assert.h>
 #include <malloc.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+char* find_executable(const char *name);
 
 int main(int argc, char **argv)
 {
@@ -103,6 +107,7 @@ int main(int argc, char **argv)
         } else if (strcmp(program, "touch") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
+            assert(path != NULL);
 
             int fd = creat(path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
             assert(fd >= 0);
@@ -110,9 +115,61 @@ int main(int argc, char **argv)
             int retval = close(fd);
             assert(retval == 0);
         } else {
-            printf("Error: unknown command '%s'\n", program);
+            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            char *fullpath = find_executable(program);
+
+            if (fullpath == NULL) {
+                printf("Error: unknown command '%s'\n", program);
+            } else {
+                int pid = fork();
+                assert(pid >= 0);
+
+                if (pid == 0) {
+                    execle(fullpath, program, NULL, NULL);
+                    assert(0);
+                } else {
+                    int status;
+                    int retval = wait(&status);
+                    assert(retval >= 0);
+
+                    printf("Child terminated with status %i\n", status);
+                }
+            }
         }
 
         free(buffer);
     }
+}
+
+char* find_executable(const char *program)
+{
+    assert(strlen(program) >= 1);
+
+    printf("Searching for program %s\n", program);
+
+    if (program[0] == '/') {
+        if (access(program, X_OK) == 0)
+            return strdup(program);
+        return NULL;
+    }
+
+    char *path = strdup(getenv("PATH"));
+    char *saveptr;
+
+    for (char *directory = strtok_r(path, ":", &saveptr); directory; directory = strtok_r(NULL, ":", &saveptr)) {
+        char *fullpath = malloc(strlen(directory) + strlen(program) + 2);
+        fullpath = strcpy(fullpath, directory);
+        fullpath = strcat(fullpath, "/");
+        fullpath = strcat(fullpath, program);
+
+        printf("Checking %s\n", fullpath);
+
+        if (access(fullpath, X_OK) == 0)
+            return fullpath;
+
+        free(fullpath);
+    }
+
+    return NULL;
 }

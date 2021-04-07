@@ -4,3 +4,5 @@
 
 _Noreturn void abort(void);
 _Noreturn void exit(int status);
+
+char* getenv(const char *name);
