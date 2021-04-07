@@ -53,7 +53,6 @@ void initialize_uart_debug()
     // FIXME: I really don't know that the SDK does exactly, but this is necessary to make assertions work.
     stdio_init_all();
 
-    // FIXME: For some reason there is a 0xff symbol send when the connection is opened.
     char ch = uart_getc(uart0);
     VERIFY(ch == 0xff);
 }
@@ -68,14 +67,13 @@ int main()
     Kernel::FlashFileSystem::the();
     Kernel::DeviceFileSystem::the();
 
-    // FIXME: This is really ugly, not sure how to fix it
     dbgln("[main] Creating /example.txt");
     auto& example_file = *new Kernel::MemoryFile;
     auto& example_handle = example_file.create_handle();
     example_handle.write({ (const u8*)"Hello, world!\n", 14 });
 
-    // FIXME: Figure this out
-    // Kernel::FileSystem::lookup("/").m_entries.set("example.txt", &example_file);
+    auto& root_file = Kernel::FileSystem::lookup("/");
+    dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
     load_and_execute_shell();
 
