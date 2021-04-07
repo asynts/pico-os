@@ -14,10 +14,25 @@ namespace Kernel
     class VirtualFileSystem;
 
     enum class ModeFlags : u32 {
-        Format    = 0b1111,
-        Directory = 0b0001,
-        Device    = 0b0010,
-        Regular   = 0b0011,
+        Format    = 0b1111 << 0,
+        Directory = 0b0001 << 0,
+        Device    = 0b0010 << 0,
+        Regular   = 0b0011 << 0,
+
+        UserPermissions   = 0b1111 << 4,
+        UserReadAccess    = 0b0001 << 4,
+        UserWriteAccess   = 0b0010 << 4,
+        UserExecuteAccess = 0b0100 << 4,
+
+        GroupPermissions   = 0b1111 << 8,
+        GroupReadAccess    = 0b0001 << 8,
+        GroupWriteAccess   = 0b0010 << 8,
+        GroupExecuteAccess = 0b0100 << 8,
+
+        OthersPermissions   = 0b1111 << 12,
+        OthersReadAccess    = 0b0001 << 12,
+        OthersWriteAccess   = 0b0010 << 12,
+        OthersExecuteAccess = 0b0100 << 12,
     };
 
     inline ModeFlags operator&(ModeFlags lhs, ModeFlags rhs)

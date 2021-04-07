@@ -20,9 +20,5 @@ int execle(const char *pathname, ...)
 
 int access(const char *pathname, int mode)
 {
-    struct stat statbuf;
-    int retval = stat(pathname, &statbuf);
-    assert(retval >= 0);
-
-    return statbuf.st_mode & X_OK;
+    abort();
 }
