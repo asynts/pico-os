@@ -5,7 +5,25 @@
 #endif
 
 #ifdef USERLAND
-#define S_IFMT (0b1111 << 0)
+#define S_IFMT  (0b1111 << 0)
+#define S_IFDIR (0b0001 << 0)
+#define S_IFREG (0b0010 << 0)
+#define S_IFDEV (0b0011 << 0)
+
+#define S_IRWXU (0b1111 << 4)
+#define S_IRUSR (0b0001 << 4)
+#define S_IWUSR (0b0010 << 4)
+#define S_IXUSR (0b0100 << 4)
+
+#define S_IRWXG (0b1111 << 8)
+#define S_IRGRP (0b0001 << 8)
+#define S_IWGRP (0b0010 << 8)
+#define S_IXGRP (0b0100 << 8)
+
+#define S_IRWXO (0b1111 << 12)
+#define S_IROTH (0b0001 << 12)
+#define S_IWOTH (0b0010 << 12)
+#define S_IXOTH (0b0100 << 12)
 #elif defined(KERNEL)
 namespace Kernel
 {
@@ -33,14 +51,6 @@ namespace Kernel
 }
 #endif
 
-#ifdef USERLAND
-#define S_IRUSR 0400
-#define S_IWUSR 0200
-#define S_IRGRP 0040
-#define S_IWGRP 0020
-#define S_IROTH 0004
-#endif
-
 typedef unsigned int dev_t;
 typedef unsigned int ino_t;
 typedef unsigned int mode_t;
@@ -48,12 +58,18 @@ typedef int off_t;
 typedef unsigned int blksize_t;
 typedef unsigned int blkcnt_t;
 
+#ifdef KERNEL
+namespace Kernel
+{
+    struct UserlandFileInfo;
+    struct UserlandDirectoryInfo;
+}
+#endif
+
 #ifdef USERLAND
 struct stat {
 #elif defined(KERNEL)
-struct UserlandFileInfo {
-#else
-#error "Neither USERLAND nor KERNEL defined."
+struct Kernel::UserlandFileInfo {
 #endif
     dev_t st_dev;
     ino_t st_ino;
@@ -67,9 +83,7 @@ struct UserlandFileInfo {
 #ifdef USERLAND
 struct dirent {
 #elif defined(KERNEL)
-struct UserlandDirectoryInfo {
-#else
-#error "Neither USERLAND nor KERNEL defined."
+struct Kernel::UserlandDirectoryInfo {
 #endif
     char d_name[256];
 };

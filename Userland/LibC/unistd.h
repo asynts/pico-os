@@ -5,6 +5,8 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
+#define X_OK 1
+
 int chdir(const char *path);
 
 pid_t fork(void);
