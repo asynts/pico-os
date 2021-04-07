@@ -1,4 +1,5 @@
 file(GLOB_RECURSE SHELL_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S Shell.c)
+file(GLOB_RECURSE Example_SOURCES CONFIGURE_depends LibC/*.c LibC/*.S Example.c)
 
 add_custom_target(Shell.1.elf ALL
     COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
@@ -13,6 +14,19 @@ add_custom_target(Shell.1.elf ALL
         ${SHELL_SOURCES}
         -o ${CMAKE_CURRENT_BINARY_DIR}/Shell.1.elf)
 
+add_custom_target(Example.1.elf ALL
+    COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
+        -std=gnu11 -Og -g -static -nostdlib -fcolor-diagnostics
+        -fropi -frwpi
+        -DUSERLAND
+        -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
+        -I ${CMAKE_SOURCE_DIR}
+        -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
+        -Xlinker --nmagic
+        --sysroot=/usr/local/arm-none-eabi
+        ${Example_SOURCES}
+        -o ${CMAKE_CURRENT_BINARY_DIR}/Example.1.elf)
+
 add_custom_target(Shell.elf ALL
     COMMAND arm-none-eabi-objcopy
         --strip-unneeded
@@ -20,9 +34,16 @@ add_custom_target(Shell.elf ALL
         ${CMAKE_CURRENT_BINARY_DIR}/Shell.elf
     DEPENDS Shell.1.elf)
 
+add_custom_target(Example.elf ALL
+    COMMAND arm-none-eabi-objcopy
+        --strip-unneeded
+        ${CMAKE_CURRENT_BINARY_DIR}/Example.1.elf
+        ${CMAKE_CURRENT_BINARY_DIR}/Example.elf
+    DEPENDS Example.1.elf)
+
 add_custom_target(FileSystem.elf ALL
     COMMAND ${ELF_EMBED_EXECUTABLE}
-    DEPENDS Shell.elf ElfEmbed)
+    DEPENDS Shell.elf Example.elf ElfEmbed)
 
 add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)
 set_target_properties(LibEmbeddedFiles

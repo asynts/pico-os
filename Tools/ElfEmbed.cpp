@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 
     std::map<std::string, uint32_t> bin_files;
     bin_files["Shell.elf"] = fs.add_host_file("Shell.elf");
+    bin_files["Example.elf"] = fs.add_host_file("Example.elf");
 
     fs.add_root_directory(bin_files);
 
