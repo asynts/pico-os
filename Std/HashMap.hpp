@@ -77,7 +77,9 @@ namespace Std
             }
         };
 
-        HashTable<Node>::Iterator iter() { return m_hash.iter(); }
+        using Iterator = HashTable<Node>::Iterator;
+
+        Iterator iter() { return m_hash.iter(); }
 
     private:
         HashTable<Node> m_hash;

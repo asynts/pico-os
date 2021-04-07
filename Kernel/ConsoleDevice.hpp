@@ -13,8 +13,6 @@ namespace Kernel {
     class ConsoleFileHandle final : public VirtualFileHandle
     {
     public:
-        VirtualFile& file() override { return *m_file; }
-
         KernelResult<usize> read(Bytes bytes) override
         {
             usize nread;
@@ -29,8 +27,6 @@ namespace Kernel {
             uart_write_blocking(uart0, bytes.data(), bytes.size());
             return bytes.size();
         }
-
-        VirtualFile *m_file;
     };
 
     class ConsoleFile final
@@ -38,13 +34,9 @@ namespace Kernel {
         , public VirtualFile
     {
     public:
-        VirtualFileSystem& filesystem() override { return DeviceFileSystem::the(); }
-
         VirtualFileHandle& create_handle() override
         {
-            auto& handle = *new ConsoleFileHandle;
-            handle.m_file = this;
-            return handle;
+            return *new ConsoleFileHandle;
         }
 
     private:

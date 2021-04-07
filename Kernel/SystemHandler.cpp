@@ -93,14 +93,15 @@ namespace Kernel
             // FIXME: Reimplement device numbers
             statbuf->st_dev = 0;
 
-            statbuf->st_ino = handle.file().m_ino;
-            statbuf->st_mode = (u32)handle.file().m_mode;
-            statbuf->st_rdev = handle.file().m_device;
-            statbuf->st_size = handle.file().m_size;
+            // FIXME: Deal with this
+            // statbuf->st_ino = handle.file().m_ino;
+            // statbuf->st_mode = (u32)handle.file().m_mode;
+            // statbuf->st_rdev = handle.file().m_device;
+            // statbuf->st_size = handle.file().m_size;
 
             // FIXME: Do this properly
             statbuf->st_blksize = 1;
-            statbuf->st_blocks = handle.file().m_size;
+            // statbuf->st_blocks = handle.file().m_size;
 
             return 0;
         }

@@ -11,7 +11,6 @@ namespace Kernel
 
     class VirtualFile;
     class VirtualFileHandle;
-    class VirtualDirectoryEntry;
     class VirtualFileSystem;
 
     enum class ModeFlags : u32 {
@@ -28,28 +27,30 @@ namespace Kernel
 
     class VirtualFileSystem {
     public:
+        virtual ~VirtualFileSystem() = default;
+
         virtual VirtualFile& root() = 0;
-
-        virtual VirtualFile& create_file() = 0;
-
-        VirtualFile& create_regular();
     };
 
     class VirtualFile {
     public:
+        virtual ~VirtualFile() = default;
+
         u32 m_ino;
         ModeFlags m_mode;
-        u32 m_size;
-        u32 m_device;
 
-        virtual VirtualFileSystem& filesystem() = 0;
         virtual VirtualFileHandle& create_handle() = 0;
+    };
+
+    class VirtualDirectory : public VirtualFile {
+    public:
+        virtual ~VirtualDirectory() = default;
+
+        HashMap<String, VirtualFile*> m_entries;
     };
 
     class VirtualFileHandle {
     public:
-        virtual VirtualFile& file() = 0;
-
         virtual KernelResult<usize> read(Bytes) = 0;
         virtual KernelResult<usize> write(ReadonlyBytes) = 0;
     };

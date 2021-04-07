@@ -21,8 +21,6 @@ namespace Kernel
     public:
         VirtualFile& root() override;
 
-        VirtualFile& create_file() override;
-
         u32 next_ino() { return m_next_ino++; }
 
     private:
@@ -38,10 +36,8 @@ namespace Kernel
         MemoryFile()
         {
             m_ino = MemoryFileSystem::the().next_ino();
-            m_size = 0;
+            m_mode = ModeFlags::Regular;
         }
-
-        VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
 
         ReadonlyBytes span() const { return m_data.span(); }
         Bytes span() { return m_data.span(); }
@@ -59,61 +55,62 @@ namespace Kernel
 
     class MemoryFileHandle final : public VirtualFileHandle {
     public:
-        VirtualFile& file() override { return *m_file; }
+        explicit MemoryFileHandle(MemoryFile& file)
+            : m_file(file)
+            , m_offset(0)
+        {
+        }
 
         KernelResult<usize> read(Bytes bytes) override
         {
-            usize nread = m_file->span().slice(m_offset).copy_trimmed_to(bytes);
+            usize nread = m_file.span().slice(m_offset).copy_trimmed_to(bytes);
             m_offset += nread;
 
             return nread;
         }
         KernelResult<usize> write(ReadonlyBytes bytes) override
         {
-            m_file->append(bytes);
+            m_file.append(bytes);
             m_offset += bytes.size();
             return bytes.size();
         }
 
-        MemoryFile *m_file;
-        usize m_offset = 0;
+        MemoryFile& m_file;
+        usize m_offset;
     };
 
-    // FIXME: Hook this up
-    class MemoryDirectory final : public VirtualFile {
+    class MemoryDirectory final : public VirtualDirectory {
     public:
         MemoryDirectory()
         {
             m_ino = MemoryFileSystem::the().next_ino();
-            m_size = 0;
             m_mode = ModeFlags::Directory;
 
             m_entries.set(".", this);
             m_entries.set("..", this);
         }
 
-        VirtualFileSystem& filesystem() override { return MemoryFileSystem::the(); }
-
         VirtualFileHandle& create_handle() override;
-
-        HashMap<String, VirtualFile*> m_entries;
     };
 
     class MemoryDirectoryHandle final : public VirtualFileHandle {
     public:
-        VirtualFile& file() override { return *m_file; }
+        explicit MemoryDirectoryHandle(MemoryDirectory& directory)
+            : m_iterator(directory.m_entries.iter())
+        {
+        }
 
         KernelResult<usize> read(Bytes bytes) override
         {
+            ASSERT(bytes.size() == sizeof(UserlandDirectoryInfo));
+
+            if (m_iterator.begin() == m_iterator.end())
+                return 0;
+
+            auto& [name, file] = *m_iterator++;
+
             UserlandDirectoryInfo info;
-
-            // FIXME: Implement iterators for Std::Map, maybe do it properly now?
-            auto iter = m_file->m_entries.iter();
-            for (usize index = 0; index < m_offset; ++index)
-                ++iter;
-            (*iter).m_key.strcpy_to({ info.d_name, sizeof(info.d_name) });
-
-            ++m_offset;
+            name.strcpy_to({ info.d_name, sizeof(info.d_name) });
             return bytes_from(info).copy_to(bytes);
         }
         KernelResult<usize> write(ReadonlyBytes bytes) override
@@ -121,7 +118,6 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
-        MemoryDirectory *m_file;
-        usize m_offset = 0;
+        decltype(MemoryDirectory::m_entries)::Iterator m_iterator;
     };
 }

@@ -4,7 +4,6 @@
 
 namespace Kernel
 {
-    VirtualFile& MemoryFileSystem::create_file() { return *new MemoryFile; }
     VirtualFile& MemoryFileSystem::root() { return *m_root; }
 
     MemoryFileSystem::MemoryFileSystem()
@@ -15,9 +14,7 @@ namespace Kernel
         m_root->m_entries.set(".", m_root);
         m_root->m_entries.set("..", m_root);
 
-        auto& dev_file = *new MemoryFile;
-        dev_file.m_device = 0;
-        dev_file.m_mode = ModeFlags::Directory;
+        auto& dev_file = *new MemoryDirectory;
 
         m_root->m_entries.set("dev", &dev_file);
         m_root->m_entries.set("bin", &FlashFileSystem::the().root());
@@ -25,15 +22,11 @@ namespace Kernel
 
     VirtualFileHandle& MemoryFile::create_handle()
     {
-        auto& handle = *new MemoryFileHandle;
-        handle.m_file = this;
-
-        dbgln("[MemoryFile::create_handle] Created handle % for file % (ino=%)", &handle, this, m_ino);
-        return handle;
+        return *new MemoryFileHandle { *this };
     }
 
     VirtualFileHandle& MemoryDirectory::create_handle()
     {
-        NOT_IMPLEMENTED();
+        return *new MemoryDirectoryHandle { *this };
     }
 }

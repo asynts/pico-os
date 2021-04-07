@@ -70,7 +70,7 @@ int main()
 
     // FIXME: This is really ugly, not sure how to fix it
     dbgln("[main] Creating /example.txt");
-    auto& example_file = Kernel::MemoryFileSystem::the().create_regular();
+    auto& example_file = *new Kernel::MemoryFile;
     auto& example_handle = example_file.create_handle();
     example_handle.write({ (const u8*)"Hello, world!\n", 14 });
 

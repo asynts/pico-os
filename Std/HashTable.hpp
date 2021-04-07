@@ -147,7 +147,7 @@ namespace Std
             }
             Iterator operator++(int)
             {
-                return { m_iterator++ };
+                return Iterator { m_iterator++ };
             }
 
             bool operator==(Iterator other) const
