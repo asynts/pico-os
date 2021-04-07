@@ -10,10 +10,13 @@ namespace Kernel::FileSystem
         VirtualFile *file = &MemoryFileSystem::the().root();
 
         for (auto& component : path.components()) {
-            // FIXME: Figure this out
-            ASSERT_NOT_REACHED();
+            auto *directory = dynamic_cast<VirtualDirectory*>(file);
+            ASSERT(directory != nullptr);
+
+            file = directory->m_entries.get_opt(component).must();
         }
 
+        ASSERT(file != nullptr);
         return *file;
     }
 

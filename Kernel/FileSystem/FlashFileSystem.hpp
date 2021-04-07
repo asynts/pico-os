@@ -52,7 +52,10 @@ namespace Kernel
         explicit FlashFile(FlashFileInfo& info)
             : m_data(info.m_data, info.m_size)
         {
+            m_ino = info.m_ino;
+
             // FIXME: Verify that this is a file
+            m_mode = ModeFlags::Regular;
         }
 
         VirtualFileHandle& create_handle() override;

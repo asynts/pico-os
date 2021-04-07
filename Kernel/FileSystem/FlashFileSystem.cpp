@@ -20,6 +20,9 @@ namespace Kernel
 
     FlashDirectory::FlashDirectory(FlashFileInfo& info)
     {
+        m_ino = info.m_ino;
+        m_mode = ModeFlags::Directory;
+
         auto *begin = reinterpret_cast<const FlashDirectoryEntryInfo*>(info.m_data);
         auto *end = reinterpret_cast<const FlashDirectoryEntryInfo*>(info.m_data + info.m_size);
 

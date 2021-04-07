@@ -12,7 +12,7 @@ namespace Kernel
         // FIXME: Do we still need this?
         FileSystem::add_device(0x00010001, ConsoleFile::the());
 
-        // FIXME: Figure this out
-        // FileSystem::lookup("/dev").m_entries.set("tty", &ConsoleFile::the());
+        auto& dev_file = FileSystem::lookup("/dev");
+        dynamic_cast<VirtualDirectory&>(dev_file).m_entries.set("tty", &ConsoleFile::the());
     }
 }
