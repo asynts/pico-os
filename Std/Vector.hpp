@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef TEST
-# include <stdio.h>
-#else
-# include <pico/printf.h>
-#endif
-
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
 

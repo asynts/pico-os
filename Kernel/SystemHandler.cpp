@@ -94,9 +94,9 @@ namespace Kernel
             // FIXME: We need some sensible values here
             statbuf->st_dev = 0xdead;
             statbuf->st_rdev = 0xdead;
-            statbuf->st_size = 0xdeadbeef;
-            statbuf->st_blksize = 0xdeadbeef;
-            statbuf->st_blocks = 0xdeadbeef;
+            statbuf->st_size = 0xdead;
+            statbuf->st_blksize = 0xdead;
+            statbuf->st_blocks = 0xdead;
 
             statbuf->st_ino = file.m_ino;
             statbuf->st_mode = static_cast<u32>(file.m_mode);
@@ -116,9 +116,9 @@ namespace Kernel
             // FIXME: We need some sensible values here
             statbuf->st_dev = 0xdead;
             statbuf->st_rdev = 0xdead;
-            statbuf->st_size = 0xdeadbeef;
-            statbuf->st_blksize = 0xdeadbeef;
-            statbuf->st_blocks = 0xdeadbeef;
+            statbuf->st_size = 0xdead;
+            statbuf->st_blksize = 0xdead;
+            statbuf->st_blocks = 0xdead;
 
             statbuf->st_ino = file.m_ino;
             statbuf->st_mode = static_cast<u32>(file.m_mode);

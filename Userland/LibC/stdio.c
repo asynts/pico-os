@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 static size_t format_integer(int is_negative, unsigned long long value, size_t bits, char *buffer)
 {
@@ -39,6 +40,7 @@ int printf(const char *format, ...)
 
             int flag_size = 0;
             int flag_pointer = 0;
+            int flag_small = 0;
 
             if (format[0] == '%') {
                 format += 1;
@@ -56,6 +58,12 @@ int printf(const char *format, ...)
                     putchar(*str++);
 
                 continue;
+            }
+
+            while (format[0] == 'h') {
+                format += 1;
+
+                ++flag_small;
             }
 
             if (format[0] == 'p') {
@@ -79,7 +87,11 @@ int printf(const char *format, ...)
                 if (flag_size || flag_pointer) {
                     size_t value = va_arg(ap, size_t);
                     buffer_size = format_integer(0, value, 8 * sizeof(size_t), buffer);
+                } else if (flag_small == 1) {
+                    unsigned short value = va_arg(ap, int);
+                    buffer_size = format_integer(0, value, 8 * sizeof(unsigned short), buffer);
                 } else {
+                    assert(flag_small == 0);
                     unsigned value = va_arg(ap, unsigned);
                     buffer_size = format_integer(0, value, 8 * sizeof(unsigned), buffer);
                 }

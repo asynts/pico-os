@@ -10,15 +10,12 @@
 #define S_IROTH 0004
 #endif
 
-// FIXME: These types are already defined in the kernel, why?
-#ifdef USERLAND
 typedef unsigned int dev_t;
 typedef unsigned int ino_t;
 typedef unsigned int mode_t;
 typedef int off_t;
 typedef unsigned int blksize_t;
 typedef unsigned int blkcnt_t;
-#endif
 
 #ifdef USERLAND
 struct stat {
