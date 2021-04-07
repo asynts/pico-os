@@ -83,6 +83,8 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
+        VirtualFile& file() override { return m_file; }
+
         FlashFile& m_file;
         usize m_offset;
     };
@@ -99,6 +101,7 @@ namespace Kernel
     public:
         explicit FlashDirectoryHandle(FlashDirectory& directory)
             : m_iterator(directory.m_entries.iter())
+            , m_directory(directory)
         {
         }
 
@@ -120,6 +123,10 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
+        VirtualFile& file() override { return m_directory; }
+
+
         decltype(FlashDirectory::m_entries)::Iterator m_iterator;
+        FlashDirectory& m_directory;
     };
 }

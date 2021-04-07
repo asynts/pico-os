@@ -75,6 +75,8 @@ namespace Kernel
             return bytes.size();
         }
 
+        VirtualFile& file() override { return m_file; }
+
         MemoryFile& m_file;
         usize m_offset;
     };
@@ -97,6 +99,7 @@ namespace Kernel
     public:
         explicit MemoryDirectoryHandle(MemoryDirectory& directory)
             : m_iterator(directory.m_entries.iter())
+            , m_directory(directory)
         {
         }
 
@@ -118,6 +121,9 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
+        VirtualFile& file() override { return m_directory; }
+
         decltype(MemoryDirectory::m_entries)::Iterator m_iterator;
+        MemoryDirectory& m_directory;
     };
 }

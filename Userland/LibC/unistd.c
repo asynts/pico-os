@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <assert.h>
 
 int chdir(const char *path)
 {
@@ -18,5 +20,9 @@ int execle(const char *pathname, ...)
 
 int access(const char *pathname, int mode)
 {
-    abort();
+    struct stat statbuf;
+    int retval = stat(pathname, &statbuf);
+    assert(retval >= 0);
+
+    return statbuf.st_mode & X_OK;
 }

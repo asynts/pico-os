@@ -89,19 +89,39 @@ namespace Kernel
             UserlandFileInfo *statbuf = arg2.pointer<UserlandFileInfo>();
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
+            auto& file = handle.file();
 
-            // FIXME: Reimplement device numbers
-            statbuf->st_dev = 0;
+            // FIXME: We need some sensible values here
+            statbuf->st_dev = 0xdead;
+            statbuf->st_rdev = 0xdead;
+            statbuf->st_size = 0xdeadbeef;
+            statbuf->st_blksize = 0xdeadbeef;
+            statbuf->st_blocks = 0xdeadbeef;
 
-            // FIXME: Deal with this
-            // statbuf->st_ino = handle.file().m_ino;
-            // statbuf->st_mode = (u32)handle.file().m_mode;
-            // statbuf->st_rdev = handle.file().m_device;
-            // statbuf->st_size = handle.file().m_size;
+            statbuf->st_ino = file.m_ino;
+            statbuf->st_mode = static_cast<u32>(file.m_mode);
 
-            // FIXME: Do this properly
-            statbuf->st_blksize = 1;
-            // statbuf->st_blocks = handle.file().m_size;
+            return 0;
+        }
+
+        if (syscall == _SC_stat) {
+            Path path = arg1.pointer<const char>();
+            UserlandFileInfo *statbuf = arg2.pointer<UserlandFileInfo>();
+
+            if (!path.is_absolute())
+                path = Process::current().m_working_directory / path;
+
+            auto& file = FileSystem::lookup(path);
+
+            // FIXME: We need some sensible values here
+            statbuf->st_dev = 0xdead;
+            statbuf->st_rdev = 0xdead;
+            statbuf->st_size = 0xdeadbeef;
+            statbuf->st_blksize = 0xdeadbeef;
+            statbuf->st_blocks = 0xdeadbeef;
+
+            statbuf->st_ino = file.m_ino;
+            statbuf->st_mode = static_cast<u32>(file.m_mode);
 
             return 0;
         }

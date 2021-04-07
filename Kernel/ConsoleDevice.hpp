@@ -27,6 +27,8 @@ namespace Kernel {
             uart_write_blocking(uart0, bytes.data(), bytes.size());
             return bytes.size();
         }
+
+        VirtualFile& file() override { VERIFY_NOT_REACHED(); }
     };
 
     class ConsoleFile final

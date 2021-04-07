@@ -5,6 +5,7 @@
 #define _SC_open 3
 #define _SC_close 4
 #define _SC_fstat 5
+#define _SC_stat 6
 
 #define O_RDONLY (1 << 0)
 #define O_WRONLY (2 << 0)
