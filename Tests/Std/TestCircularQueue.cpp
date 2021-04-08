@@ -62,4 +62,48 @@ TEST_CASE(circularqueue_wrap)
     ASSERT(queue.dequeue() == 4);
 }
 
+TEST_CASE(circularqueue_enqueue_front)
+{
+    Std::CircularQueue<int, 3> queue;
+
+    queue.enqueue_front(1);
+    queue.enqueue(2);
+
+    ASSERT(queue.dequeue() == 1);
+
+    queue.enqueue_front(3);
+    queue.enqueue(4);
+
+    ASSERT(queue.size() == 3);
+
+    ASSERT(queue.dequeue() == 3);
+    ASSERT(queue.dequeue() == 2);
+    ASSERT(queue.dequeue() == 4);
+}
+
+TEST_CASE(circularqueue_enqueue_return_value)
+{
+    Std::CircularQueue<int, 8> queue;
+
+    auto& value_1 = queue.enqueue(1);
+    auto& value_2 = queue.enqueue_front(2);
+    auto& value_3 = queue.enqueue(3);
+
+    ASSERT(queue.size() == 3);
+    ASSERT(queue.front() == 2);
+    ASSERT(queue.back() == 3);
+    ASSERT(value_1 == 1);
+    ASSERT(value_2 == 2);
+    ASSERT(value_3 == 3);
+
+    value_1 = 4;
+
+    ASSERT(queue.size() == 3);
+    ASSERT(queue.front() == 2);
+    ASSERT(queue.back() == 3);
+    ASSERT(value_1 == 4);
+    ASSERT(value_2 == 2);
+    ASSERT(value_3 == 3);
+}
+
 TEST_MAIN();
