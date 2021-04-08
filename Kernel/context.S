@@ -32,8 +32,7 @@ isr_pendsv:
     push_register r10
     push_register r11
 
-    ldr r2, =scheduler_next
-    bx r2
+    bl scheduler_next
 
     pop_register r11
     pop_register r10
@@ -49,19 +48,3 @@ isr_pendsv:
 
     ldr r0, =0xffffffd
     bx r0
-
-// [[noreturn]]
-// void scheduler_loop()
-.global scheduler_loop
-.thumb_func
-scheduler_loop:
-    msr psp, r0
-    isb
-
-    ldr r0, =scheduler_enable
-    movs r1, #1
-    str r1, [r0]
-
-1:
-    wfi
-    b 1b

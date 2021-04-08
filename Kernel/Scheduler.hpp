@@ -22,10 +22,13 @@ namespace Kernel
 
         u8* schedule_next(u8 *stack);
 
+        bool enabled() const { return m_enabled; }
+
     private:
         friend Singleton<Scheduler>;
         Scheduler();
 
         CircularQueue<Thread, 8> m_threads;
+        volatile bool m_enabled;
     };
 }

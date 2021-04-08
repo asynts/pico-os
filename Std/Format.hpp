@@ -262,6 +262,17 @@ namespace Std {
         static void format(StringBuilder&, const Path&);
     };
 
+    template<typename T>
+    struct Formatter<Optional<T>> {
+        static void format(StringBuilder& builder, const Optional<T>& value)
+        {
+            if (value.is_valid())
+                builder.appendf("%", value.value());
+            else
+                builder.append("nil");
+        }
+    };
+
     static_assert(HasFormatter<int>::value == true);
     static_assert(HasFormatter<double>::value == false);
 }

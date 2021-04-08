@@ -2,6 +2,7 @@
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
+#include <pico/sync.h>
 
 namespace Kernel
 {
@@ -12,22 +13,26 @@ namespace Kernel
             return Scheduler::the().schedule_next(stack);
         }
 
-        // Implemented in context.S
-        [[noreturn]]
-        void scheduler_loop(u8 *stack);
-
-        bool scheduler_enable = false;
+        static int skip_cycles = 0;
 
         void isr_systick()
         {
-            if (scheduler_enable)
-                scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
+            if (Scheduler::the().enabled()) {
+                if (skip_cycles == 0) {
+                    skip_cycles = 20;
+                    scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
+                } else {
+                    skip_cycles--;
+                }
+            }
         }
     }
 
     Scheduler::Scheduler()
     {
-        systick_hw->rvr = 1000 * 1000;
+        m_enabled = false;
+
+        systick_hw->rvr = 0x00ffffff;
 
         systick_hw->csr = 1 << M0PLUS_SYST_CSR_CLKSOURCE_LSB
                         | 1 << M0PLUS_SYST_CSR_TICKINT_LSB
@@ -90,11 +95,18 @@ namespace Kernel
 
         align(8);
 
-        m_threads.enqueue({ __PRETTY_FUNCTION__, {} });
+        m_threads.enqueue_front({ __PRETTY_FUNCTION__, {} });
 
-        ASSERT(m_threads.size() == 1);
+        asm volatile("msr psp, %0;"
+                     "msr control, %1;"
+                     "isb;"
+            :
+            : "r"(stack), "r"(0b10));
 
-        scheduler_loop(stack);
+        m_enabled = true;
+
+        for(;;)
+            __wfi();
     }
 
     u8* Scheduler::schedule_next(u8 *stack)
