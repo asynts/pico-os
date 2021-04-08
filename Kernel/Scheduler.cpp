@@ -56,12 +56,12 @@ namespace Kernel
 
         // FIXME: Add wrapper that deals with threads that return
 
-        constexpr u32 thumb_mask = 1 << 24;
+        constexpr u32 xpsr_thumb_mode = 1 << 24;
 
         align(8);
 
         // Unpacked on exception return
-        push(thumb_mask); // XPSR
+        push(xpsr_thumb_mode); // XPSR
         push(reinterpret_cast<u32>(callback)); // ReturnAddress
         push(0); // LR (R14)
         push(0); // IP (R12)

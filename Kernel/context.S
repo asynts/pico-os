@@ -46,5 +46,5 @@ isr_pendsv:
     msr psp, r0
     isb
 
-    ldr r0, =0xffffffd
+    ldr r0, =0xfffffffd
     bx r0
