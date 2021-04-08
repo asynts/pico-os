@@ -19,34 +19,32 @@ namespace Kernel
         {
             u8 *stack = new u8[0x400] + 0x400;
 
-            const auto push = [](u32 value) {
+            const auto push = [&](u32 value) {
                 stack = stack - 4;
                 *reinterpret_cast<u32*>(stack) = value;
             };
-            const auto align = [](u32 boundary) {
-                if (stack % boundary != 0)
-                    stack -= stack % boundary;
+            const auto align = [&](u32 boundary) {
+                if (u32(stack) % boundary != 0)
+                    stack -= u32(stack) % boundary;
             };
-            const auto wrapper = [] {
-                callback();
-                VERIFY_NOT_REACHED();
-            };
+
+            // FIXME: Deal with lambdas
+
+            // FIXME: Add wrapper that deals with threads that return
 
             constexpr u32 thumb_mask = 1 << 24;
 
             align(8);
 
             // Unpacked on exception return
-            push(1 << thumb_mask); // XPSR
-            push(reinterpret_cast<u32>(wrapper)); // ReturnAddress
+            push(thumb_mask); // XPSR
+            push(reinterpret_cast<u32>(callback)); // ReturnAddress
             push(0); // LR (R14)
             push(0); // IP (R12)
             push(0); // R3
             push(0); // R2
             push(0); // R1
             push(0); // R0
-
-            // FIXME: Did I get the order wrong?
 
             // Unpacked by context switch routine
             push(0); // R4
@@ -58,6 +56,7 @@ namespace Kernel
             push(0); // R10
             push(0); // R11
 
+            // FIXME: Mask PendSV for this operation
             m_threads.enqueue({ name, stack });
         }
 

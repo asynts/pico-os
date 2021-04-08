@@ -4,6 +4,9 @@ namespace Kernel
 {
     extern "C"
     {
-        u8* scheduler_next(u8 *stack);
+        u8* scheduler_next(u8 *stack)
+        {
+            FIXME();
+        }
     }
 }

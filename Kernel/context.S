@@ -10,13 +10,16 @@
 .thumb_func
 isr_pendsv:
     mrs r0, psp
+    isb
 
 .macro push_register register
     mov r1, \register
-    str r1, [r0, #-4]!
+    subs r0, r0, #4
+    str r1, [r0]
 .endm
 .macro pop_register register
-    ldr r1, [r0], #4
+    ldr r1, [r0]
+    adds r0, r0, #4
     mov \register, r1
 .endm
 
@@ -29,7 +32,8 @@ isr_pendsv:
     push_register r10
     push_register r11
 
-    bx scheduler_next
+    ldr r2, =scheduler_next
+    bx r2
 
     pop_register r11
     pop_register r10
@@ -40,6 +44,8 @@ isr_pendsv:
     pop_register r5
     pop_register r4
 
-    // FIXME: Do we need to do something about LR?
+    msr psp, r0
+    isb
 
-    bx lr
+    ldr r0, =0xffffffd
+    bx r0
