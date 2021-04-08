@@ -11,6 +11,7 @@
 #include <Kernel/FileSystem/DeviceFileSystem.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/MemoryAllocator.hpp>
+#include <Kernel/Scheduler.hpp>
 
 #include <pico/stdio.h>
 
@@ -57,12 +58,22 @@ void initialize_uart_debug()
     VERIFY(ch == 0xff);
 }
 
+[[noreturn]]
+void example_kernel_thread()
+{
+    dbgln("[example_kernel_thread] Hello, world!");
+    for(;;)
+        __wfi();
+}
+
 int main()
 {
     initialize_uart_debug();
     dbgln("\e[0;1mBOOT\e[0m");
 
     Kernel::MemoryAllocator::the();
+    Kernel::Scheduler::the();
+
     Kernel::MemoryFileSystem::the();
     Kernel::FlashFileSystem::the();
     Kernel::DeviceFileSystem::the();
@@ -74,6 +85,9 @@ int main()
 
     auto& root_file = Kernel::FileSystem::lookup("/");
     dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
+
+    Kernel::Scheduler::the().create_thread("Kernel: example", example_kernel_thread);
+    Kernel::Scheduler::the().loop();
 
     load_and_execute_shell();
 

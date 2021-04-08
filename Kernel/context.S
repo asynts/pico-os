@@ -49,3 +49,19 @@ isr_pendsv:
 
     ldr r0, =0xffffffd
     bx r0
+
+// [[noreturn]]
+// void scheduler_loop()
+.global scheduler_loop
+.thumb_func
+scheduler_loop:
+    msr psp, r0
+    isb
+
+    ldr r0, =scheduler_enable
+    movs r1, #1
+    str r1, [r0]
+
+1:
+    wfi
+    b 1b

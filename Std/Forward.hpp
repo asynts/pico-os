@@ -137,5 +137,3 @@ void __crash(const char *format, ...);
 
 #define FIXME() __crash("FIXME()\n%s:%i\n", __FILE__, __LINE__)
 #define FIXME_ASSERT(condition) ((condition) ? (void)0 : __crash("FIXME(%s)\n%s:%i\n", #condition, __FILE__, __LINE__))
-
-#define NOT_IMPLEMENTED() __crash("NOT_IMPLEMENTED():\n%s:%i\n", __FILE__, __LINE__)
