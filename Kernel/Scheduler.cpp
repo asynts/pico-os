@@ -41,67 +41,52 @@ namespace Kernel
 
     void Scheduler::create_thread(StringView name, void (*callback)())
     {
-        u8 *stack = new u8[0x400] + 0x400;
-
-        const auto push = [&](u32 value) {
-            stack = stack - 4;
-            *reinterpret_cast<u32*>(stack) = value;
-        };
-        const auto align = [&](u32 boundary) {
-            if (u32(stack) % boundary != 0)
-                stack -= u32(stack) % boundary;
-        };
-
-        // FIXME: Deal with lambdas
-
-        // FIXME: Add wrapper that deals with threads that return
+        Thread::Stack stack;
 
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
-        align(8);
+        stack.align(8);
 
         // Unpacked on exception return
-        push(xpsr_thumb_mode); // XPSR
-        push(reinterpret_cast<u32>(callback)); // ReturnAddress
-        push(0); // LR (R14)
-        push(0); // IP (R12)
-        push(0); // R3
-        push(0); // R2
-        push(0); // R1
-        push(0); // R0
+        stack.push(xpsr_thumb_mode); // XPSR
+        stack.push(callback); // ReturnAddress
+        stack.push(0); // LR (R14)
+        stack.push(0); // IP (R12)
+        stack.push(0); // R3
+        stack.push(0); // R2
+        stack.push(0); // R1
+        stack.push(0); // R0
 
         // Unpacked by context switch routine
-        push(0); // R4
-        push(0); // R5
-        push(0); // R6
-        push(0); // R7
-        push(0); // R8
-        push(0); // R9
-        push(0); // R10
-        push(0); // R11
+        stack.push(0); // R4
+        stack.push(0); // R5
+        stack.push(0); // R6
+        stack.push(0); // R7
+        stack.push(0); // R8
+        stack.push(0); // R9
+        stack.push(0); // R10
+        stack.push(0); // R11
 
         // FIXME: Mask PendSV for this operation
-        m_threads.enqueue({ name, stack });
+        m_threads.enqueue({ name, move(stack) });
     }
 
     void Scheduler::loop()
     {
-        u8 *stack = new u8[0x400] + 0x400;
+        Thread::Stack stack;
 
-        const auto align = [&](u32 boundary) {
-            if (u32(stack) % boundary != 0)
-                stack -= u32(stack) % boundary;
-        };
+        stack.align(8);
 
-        align(8);
+        u8 *stack_pointer = stack.m_stack_if_inactive.must();
+        stack.m_stack_if_inactive.clear();
 
-        m_threads.enqueue_front({ __PRETTY_FUNCTION__, {} });
+        m_threads.enqueue_front({ __PRETTY_FUNCTION__, move(stack) });
 
         asm volatile("msr psp, %0;"
                      "msr control, %1;"
                      "isb;"
             :
-            : "r"(stack), "r"(0b10));
+            : "r"(stack_pointer), "r"(0b10));
 
         m_enabled = true;
 
@@ -112,12 +97,13 @@ namespace Kernel
     u8* Scheduler::schedule_next(u8 *stack)
     {
         Thread thread = m_threads.dequeue();
-        thread.m_stack = stack;
+        ASSERT(!thread.m_stack.m_stack_if_inactive.is_valid());
+        thread.m_stack.m_stack_if_inactive = stack;
 
         m_threads.enqueue(move(thread));
 
-        stack = m_threads.front().m_stack.must();
-        m_threads.front().m_stack.clear();
+        stack = m_threads.front().m_stack.m_stack_if_inactive.must();
+        m_threads.front().m_stack.m_stack_if_inactive.clear();
 
         return stack;
     }

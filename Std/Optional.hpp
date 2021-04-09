@@ -52,6 +52,8 @@ namespace Std {
         }
         T&& must() &&
         {
+            // FIXME: We have to clear here!
+
             VERIFY(is_valid());
             return move(value());
         }
