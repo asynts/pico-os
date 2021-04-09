@@ -2,6 +2,7 @@
 
 #include <Std/Forward.hpp>
 #include <Std/Span.hpp>
+#include <Std/Concepts.hpp>
 
 namespace Std
 {
@@ -67,10 +68,17 @@ namespace Std
             ASSERT(new_data != nullptr);
 
             ASSERT(new_capacity > m_size);
-            for (usize i=0; i<m_size; ++i)
-            {
-                new (new_data + i) T { move(data()[i]) };
-                data()[i].~T();
+
+            if constexpr (Concepts::Primitive<T>) {
+                memcpy(new_data, data(), m_size * sizeof(T));
+            } else {
+                // Otherwise, we will get misaligned read/write problems here
+                ASSERT(sizeof(T) % 4 == 0);
+
+                for (usize i = 0; i < m_size; ++ i) {
+                    new (new_data + i) T { move(data()[i]) };
+                    data()[i].~T();
+                }
             }
 
             operator delete[](m_data);

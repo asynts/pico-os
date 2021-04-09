@@ -43,6 +43,10 @@ namespace Std::Concepts {
                     || Same<T, signed long>
                     || Same<T, signed long long>;
 
+    template<typename T>
+    concept Primitive = Integral<T>
+                     || Same<T, char>;
+
     template<typename T, usize Size>
     concept HasSizeOf = IntegralConstant<bool, sizeof(T) == Size>::value;
 }
