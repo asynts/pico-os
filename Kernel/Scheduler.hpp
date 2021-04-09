@@ -9,6 +9,11 @@ namespace Kernel
     using namespace Std;
 
     struct Thread {
+        explicit Thread(StringView name)
+            : m_name(name)
+        {
+        }
+
         struct Stack {
             Stack()
             {
@@ -42,25 +47,32 @@ namespace Kernel
 
             Optional<u8*> m_stack_if_inactive;
 
-            void push(ReadonlyBytes bytes)
+            u8* push(ReadonlyBytes bytes)
             {
                 m_stack_if_inactive = m_stack_if_inactive.must() - bytes.size();
                 bytes.copy_to({ m_stack_if_inactive.value(), bytes.size() });
+                return m_stack_if_inactive.value();
             }
 
-            void push(u32 value)
+            u8* push(u32 value)
             {
-                push(bytes_from(value));
+                return push(bytes_from(value));
+            }
+
+            u8* reserve(usize count)
+            {
+                m_stack_if_inactive = m_stack_if_inactive.must() - count;
+                return m_stack_if_inactive.value();
             }
 
             template<typename T>
-            void push(T *value)
+            u8* push(T *value)
             {
                 static_assert(sizeof(T*) == sizeof(u32));
-                push(reinterpret_cast<u32>(value));
+                return push(reinterpret_cast<u32>(value));
             }
 
-            void align(u32 boundary)
+            u8* align(u32 boundary)
             {
                 u32 stack = reinterpret_cast<u32>(m_stack_if_inactive.must());
 
@@ -68,6 +80,7 @@ namespace Kernel
                     stack -= stack % boundary;
 
                 m_stack_if_inactive = reinterpret_cast<u8*>(stack);
+                return m_stack_if_inactive.value();
             }
         };
 
@@ -77,7 +90,31 @@ namespace Kernel
 
     class Scheduler : public Singleton<Scheduler> {
     public:
-        void create_thread(StringView name, void (*callback)());
+        template<typename T, void (T::*Method)()>
+        static void wrap_member_function_call_magic(void *object)
+        {
+            (reinterpret_cast<T*>(object)->*Method)();
+        }
+
+        template<typename Callback>
+        void create_thread(StringView name, Callback&& callback)
+        {
+            Thread thread { name };
+
+            auto wrapper = [callback_ = move(callback)]() mutable {
+                callback_();
+                FIXME();
+            };
+
+            u8 *moved_wrapper = thread.m_stack.reserve(sizeof(decltype(wrapper)));
+            new (moved_wrapper) decltype(wrapper) { move(wrapper) };
+
+            // FIXME: Simplify this somehow
+
+            void (*wrapper_wrapper_function_pointer)(void*) = wrap_member_function_call_magic<decltype(wrapper), &decltype(wrapper)::operator()>;
+
+            create_thread_impl(move(thread), wrapper_wrapper_function_pointer, moved_wrapper);
+        }
 
         [[noreturn]]
         void loop();
@@ -90,6 +127,8 @@ namespace Kernel
     private:
         friend Singleton<Scheduler>;
         Scheduler();
+
+        void create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_);
 
         CircularQueue<Thread, 8> m_threads;
         volatile bool m_enabled;

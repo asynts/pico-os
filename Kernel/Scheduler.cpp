@@ -19,7 +19,7 @@ namespace Kernel
         {
             if (Scheduler::the().enabled()) {
                 if (skip_cycles == 0) {
-                    skip_cycles = 20;
+                    skip_cycles = 5;
                     scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
                 } else {
                     skip_cycles--;
@@ -39,48 +39,46 @@ namespace Kernel
                         | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
     }
 
-    void Scheduler::create_thread(StringView name, void (*callback)())
+    void Scheduler::create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_)
     {
-        Thread::Stack stack;
-
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
-        stack.align(8);
+        thread.m_stack.align(8);
 
         // Unpacked on exception return
-        stack.push(xpsr_thumb_mode); // XPSR
-        stack.push(callback); // ReturnAddress
-        stack.push(0); // LR (R14)
-        stack.push(0); // IP (R12)
-        stack.push(0); // R3
-        stack.push(0); // R2
-        stack.push(0); // R1
-        stack.push(0); // R0
+        thread.m_stack.push(xpsr_thumb_mode); // XPSR
+        thread.m_stack.push(callback); // ReturnAddress
+        thread.m_stack.push(0); // LR (R14)
+        thread.m_stack.push(0); // IP (R12)
+        thread.m_stack.push(0); // R3
+        thread.m_stack.push(0); // R2
+        thread.m_stack.push(0); // R1
+        thread.m_stack.push(this_); // R0
 
         // Unpacked by context switch routine
-        stack.push(0); // R4
-        stack.push(0); // R5
-        stack.push(0); // R6
-        stack.push(0); // R7
-        stack.push(0); // R8
-        stack.push(0); // R9
-        stack.push(0); // R10
-        stack.push(0); // R11
+        thread.m_stack.push(0); // R4
+        thread.m_stack.push(0); // R5
+        thread.m_stack.push(0); // R6
+        thread.m_stack.push(0); // R7
+        thread.m_stack.push(0); // R8
+        thread.m_stack.push(0); // R9
+        thread.m_stack.push(0); // R10
+        thread.m_stack.push(0); // R11
 
         // FIXME: Mask PendSV for this operation
-        m_threads.enqueue({ name, move(stack) });
+        m_threads.enqueue(move(thread));
     }
 
     void Scheduler::loop()
     {
-        Thread::Stack stack;
+        Thread thread { __PRETTY_FUNCTION__ };
 
-        stack.align(8);
+        thread.m_stack.align(8);
 
-        u8 *stack_pointer = stack.m_stack_if_inactive.must();
-        stack.m_stack_if_inactive.clear();
+        u8 *stack_pointer = thread.m_stack.m_stack_if_inactive.must();
+        thread.m_stack.m_stack_if_inactive.clear();
 
-        m_threads.enqueue_front({ __PRETTY_FUNCTION__, move(stack) });
+        m_threads.enqueue_front(move(thread));
 
         asm volatile("msr psp, %0;"
                      "msr control, %1;"

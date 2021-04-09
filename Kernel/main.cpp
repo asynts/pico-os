@@ -87,6 +87,19 @@ int main()
     dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
     Kernel::Scheduler::the().create_thread("Kernel: example", example_kernel_thread);
+
+    Kernel::Scheduler::the().create_thread("Kernel: lambda without capture", [] {
+        dbgln("Hello, world from lambda '%'", __PRETTY_FUNCTION__);
+        for(;;)
+            __wfi();
+    });
+
+    Kernel::Scheduler::the().create_thread("Kernel: lambda with captures", [x = 42] {
+        dbgln("I got x=% in the lambda!", x);
+        for(;;)
+            __wfi();
+    });
+
     Kernel::Scheduler::the().loop();
 
     load_and_execute_shell();
