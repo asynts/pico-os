@@ -9,9 +9,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Scheduler.hpp>
-
-#include <hardware/uart.h>
-#include <pico/stdio.h>
+#include <Kernel/ConsoleDevice.hpp>
 
 extern "C" {
     extern u8 __fs_start[];
@@ -47,15 +45,6 @@ void load_and_execute_shell()
     VERIFY_NOT_REACHED();
 }
 
-void initialize_uart_debug()
-{
-    // FIXME: I really don't know that the SDK does exactly, but this is necessary to make assertions work.
-    stdio_init_all();
-
-    char ch = uart_getc(uart0);
-    VERIFY(ch == 0xff);
-}
-
 [[noreturn]]
 void example_kernel_thread()
 {
@@ -66,7 +55,8 @@ void example_kernel_thread()
 
 int main()
 {
-    initialize_uart_debug();
+    Kernel::ConsoleFile::the();
+
     dbgln("\e[0;1mBOOT\e[0m");
 
     Kernel::GlobalMemoryAllocator::the();

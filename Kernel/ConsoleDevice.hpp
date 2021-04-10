@@ -1,11 +1,9 @@
 #pragma once
 
-#include <hardware/uart.h>
-
 #include <Std/Span.hpp>
 #include <Std/Singleton.hpp>
 
-#include <Kernel/FileSystem/DeviceFileSystem.hpp>
+#include <Kernel/FileSystem/VirtualFileSystem.hpp>
 
 namespace Kernel {
     using namespace Std;
@@ -13,20 +11,8 @@ namespace Kernel {
     class ConsoleFileHandle final : public VirtualFileHandle
     {
     public:
-        KernelResult<usize> read(Bytes bytes) override
-        {
-            usize nread;
-            for (nread = 0; nread < bytes.size(); ++nread)
-                bytes[nread] = uart_getc(uart0);
-
-            return nread;
-        }
-
-        KernelResult<usize> write(ReadonlyBytes bytes) override
-        {
-            uart_write_blocking(uart0, bytes.data(), bytes.size());
-            return bytes.size();
-        }
+        KernelResult<usize> read(Bytes bytes) override;
+        KernelResult<usize> write(ReadonlyBytes bytes) override;
 
         VirtualFile& file() override { VERIFY_NOT_REACHED(); }
     };
@@ -43,6 +29,6 @@ namespace Kernel {
 
     private:
         friend Singleton<ConsoleFile>;
-        ConsoleFile() = default;
+        ConsoleFile();
     };
 }
