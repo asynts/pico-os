@@ -117,17 +117,6 @@ namespace Kernel
         u32 st_uid;
         u32 st_gid;
     };
-
-    struct UserlandDirectoryInfo {
-        char d_name[252];
-        u32 d_ino;
-    };
-
-    struct FlashDirectoryInfo {
-        char m_name[252];
-        UserlandFileInfo *m_info;
-    };
-
     struct FileInfo {
         // FIXME: This is ugly
         FileSystemId st_dev;
@@ -142,17 +131,21 @@ namespace Kernel
 
         u8 *m_data;
     };
+
+    struct UserlandDirectoryInfo {
+        char d_name[252];
+        u32 d_ino;
+    };
+    struct FlashDirectoryInfo {
+        char m_name[252];
+        FileInfo *m_info;
+    };
 }
 #endif
 
 #if defined(HOST)
 namespace Kernel
 {
-    struct FlashDirectoryInfo {
-        char m_name[252];
-        u32 m_info_raw;
-    };
-
     struct FileInfo {
         // FIXME: This is ugly
         FileSystemId st_dev;
@@ -166,6 +159,11 @@ namespace Kernel
         u32 st_gid;
 
         u32 m_data;
+    };
+
+    struct FlashDirectoryInfo {
+        char m_name[252];
+        u32 m_info_raw;
     };
 }
 #endif

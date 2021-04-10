@@ -15,24 +15,6 @@ namespace Kernel
     class FlashDirectory;
     class FlashFileHandle;
 
-    struct FlashFileInfo;
-    struct FlashDirectoryEntryInfo;
-
-    // FIXME: Remove redundant fields
-    // FIXME: Move into interface
-    struct FlashFileInfo {
-        u32 m_ino;
-        u32 m_device;
-        u32 m_mode;
-        u32 m_size;
-        u32 m_devno;
-        u8 *m_data;
-    };
-    struct FlashDirectoryEntryInfo {
-        char m_name[252];
-        FlashFileInfo *m_info;
-    };
-
     class FlashFileSystem final
         : public Singleton<FlashFileSystem>
         , public VirtualFileSystem
@@ -49,11 +31,11 @@ namespace Kernel
 
     class FlashFile final : public VirtualFile {
     public:
-        explicit FlashFile(FlashFileInfo& info)
-            : m_data(info.m_data, info.m_size)
+        explicit FlashFile(FileInfo& info)
+            : m_data(info.m_data, info.st_size)
         {
-            m_ino = info.m_ino;
-            m_mode = static_cast<ModeFlags>(info.m_mode);
+            m_ino = info.st_ino;
+            m_mode = info.st_mode;
         }
 
         VirtualFileHandle& create_handle() override;
@@ -89,7 +71,7 @@ namespace Kernel
 
     class FlashDirectory final : public VirtualDirectory {
     public:
-        explicit FlashDirectory(FlashFileInfo& info);
+        explicit FlashDirectory(FileInfo& info);
 
         VirtualFileHandle& create_handle() override;
     };

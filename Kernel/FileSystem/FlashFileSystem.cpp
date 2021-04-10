@@ -3,7 +3,7 @@
 
 namespace Kernel
 {
-    extern "C" FlashFileInfo __flash_root;
+    extern "C" FileInfo __flash_root;
 
     VirtualFile& FlashFileSystem::root() { return *m_root; }
 
@@ -18,13 +18,13 @@ namespace Kernel
         return *new FlashFileHandle { *this };
     }
 
-    FlashDirectory::FlashDirectory(FlashFileInfo& info)
+    FlashDirectory::FlashDirectory(FileInfo& info)
     {
-        m_ino = info.m_ino;
-        m_mode = static_cast<ModeFlags>(info.m_mode);
+        m_ino = info.st_ino;
+        m_mode = info.st_mode;
 
-        auto *begin = reinterpret_cast<const FlashDirectoryEntryInfo*>(info.m_data);
-        auto *end = reinterpret_cast<const FlashDirectoryEntryInfo*>(info.m_data + info.m_size);
+        auto *begin = reinterpret_cast<const FlashDirectoryInfo*>(info.m_data);
+        auto *end = reinterpret_cast<const FlashDirectoryInfo*>(info.m_data + info.st_size);
 
         for(auto *entry = begin; entry != end; ++entry)
             m_entries.set(entry->m_name, new FlashFile { *entry->m_info });
