@@ -81,6 +81,8 @@ public:
         return (*this <=> rhs) == 0;
     }
 
+    ReadonlyBytes bytes() const { return { reinterpret_cast<const u8*>(data()), size() }; }
+
 private:
     void copy_to(Span<char> other) const;
 };

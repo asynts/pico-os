@@ -98,16 +98,16 @@ namespace Std {
 
     template<typename... Parameters>
     void dbgln(const char *fmtstr, const Parameters&...);
+
+    [[noreturn]]
+    void crash(const char *format, const char *condition, const char *file, usize line);
 }
 
-[[noreturn]]
-void __crash(const char *format, ...);
+#define ASSERT(condition) ((condition) ? (void)0 : ::Std::crash("ASSERT(%condition)\n%file:%line\n", #condition, __FILE__, __LINE__))
+#define VERIFY(condition) ((condition) ? (void)0 : ::Std::crash("VERIFY(%condition)\n%file:%line\n", #condition, __FILE__, __LINE__))
 
-#define ASSERT(condition) ((condition) ? (void)0 : __crash("ASSERT(%s)\n%s:%i\n", #condition, __FILE__, __LINE__))
-#define VERIFY(condition) ((condition) ? (void)0 : __crash("VERIFY(%s)\n%s:%i\n", #condition, __FILE__, __LINE__))
+#define ASSERT_NOT_REACHED() ::Std::crash("ASSERT_NOT_REACHED():\n%file:%line\n", "", __FILE__, __LINE__)
+#define VERIFY_NOT_REACHED() ::Std::crash("VERIFY_NOT_REACHED():\n%file:%line\n", "", __FILE__, __LINE__)
 
-#define ASSERT_NOT_REACHED() __crash("ASSERT_NOT_REACHED():\n%s:%i\n", __FILE__, __LINE__)
-#define VERIFY_NOT_REACHED() __crash("VERIFY_NOT_REACHED():\n%s:%i\n", __FILE__, __LINE__)
-
-#define FIXME() __crash("FIXME()\n%s:%i\n", __FILE__, __LINE__)
-#define FIXME_ASSERT(condition) ((condition) ? (void)0 : __crash("FIXME(%s)\n%s:%i\n", #condition, __FILE__, __LINE__))
+#define FIXME() ::Std::crash("FIXME()\n%file:%line\n", "", __FILE__, __LINE__)
+#define FIXME_ASSERT(condition) ((condition) ? (void)0 : ::Std::crash("FIXME(%condition)\n%file:%line\n", #condition, __FILE__, __LINE__))

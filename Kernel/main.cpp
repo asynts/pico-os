@@ -1,9 +1,6 @@
-#include <pico/sync.h>
-#include <hardware/uart.h>
-#include <hardware/gpio.h>
-
 #include <Std/Forward.hpp>
 #include <Std/Format.hpp>
+
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
@@ -13,6 +10,7 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Scheduler.hpp>
 
+#include <hardware/uart.h>
 #include <pico/stdio.h>
 
 extern "C" {
@@ -63,7 +61,7 @@ void example_kernel_thread()
 {
     dbgln("[example_kernel_thread] Hello, world!");
     for(;;)
-        __wfi();
+        asm volatile("wfi");
 }
 
 int main()
@@ -91,13 +89,13 @@ int main()
     Kernel::Scheduler::the().create_thread("Kernel: lambda without capture", [] {
         dbgln("Hello, world from lambda '{}'", __PRETTY_FUNCTION__);
         for(;;)
-            __wfi();
+            asm volatile("wfi");
     });
 
     Kernel::Scheduler::the().create_thread("Kernel: lambda with captures", [x = 42] {
         dbgln("I got x={} in the lambda!", x);
         for(;;)
-            __wfi();
+            asm volatile("wfi");
     });
 
     Kernel::Scheduler::the().loop();
@@ -105,5 +103,5 @@ int main()
     load_and_execute_shell();
 
     for(;;)
-        __wfi();
+        asm volatile("wfi");
 }

@@ -7,8 +7,6 @@ namespace Std
 {
     // FIXME: Upgrade to red/black trees
 
-    // FIXME: Add iterator capabilities
-
     template<typename T>
     class SortedSet {
     public:

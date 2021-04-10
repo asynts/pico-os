@@ -1,7 +1,5 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 
-#include <pico/printf.h>
-
 extern "C" u8 __end__[];
 extern "C" u8 __HeapLimit[];
 

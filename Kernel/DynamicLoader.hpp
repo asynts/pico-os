@@ -1,5 +1,6 @@
-#include <elf.h>
 #include <Std/Forward.hpp>
+
+#include <elf.h>
 
 class ElfWrapper {
 public:

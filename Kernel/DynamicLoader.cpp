@@ -1,5 +1,6 @@
-#include <Kernel/DynamicLoader.hpp>
 #include <Std/Format.hpp>
+
+#include <Kernel/DynamicLoader.hpp>
 
 // FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
 // FIXME: The debugger assumes that this is the shell binary.

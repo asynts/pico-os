@@ -2,7 +2,6 @@
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
-#include <pico/sync.h>
 
 namespace Kernel
 {
@@ -89,7 +88,7 @@ namespace Kernel
         m_enabled = true;
 
         for(;;)
-            __wfi();
+            asm volatile("wfi");
     }
 
     u8* Scheduler::schedule_next(u8 *stack)

@@ -3,11 +3,12 @@
 #include <Std/String.hpp>
 #include <Std/Path.hpp>
 
-#ifdef TEST
+#if defined(TEST)
 # include <iostream>
-# include <stdarg.h>
+#elif defined(KERNEL)
+# include <Kernel/ConsoleDevice.hpp>
 #else
-# include <hardware/uart.h>
+# error "Only TEST and KERNEL are supported"
 #endif
 
 namespace Std {
@@ -16,9 +17,11 @@ namespace Std {
 #ifdef TEST
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #else
-        uart_write_blocking(uart0, (const u8*)"\e[36m", 5);
-        uart_write_blocking(uart0, (const u8*)str.data(), str.size());
-        uart_write_blocking(uart0, (const u8*)"\e[0m\n", 5);
+        auto& handle = Kernel::ConsoleFile::the().create_handle();
+
+        handle.write(StringView { "\e[36m" }.bytes());
+        handle.write(str.bytes());
+        handle.write(StringView { "\e[0m\n" }.bytes());
 #endif
     }
 

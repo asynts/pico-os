@@ -1,8 +1,8 @@
 #include <Tests/TestSuite.hpp>
 
-#include <array>
-
 #include <Std/Span.hpp>
+
+#include <array>
 
 TEST_CASE(span_bytes_from)
 {

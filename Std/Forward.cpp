@@ -1,22 +1,74 @@
 #include <Std/Forward.hpp>
 #include <Std/Format.hpp>
+#include <Std/Lexer.hpp>
 
-#include <stdlib.h>
-
-#ifdef TEST
-# include <stdio.h>
-# include <stdarg.h>
-#else
-# include <pico/printf.h>
+#if !defined(TEST) && !defined(KERNEL)
+# error "Only KERNEL and TEST are supported"
 #endif
 
-void __crash(const char *format, ...)
+#if defined(TEST)
+# include <iostream>
+# include <cstdlib>
+#elif defined(KERNEL)
+# include <Kernel/ConsoleDevice.hpp>
+#endif
+
+namespace Std
 {
-    va_list ap;
+    static void write_output(StringView value)
+    {
+#if defined(TEST)
+        std::cerr << std::string_view { value.data(), value.size() };
+#elif defined(KERNEL)
+        auto& handle = Kernel::ConsoleFile::the().create_handle();
+        handle.write(value.bytes());
+#endif
+    }
+    static void write_output(usize value)
+    {
+#if defined(TEST)
+        std::cerr << value;
+#elif defined(KERNEL)
+        auto& handle = Kernel::ConsoleFile::the().create_handle();
 
-    va_start(ap, format);
-    vprintf(format, ap);
-    va_end(ap);
+        StringBuilder builder;
+        builder.appendf("{}", value);
 
-    abort();
+        handle.write(builder.bytes());
+#endif
+    }
+
+    void crash(const char *format, const char *condition, const char *file, usize line)
+    {
+        Std::Lexer lexer { format };
+
+        while (!lexer.eof()) {
+            if (lexer.try_consume("%condition")) {
+                write_output(condition);
+                continue;
+            }
+
+            if (lexer.try_consume("%file")) {
+                write_output(file);
+                continue;
+            }
+
+            if (lexer.try_consume("%line")) {
+                write_output(line);
+                continue;
+            }
+
+            write_output(lexer.consume_until('%'));
+
+            if (lexer.peek_or_null() != '%')
+                ASSERT(lexer.eof());
+        }
+
+#if defined(TEST)
+        std::abort();
+#else
+        for(;;)
+            asm volatile("wfi");
+#endif
+    }
 }

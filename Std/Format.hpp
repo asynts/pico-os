@@ -164,6 +164,7 @@ namespace Std {
 
         StringView view() const { return m_data.span(); }
         String string() const { return view(); }
+        ReadonlyBytes bytes() const { return view().bytes(); }
 
     private:
         Vector<char, 256> m_data;

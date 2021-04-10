@@ -1,9 +1,9 @@
 #include <Tests/TestSuite.hpp>
 
+#include <Std/StringView.hpp>
+
 #include <string_view>
 #include <span>
-
-#include <Std/StringView.hpp>
 
 TEST_CASE(stringview_cstring)
 {
