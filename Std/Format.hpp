@@ -6,6 +6,7 @@
 #include <Std/Vector.hpp>
 #include <Std/Concepts.hpp>
 #include <Std/String.hpp>
+#include <Std/Lexer.hpp>
 
 namespace Std {
     class StringBuilder;
@@ -34,7 +35,11 @@ namespace Std {
 
     class TypeErasedFormatParams {
     public:
-        const TypeErasedFormatParameter& param(usize index) const { return m_params[index]; }
+        const TypeErasedFormatParameter& param(usize index) const
+        {
+            ASSERT(index < m_params.size());
+            return m_params[index];
+        }
 
     protected:
         void set_params(Span<TypeErasedFormatParameter> params)
@@ -174,14 +179,48 @@ namespace Std {
 
     inline void vformat(StringBuilder& builder, StringView fmtstr, TypeErasedFormatParams params)
     {
-        usize params_index = 0;
-        for (char ch : fmtstr.iter())
-        {
-            if (ch == '%') {
-                auto parameter = params.param(params_index++);
-                parameter.m_format(builder, parameter.m_value);
+        usize next_parameter_index = 0;
+        usize curly_brace_level = 0;
+        Lexer lexer { fmtstr };
+
+        while (!lexer.eof()) {
+            if (curly_brace_level == 0) {
+                if (lexer.try_consume("{{")) {
+                    builder.append('{');
+                    continue;
+                }
+
+                if (lexer.try_consume("}}")) {
+                    builder.append('}');
+                    continue;
+                }
+
+                if (lexer.try_consume('{')) {
+                    curly_brace_level = 1;
+                    continue;
+                }
+
+                ASSERT(lexer.peek_or_null() != '}');
+
+                builder.append(lexer.consume());
             } else {
-                builder.append(ch);
+                if (lexer.try_consume('{')) {
+                    ++curly_brace_level;
+                    continue;
+                }
+
+                if (lexer.try_consume('}')) {
+                    --curly_brace_level;
+
+                    if (curly_brace_level == 0) {
+                        auto& parameter = params.param(next_parameter_index++);
+                        parameter.m_format(builder, parameter.m_value);
+                    }
+
+                    continue;
+                }
+
+                lexer.consume();
             }
         }
     }
@@ -253,7 +292,7 @@ namespace Std {
     struct Formatter<Span<T>> {
         static void format(StringBuilder& builder, Span<T> value)
         {
-            builder.appendf("{ %, % }", value.data(), value.size());
+            builder.appendf("({}, {})", value.data(), value.size());
         }
     };
 
@@ -267,14 +306,11 @@ namespace Std {
         static void format(StringBuilder& builder, const Optional<T>& value)
         {
             if (value.is_valid())
-                builder.appendf("%", value.value());
+                builder.appendf("{}", value.value());
             else
                 builder.append("nil");
         }
     };
-
-    static_assert(HasFormatter<int>::value == true);
-    static_assert(HasFormatter<double>::value == false);
 }
 
 using Std::dbgln;

@@ -38,7 +38,7 @@ namespace Kernel
             usize count = arg3.size();
 
             if (fd > 2)
-                dbgln("[syscall_handler] read(%, %, %)", fd, buffer, count);
+                dbgln("[syscall_handler] read({}, {}, {})", fd, buffer, count);
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
             return handle.read({ buffer, count }).must();
@@ -50,7 +50,7 @@ namespace Kernel
             usize count = arg3.size();
 
             if (fd > 2)
-                dbgln("[syscall_handler] write(%, %, %)", fd, buffer, count);
+                dbgln("[syscall_handler] write({}, {}, {})", fd, buffer, count);
 
             auto& handle = Kernel::Process::current().get_file_handle(fd);
             return handle.write({ buffer, count }).must();
@@ -61,7 +61,7 @@ namespace Kernel
             u32 flags = arg2.value<u32>();
             u32 mode = arg3.value<u32>();
 
-            dbgln("[syscall_handler] open(%, %, %)", path, flags, mode);
+            dbgln("[syscall_handler] open({}, {}, {})", path, flags, mode);
 
             if (!path.is_absolute())
                 path = Process::current().m_working_directory / path;

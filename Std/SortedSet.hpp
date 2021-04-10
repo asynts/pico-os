@@ -47,7 +47,7 @@ namespace Std
             void dump(StringBuilder& builder) const
             {
                 if (m_left == nullptr && m_right == nullptr) {
-                    builder.appendf("%", m_value);
+                    builder.appendf("{}", m_value);
                     return;
                 }
 
@@ -58,7 +58,7 @@ namespace Std
                 else
                     builder.append("nil");
 
-                builder.appendf(" % ", m_value);
+                builder.appendf(" {} ", m_value);
 
                 if (m_right)
                     m_right->dump(builder);

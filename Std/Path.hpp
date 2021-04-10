@@ -14,14 +14,14 @@ namespace Std
 
             Lexer lexer { path };
 
-            m_is_absolute = lexer.consume('/').is_valid();
+            m_is_absolute = lexer.try_consume('/');
 
             while (!lexer.eof())
             {
                 m_components.append(lexer.consume_until('/'));
 
                 if (!lexer.eof())
-                    lexer.consume('/').must();
+                    lexer.try_consume('/');
             }
         }
         Path(const char *path)

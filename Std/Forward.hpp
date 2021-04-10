@@ -93,10 +93,7 @@ inline void strlcpy(char *destination, const char *source, usize size) noexcept
     }
 }
 extern "C"
-inline void* memcpy(void *destination, const void *source, usize count) noexcept
-{
-    return __builtin_memcpy(destination, source, count);
-}
+void* memcpy(void *destination, const void *source, usize count) noexcept;
 
 template<typename T>
 constexpr T max(T a, T b)

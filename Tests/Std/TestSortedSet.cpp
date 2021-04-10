@@ -30,7 +30,7 @@ TEST_CASE(sortedset_tree)
     set.insert(15);
     set.insert(4);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 (0x00000002 0x00000003 (0x00000004 0x00000007 (nil 0x00000009 0x0000000f))))");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000001 (0x00000002 0x00000003 (0x00000004 0x00000007 (nil 0x00000009 0x0000000f))))");
 }
 
 TEST_CASE(sortedset_remove_1)
@@ -72,11 +72,11 @@ TEST_CASE(sortedset_remove_2)
     set.insert(10);
     set.insert(13);
 
-    ASSERT(Std::String::format("%", set) == "(0x00000004 0x00000007 ((0x00000008 0x00000009 0x0000000a) 0x0000000b 0x0000000d))");
+    ASSERT(Std::String::format("{}", set) == "(0x00000004 0x00000007 ((0x00000008 0x00000009 0x0000000a) 0x0000000b 0x0000000d))");
 
     set.remove(11);
 
-    ASSERT(Std::String::format("%", set) == "(0x00000004 0x00000007 ((0x00000008 0x00000009 0x0000000a) 0x0000000d nil))");
+    ASSERT(Std::String::format("{}", set) == "(0x00000004 0x00000007 ((0x00000008 0x00000009 0x0000000a) 0x0000000d nil))");
 }
 
 TEST_CASE(sortedset_remove_3)
@@ -87,11 +87,11 @@ TEST_CASE(sortedset_remove_3)
     set.insert(2);
     set.insert(3);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 (nil 0x00000002 0x00000003))");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000001 (nil 0x00000002 0x00000003))");
 
     set.remove(2);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 0x00000003)");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000001 0x00000003)");
 }
 
 TEST_CASE(sortedset_remove_4)
@@ -102,11 +102,11 @@ TEST_CASE(sortedset_remove_4)
     set.insert(3);
     set.insert(2);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 (0x00000002 0x00000003 nil))");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000001 (0x00000002 0x00000003 nil))");
 
     set.remove(3);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000001 0x00000002)");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000001 0x00000002)");
 }
 
 TEST_CASE(sortedset_remove_5)
@@ -117,11 +117,11 @@ TEST_CASE(sortedset_remove_5)
     set.insert(1);
     set.insert(3);
 
-    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000002 0x00000003)");
+    ASSERT(Std::String::format("{}", set) == "(0x00000001 0x00000002 0x00000003)");
 
     set.remove(2);
 
-    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000003 nil)");
+    ASSERT(Std::String::format("{}", set) == "(0x00000001 0x00000003 nil)");
 }
 
 TEST_CASE(sortedset_remove_6)
@@ -132,11 +132,11 @@ TEST_CASE(sortedset_remove_6)
     set.insert(1);
     set.insert(3);
 
-    ASSERT(Std::String::format("%", set) == "(0x00000001 0x00000002 0x00000003)");
+    ASSERT(Std::String::format("{}", set) == "(0x00000001 0x00000002 0x00000003)");
 
     set.remove(1);
 
-    ASSERT(Std::String::format("%", set) == "(nil 0x00000002 0x00000003)");
+    ASSERT(Std::String::format("{}", set) == "(nil 0x00000002 0x00000003)");
 }
 
 TEST_CASE(sortedset_min)
@@ -189,7 +189,7 @@ template<>
 struct Std::Formatter<A> {
     static void format(Std::StringBuilder& builder, const A& value)
     {
-        builder.appendf("[%.%]", value.m_major, value.m_minor);
+        builder.appendf("[{}.{}]", value.m_major, value.m_minor);
     }
 };
 
@@ -202,7 +202,7 @@ TEST_CASE(sortedset_custom_1)
     set.insert({ 1, 4 });
     set.insert({ 1, 2 });
 
-    ASSERT(Std::String::format("%", set) == "([0x00000001.0x00000002] [0x00000001.0x00000003] ([0x00000001.0x00000004] [0x00000004.0x00000006] nil))");
+    ASSERT(Std::String::format("{}", set) == "([0x00000001.0x00000002] [0x00000001.0x00000003] ([0x00000001.0x00000004] [0x00000004.0x00000006] nil))");
 }
 
 struct B {
@@ -224,7 +224,7 @@ template<>
 struct Std::Formatter<B> {
     static void format(Std::StringBuilder& builder, const B& value)
     {
-        builder.appendf("[%.%]", value.m_indicator, value.m_piggyback);
+        builder.appendf("[{}.{}]", value.m_indicator, value.m_piggyback);
     }
 };
 
@@ -236,15 +236,15 @@ TEST_CASE(sortedset_custom_2)
     set.insert({ 13, "bar" });
     set.insert({ -4, "x" });
 
-    ASSERT(Std::String::format("%", set) == "(([-0x00000004.x] [0x0000000d.bar] nil) [0x0000002a.foo] nil)");
+    ASSERT(Std::String::format("{}", set) == "(([-0x00000004.x] [0x0000000d.bar] nil) [0x0000002a.foo] nil)");
 
     set.insert({ 13, "baz" });
 
-    ASSERT(Std::String::format("%", set) == "(([-0x00000004.x] [0x0000000d.baz] nil) [0x0000002a.foo] nil)");
+    ASSERT(Std::String::format("{}", set) == "(([-0x00000004.x] [0x0000000d.baz] nil) [0x0000002a.foo] nil)");
 
     set.remove({ 13, "y" });
 
-    ASSERT(Std::String::format("%", set) == "([-0x00000004.x] [0x0000002a.foo] nil)");
+    ASSERT(Std::String::format("{}", set) == "([-0x00000004.x] [0x0000002a.foo] nil)");
 }
 
 TEST_CASE(sortedset_remove_root)

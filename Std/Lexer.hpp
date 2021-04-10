@@ -28,19 +28,33 @@ namespace Std
             return peek().value_or(0);
         }
 
-        Optional<char> consume()
+        char consume()
         {
-            if (!eof())
-                return m_input[m_offset++];
-            return {};
+            ASSERT(!eof());
+            return m_input[m_offset++];
         }
-        Optional<char> consume(char ch)
+        bool try_consume(char ch)
         {
             ASSERT(ch != 0);
 
-            if (peek_or_null() == ch)
-                return consume();
+            if (peek_or_null() == ch) {
+                consume();
+                return true;
+            }
             return {};
+        }
+        bool try_consume(StringView str)
+        {
+            if (str.size() > remaining())
+                return false;
+
+            for (usize i = 0; i < str.size(); ++i) {
+                if (m_input[m_offset + i] != str[i])
+                    return false;
+            }
+
+            m_offset += str.size();
+            return true;
         }
 
         StringView consume_until(char ch)
@@ -53,6 +67,8 @@ namespace Std
 
             return m_input.substr(offset, m_offset);
         }
+
+        usize remaining() const { return m_input.size() - m_offset; }
 
     private:
         StringView m_input;

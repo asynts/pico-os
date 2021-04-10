@@ -210,7 +210,7 @@ template<>
 struct Std::Formatter<Tests::Tracker> {
     static void format(Std::StringBuilder& builder, const Tests::Tracker& value)
     {
-        builder.appendf("%", value.m_value);
+        builder.appendf("{}", value.m_value);
     }
 };
 

@@ -18,7 +18,7 @@ namespace Std
         {
             dbgln("m_freelist:");
             for (auto *entry = m_freelist; entry; entry = entry->m_next)
-                dbgln("  % (% bytes)", entry, entry->m_size);
+                dbgln("  {} ({} bytes)", entry, entry->m_size);
         }
 
         struct Statistics {

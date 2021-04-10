@@ -9,7 +9,7 @@ TEST_CASE(stringbuilder)
     builder.append(' ');
     builder.append("bar");
     builder.append(' ');
-    builder.appendf("b%z", "a");
+    builder.appendf("b{}z", "a");
 
     ASSERT(builder.view() == "foo bar baz");
     ASSERT(builder.string().view() == "foo bar baz");
