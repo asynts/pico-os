@@ -39,7 +39,7 @@ namespace Std
             return stats;
         }
 
-    private:
+    protected:
         struct Node {
             usize m_size;
             Node *m_next;
@@ -47,6 +47,7 @@ namespace Std
         };
         static_assert(sizeof(Node) % 4 == 0);
 
+    private:
         Node *m_freelist;
         Bytes m_heap;
     };

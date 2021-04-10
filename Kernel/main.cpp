@@ -10,7 +10,7 @@
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 #include <Kernel/FileSystem/DeviceFileSystem.hpp>
 #include <Kernel/Process.hpp>
-#include <Kernel/MemoryAllocator.hpp>
+#include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Scheduler.hpp>
 
 #include <pico/stdio.h>
@@ -71,7 +71,7 @@ int main()
     initialize_uart_debug();
     dbgln("\e[0;1mBOOT\e[0m");
 
-    Kernel::MemoryAllocator::the();
+    Kernel::GlobalMemoryAllocator::the();
     Kernel::Scheduler::the();
 
     Kernel::MemoryFileSystem::the();
