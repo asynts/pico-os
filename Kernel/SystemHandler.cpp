@@ -92,14 +92,14 @@ namespace Kernel
             auto& file = handle.file();
 
             // FIXME: We need some sensible values here
-            statbuf->st_dev = 0xdead;
+            statbuf->st_dev = FileSystemId::Invalid;
             statbuf->st_rdev = 0xdead;
             statbuf->st_size = 0xdead;
             statbuf->st_blksize = 0xdead;
             statbuf->st_blocks = 0xdead;
 
             statbuf->st_ino = file.m_ino;
-            statbuf->st_mode = static_cast<u32>(file.m_mode);
+            statbuf->st_mode = file.m_mode;
             statbuf->st_uid = file.m_owning_user;
             statbuf->st_gid = file.m_owning_group;
 
@@ -116,14 +116,14 @@ namespace Kernel
             auto& file = FileSystem::lookup(path);
 
             // FIXME: We need some sensible values here
-            statbuf->st_dev = 0xdead;
+            statbuf->st_dev = FileSystemId::Invalid;
             statbuf->st_rdev = 0xdead;
             statbuf->st_size = 0xdead;
             statbuf->st_blksize = 0xdead;
             statbuf->st_blocks = 0xdead;
 
             statbuf->st_ino = file.m_ino;
-            statbuf->st_mode = static_cast<u32>(file.m_mode);
+            statbuf->st_mode = file.m_mode;
             statbuf->st_uid = file.m_owning_user;
             statbuf->st_gid = file.m_owning_group;
 

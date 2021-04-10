@@ -113,6 +113,7 @@ namespace Kernel
             auto& [name, file] = *m_iterator++;
 
             UserlandDirectoryInfo info;
+            info.d_ino = file.must()->m_ino;
             name.strcpy_to({ info.d_name, sizeof(info.d_name) });
             return bytes_from(info).copy_to(bytes);
         }

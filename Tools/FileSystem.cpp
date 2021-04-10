@@ -8,9 +8,6 @@
 
 #include <LibElf/MemoryStream.hpp>
 
-#define HOST
-#include <Kernel/Interface/vfs.h>
-
 #include "FileSystem.hpp"
 
 // FIXME: This is a huge mess, I need to completely rewrite this
@@ -48,14 +45,15 @@ uint32_t FileSystem::add_directory(std::map<std::string, uint32_t>& files, uint3
     std::vector<Elf32_Rel> directory_relocations;
 
     for (auto& [name, inode] : files) {
-        FlashDirectoryEntryInfo info;
+        Kernel::FlashDirectoryInfo info;
+
         strlcpy(info.m_name, name.c_str(), sizeof(info.m_name));
         info.m_info_raw = m_inode_to_offset[inode];
 
         size_t info_offset = stream.write_object(info);
 
         directory_relocations.push_back(Elf32_Rel {
-            .r_offset = (uint32_t) (info_offset + offsetof(FlashDirectoryEntryInfo, m_info_raw)),
+            .r_offset = (uint32_t) (info_offset + offsetof(Kernel::FlashDirectoryInfo, m_info_raw)),
             .r_info = ELF32_R_INFO(*m_base_symbol, R_ARM_ABS32),
         });
     }
@@ -92,24 +90,31 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, Kernel::ModeFlags mode,
         .st_shndx = static_cast<uint16_t>(*m_data_index),
     });
 
-    FileInfo inode;
-    inode.m_ino = inode_number;
-    inode.m_mode = static_cast<uint32_t>(mode);
-    inode.m_size = stream.size();
-    inode.m_device = FLASH_DEVICE_ID;
+    Kernel::FileInfo inode;
+    inode.st_dev = Kernel::FileSystemId::Flash;
+    inode.st_ino = inode_number;
+    inode.st_mode = mode;
+    inode.st_rdev = 0;
+    inode.st_size = stream.size();
+    inode.st_uid = 0;
+    inode.st_gid = 0;
+
+    // FIXME
+    inode.st_blksize = 0;
+    inode.st_blocks = 0;
 
     std::vector<Elf32_Rel> inode_relocations;
 
-    inode.m_direct_blocks_raw[0] = 0;
+    inode.m_data = 0;
     inode_relocations.push_back(Elf32_Rel {
-        .r_offset = offsetof(FileInfo, m_direct_blocks_raw),
+        .r_offset = offsetof(Kernel::FileInfo, m_data),
         .r_info = ELF32_R_INFO(data_symbol, R_ARM_ABS32),
     });
 
     size_t inode_offset = m_data_stream.write_object(inode);
     size_t inode_symbol = m_generator.symtab().add_symbol(fmt::format("__flash_info_{}", inode_number), Elf32_Sym {
         .st_value = static_cast<uint32_t>(inode_offset),
-        .st_size = sizeof(FileInfo),
+        .st_size = sizeof(Kernel::FileInfo),
         .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
         .st_other = STV_DEFAULT,
         .st_shndx = static_cast<uint16_t>(*m_data_index),
@@ -118,7 +123,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, Kernel::ModeFlags mode,
     if (inode_number == 2) {
         m_generator.symtab().add_symbol("__flash_root", Elf32_Sym {
             .st_value = static_cast<uint32_t>(inode_offset),
-            .st_size = sizeof(FileInfo),
+            .st_size = sizeof(Kernel::FileInfo),
             .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
             .st_other = STV_DEFAULT,
             .st_shndx = static_cast<uint16_t>(*m_data_index),
@@ -133,7 +138,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, Kernel::ModeFlags mode,
 
     m_inode_to_offset[inode_number] = inode_offset;
 
-    return inode.m_ino;
+    return inode.st_ino;
 }
 void FileSystem::finalize()
 {
@@ -142,36 +147,4 @@ void FileSystem::finalize()
 
     m_data_relocs->finalize();
     m_generator.write_section(m_data_index.value(), m_data_stream);
-
-    size_t tab_index = m_generator.create_section(".embed.tab", SHT_PROGBITS, SHF_ALLOC);
-    Elf::RelocationTable tab_relocs { m_generator, ".embed.tab", m_generator.symtab().symtab_index(), tab_index };
-
-    // Note that std::map iterators are sorted by the key
-    Elf::MemoryStream tab_stream;
-    for (auto& [inode_number, inode_offset] : m_inode_to_offset) {
-        size_t lookup_offset = tab_stream.write_object(FlashLookupEntry { .m_ino = inode_number, .m_info_raw = inode_offset });
-
-        tab_relocs.add_entry(Elf32_Rel {
-            .r_offset = static_cast<uint32_t>(lookup_offset + offsetof(FlashLookupEntry, m_info_raw)),
-            .r_info = ELF32_R_INFO(*m_base_symbol, R_ARM_ABS32),
-        });
-    }
-
-    tab_relocs.finalize();
-    m_generator.write_section(tab_index, tab_stream);
-
-    m_generator.symtab().add_symbol("__flash_tab_start", Elf32_Sym {
-        .st_value = 0,
-        .st_size = 0,
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(tab_index),
-    });
-    m_generator.symtab().add_symbol("__flash_tab_end", Elf32_Sym {
-        .st_value = static_cast<uint32_t>(tab_stream.size()),
-        .st_size = 0,
-        .st_info = ELF32_ST_INFO(STB_GLOBAL, STT_OBJECT),
-        .st_other = STV_DEFAULT,
-        .st_shndx = static_cast<uint16_t>(tab_index),
-    });
 }

@@ -7,8 +7,6 @@
 #include <LibElf/SymbolTable.hpp>
 #include <LibElf/RelocationTable.hpp>
 
-#define HOST
-#include <Kernel/Interface/vfs.h>
 #include <Kernel/Interface/stat.h>
 
 class FileSystem {

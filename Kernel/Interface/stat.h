@@ -4,7 +4,11 @@
 # error "USERLAND, KERNEL or HOST needs to be defined"
 #endif
 
-#ifdef USERLAND
+#if defined(KERNEL) || defined(HOST)
+# include <Std/Types.hpp>
+#endif
+
+#if defined(USERLAND)
 #define S_IFMT  (0b1111 << 0)
 #define S_IFDIR (0b0001 << 0)
 #define S_IFREG (0b0010 << 0)
@@ -62,10 +66,16 @@ namespace Kernel
     {
         return static_cast<ModeFlags>(static_cast<unsigned int>(lhs) & static_cast<unsigned int>(rhs));
     }
+
+    enum class FileSystemId : u32 {
+        Invalid,
+        Flash,
+        Ram,
+    };
 }
 #endif
 
-#ifndef HOST
+#if defined(USERLAND)
 typedef unsigned int dev_t;
 typedef unsigned int ino_t;
 typedef unsigned int mode_t;
@@ -75,19 +85,7 @@ typedef unsigned int blkcnt_t;
 typedef unsigned int uid_t;
 typedef unsigned int gid_t;
 
-# ifdef KERNEL
-namespace Kernel
-{
-    struct UserlandFileInfo;
-    struct UserlandDirectoryInfo;
-}
-# endif
-
-# ifdef USERLAND
 struct stat {
-# elif defined(KERNEL)
-struct Kernel::UserlandFileInfo {
-# endif
     dev_t st_dev;
     ino_t st_ino;
     mode_t st_mode;
@@ -99,11 +97,75 @@ struct Kernel::UserlandFileInfo {
     gid_t st_gid;
 };
 
-# ifdef USERLAND
 struct dirent {
-# elif defined(KERNEL)
-struct Kernel::UserlandDirectoryInfo {
-# endif
-    char d_name[256];
+    char d_name[252];
+    ino_t d_ino;
 };
+#endif
+
+#if defined(KERNEL)
+namespace Kernel
+{
+    struct UserlandFileInfo {
+        FileSystemId st_dev;
+        u32 st_ino;
+        ModeFlags st_mode;
+        u32 st_rdev;
+        i32 st_size;
+        u32 st_blksize;
+        u32 st_blocks;
+        u32 st_uid;
+        u32 st_gid;
+    };
+
+    struct UserlandDirectoryInfo {
+        char d_name[252];
+        u32 d_ino;
+    };
+
+    struct FlashDirectoryInfo {
+        char m_name[252];
+        UserlandFileInfo *m_info;
+    };
+
+    struct FileInfo {
+        // FIXME: This is ugly
+        FileSystemId st_dev;
+        u32 st_ino;
+        ModeFlags st_mode;
+        u32 st_rdev;
+        i32 st_size;
+        u32 st_blksize;
+        u32 st_blocks;
+        u32 st_uid;
+        u32 st_gid;
+
+        u8 *m_data;
+    };
+}
+#endif
+
+#if defined(HOST)
+namespace Kernel
+{
+    struct FlashDirectoryInfo {
+        char m_name[252];
+        u32 m_info_raw;
+    };
+
+    struct FileInfo {
+        // FIXME: This is ugly
+        FileSystemId st_dev;
+        u32 st_ino;
+        ModeFlags st_mode;
+        u32 st_rdev;
+        i32 st_size;
+        u32 st_blksize;
+        u32 st_blocks;
+        u32 st_uid;
+        u32 st_gid;
+
+        u32 m_data;
+    };
+}
 #endif
