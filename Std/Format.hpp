@@ -289,17 +289,24 @@ namespace Std {
         static void format(StringBuilder&, char);
     };
 
+    template<>
+    struct Formatter<Path> {
+        static void format(StringBuilder&, const Path&);
+    };
+    template<>
+    struct Formatter<StringBuilder> {
+        static void format(StringBuilder& builder, const StringBuilder& value)
+        {
+            builder.append(value.view());
+        }
+    };
+
     template<typename T>
     struct Formatter<Span<T>> {
         static void format(StringBuilder& builder, Span<T> value)
         {
             builder.appendf("({}, {})", value.data(), value.size());
         }
-    };
-
-    template<>
-    struct Formatter<Path> {
-        static void format(StringBuilder&, const Path&);
     };
 
     template<typename T>

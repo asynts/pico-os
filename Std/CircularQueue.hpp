@@ -46,7 +46,7 @@ namespace Std
 
             builder.append(" ]");
 
-            dbgln("{}", builder.view());
+            dbgln("{}", builder);
         }
 
         T& enqueue(const T& value)
