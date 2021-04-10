@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stddef.h>
-#include <Kernel/Interface/syscalls.h>
+#include <Kernel/Interface/System.hpp>
 #include <sys/stat.h>
 
 int sys$dmesg(const char *message);

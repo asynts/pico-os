@@ -1,11 +1,11 @@
 #include <Std/Forward.hpp>
-#include <Kernel/Interface/syscalls.h>
+#include <Kernel/Interface/System.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 
-#include <Kernel/Interface/stat.h>
+#include <Kernel/Interface/Types.hpp>
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1

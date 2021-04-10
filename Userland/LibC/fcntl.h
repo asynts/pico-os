@@ -2,7 +2,7 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <Kernel/Interface/syscalls.h>
+#include <Kernel/Interface/System.hpp>
 
 int close(int fd);
 

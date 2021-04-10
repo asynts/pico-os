@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stddef.h>
-#include <Kernel/Interface/stat.h>
+#include <Kernel/Interface/Types.hpp>
 
 typedef struct {
     int fd;

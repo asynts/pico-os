@@ -7,7 +7,7 @@
 #include <LibElf/SymbolTable.hpp>
 #include <LibElf/RelocationTable.hpp>
 
-#include <Kernel/Interface/stat.h>
+#include <Kernel/Interface/Types.hpp>
 
 class FileSystem {
 public:

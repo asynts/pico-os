@@ -4,7 +4,7 @@
 #include <Std/String.hpp>
 
 #include <Kernel/Result.hpp>
-#include <Kernel/Interface/stat.h>
+#include <Kernel/Interface/Types.hpp>
 
 namespace Kernel
 {
