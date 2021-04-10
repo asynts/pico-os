@@ -6,13 +6,13 @@
 # define TEST
 #endif
 
+#include <Std/Span.hpp>
+#include <Std/Format.hpp>
+
 #include <iostream>
 #include <functional>
 #include <vector>
 #include <span>
-
-#include <Std/Span.hpp>
-#include <Std/Format.hpp>
 
 namespace Tests
 {

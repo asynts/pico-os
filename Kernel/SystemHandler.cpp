@@ -7,9 +7,6 @@
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/Interface/Types.hpp>
 
-#define STDIN_FILENO 0
-#define STDOUT_FILENO 1
-
 namespace Kernel
 {
     class TypeErasedArgument {
