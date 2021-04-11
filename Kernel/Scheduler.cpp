@@ -12,18 +12,10 @@ namespace Kernel
             return Scheduler::the().schedule_next(stack);
         }
 
-        static int skip_cycles = 0;
-
         void isr_systick()
         {
-            if (Scheduler::the().enabled()) {
-                if (skip_cycles == 0) {
-                    skip_cycles = 5;
-                    scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
-                } else {
-                    skip_cycles--;
-                }
-            }
+            if (Scheduler::the().enabled())
+                scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
         }
     }
 

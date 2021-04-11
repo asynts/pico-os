@@ -45,14 +45,6 @@ void load_and_execute_shell()
     VERIFY_NOT_REACHED();
 }
 
-[[noreturn]]
-void example_kernel_thread()
-{
-    dbgln("[example_kernel_thread] Hello, world!");
-    for(;;)
-        asm volatile("wfi");
-}
-
 int main()
 {
     Kernel::ConsoleFile::the();
@@ -74,19 +66,7 @@ int main()
     auto& root_file = Kernel::FileSystem::lookup("/");
     dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
-    Kernel::Scheduler::the().create_thread("Kernel: example", example_kernel_thread);
-
-    Kernel::Scheduler::the().create_thread("Kernel: lambda without capture", [] {
-        dbgln("Hello, world from lambda '{}'", __PRETTY_FUNCTION__);
-        for(;;)
-            asm volatile("wfi");
-    });
-
-    Kernel::Scheduler::the().create_thread("Kernel: lambda with captures", [x = 42] {
-        dbgln("I got x={} in the lambda!", x);
-        for(;;)
-            asm volatile("wfi");
-    });
+    Kernel::Scheduler::the().create_thread("Shell", load_and_execute_shell);
 
     Kernel::Scheduler::the().loop();
 

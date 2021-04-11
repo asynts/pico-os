@@ -17,8 +17,8 @@ namespace Kernel
         struct Stack {
             Stack()
             {
-                m_buffer = new u8[0x400];
-                m_stack_if_inactive = m_buffer + 0x400;
+                m_buffer = new u8[0x1000];
+                m_stack_if_inactive = m_buffer + 0x1000;
             }
             ~Stack()
             {
