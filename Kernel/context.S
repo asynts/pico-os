@@ -2,7 +2,7 @@
 .cpu cortex-m0plus
 .thumb
 
-// u8* scheduler_next(u8*)
+// u8* scheduler_next(u8* stack)
 .extern scheduler_next
 
 // void isr_pendsv()

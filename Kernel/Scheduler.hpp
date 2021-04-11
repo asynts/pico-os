@@ -105,6 +105,8 @@ namespace Kernel
             return m_threads.front();
         }
 
+        void donate_my_remaining_cpu_slice();
+
         template<typename Callback>
         Thread& create_thread(Thread&& thread, Callback&& callback)
         {

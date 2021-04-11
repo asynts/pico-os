@@ -23,7 +23,8 @@ namespace Kernel
     {
         m_enabled = false;
 
-        systick_hw->rvr = 0x00ffffff;
+        // FIXME: Figure out a sensitive value, 0x00ffffff is the maximum
+        systick_hw->rvr = 0x00f00000;
 
         systick_hw->csr = 1 << M0PLUS_SYST_CSR_CLKSOURCE_LSB
                         | 1 << M0PLUS_SYST_CSR_TICKINT_LSB
@@ -60,6 +61,12 @@ namespace Kernel
         return m_threads.enqueue(move(thread));
     }
 
+    void Scheduler::donate_my_remaining_cpu_slice()
+    {
+        VERIFY(Scheduler::the().enabled());
+        scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
+    }
+
     void Scheduler::loop()
     {
         Thread thread { __PRETTY_FUNCTION__ };
@@ -80,8 +87,10 @@ namespace Kernel
         dbgln("[Scheduler::loop] Enableling scheduling...");
         m_enabled = true;
 
-        for(;;)
+        for(;;) {
+            donate_my_remaining_cpu_slice();
             asm volatile("wfi");
+        }
     }
 
     u8* Scheduler::schedule_next(u8 *stack)
@@ -94,6 +103,22 @@ namespace Kernel
 
         stack = m_threads.front().m_stack.m_stack_if_inactive.must();
         m_threads.front().m_stack.m_stack_if_inactive.clear();
+
+        // The write to CONTROL.SPSEL is ignored by the processor because we are
+        // running in handler mode.
+        if (thread.m_process.is_valid()) {
+            asm volatile(
+                "msr control, %0;"
+                "isb;"
+                :
+                : "r"(0b01));
+        } else {
+            asm volatile(
+                "msr control, %0;"
+                "isb;"
+                :
+                : "r"(0b00));
+        }
 
         return stack;
     }
