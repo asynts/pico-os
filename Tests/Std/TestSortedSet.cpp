@@ -308,4 +308,27 @@ TEST_CASE(sortedset_iterator)
     ASSERT(iter == iter.end());
 }
 
+TEST_CASE(sortedset_move)
+{
+    Std::SortedSet<int> set1;
+    set1.insert(2);
+    set1.insert(1);
+    set1.insert(3);
+
+    Std::SortedSet<int> set2 { move(set1) };
+
+    ASSERT(set1.size() == 0);
+    for (auto& item : set1.inorder())
+        ASSERT_NOT_REACHED();
+
+    ASSERT(set2.size() == 3);
+
+    auto iter = set2.inorder();
+
+    ASSERT(*iter++ == 1);
+    ASSERT(*iter++ == 2);
+    ASSERT(*iter++ == 3);
+    ASSERT(iter.is_end());
+}
+
 TEST_MAIN();

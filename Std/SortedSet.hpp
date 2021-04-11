@@ -17,7 +17,18 @@ namespace Std
         }
         ~SortedSet()
         {
-            delete m_root;
+            clear();
+        }
+
+        // FIXME: Implement this
+        SortedSet(const SortedSet&) = delete;
+
+        SortedSet(SortedSet&& other)
+        {
+            m_root = nullptr;
+            m_size = 0;
+
+            *this = move(other);
         }
 
         struct Node {
@@ -35,7 +46,6 @@ namespace Std
                 m_right = nullptr;
                 m_parent = nullptr;
             }
-
             ~Node()
             {
                 delete m_left;
@@ -103,6 +113,8 @@ namespace Std
 
             InorderIterator begin() { return *this; }
             InorderIterator end() { return { m_set, nullptr }; }
+
+            bool is_end() { return *this == end(); }
 
             const T& operator*() const { return m_current->m_value; }
             T& operator*() { return m_current->m_value; }
@@ -222,6 +234,24 @@ namespace Std
         }
 
         usize size() const { return m_size; }
+
+        void clear()
+        {
+            delete m_root;
+
+            m_root = nullptr;
+            m_size = 0;
+        }
+
+        SortedSet& operator=(SortedSet&& other)
+        {
+            clear();
+
+            m_root = exchange(other.m_root, nullptr);
+            m_size = exchange(other.m_size, 0);
+
+            return *this;
+        }
 
     private:
         template<typename T_>
