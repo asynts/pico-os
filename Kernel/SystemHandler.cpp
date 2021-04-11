@@ -6,6 +6,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/Interface/Types.hpp>
+#include <Kernel/Scheduler.hpp>
 
 namespace Kernel
 {
@@ -128,6 +129,21 @@ namespace Kernel
             statbuf->st_gid = file.m_owning_group;
 
             return 0;
+        }
+
+        if (syscall == _SC_fork) {
+            Process forked { String::format("Fork: {}", process.m_name) };
+            Thread thread { String::format("Process: {}", forked.m_name), move(forked) };
+            thread.m_privileged = true;
+
+            forked.m_executable = process.m_executable.must().clone();
+
+            Scheduler::the().create_thread(move(thread), [forked_ = move(forked)] {
+                hand_over_to_loaded_executable(forked_.m_executable.must());
+            });
+
+            // FIXME: Implement process-ids
+            return 1;
         }
 
         VERIFY_NOT_REACHED();

@@ -62,6 +62,11 @@ namespace Std {
             VERIFY(is_valid());
             return value();
         }
+        const T& must() const&
+        {
+            VERIFY(is_valid());
+            return value();
+        }
 
         void clear()
         {

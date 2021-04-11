@@ -90,6 +90,7 @@ namespace Kernel
         String m_name;
         Stack m_stack;
         Optional<Process> m_process;
+        bool m_privileged = false;
     };
 
     class Scheduler : public Singleton<Scheduler> {

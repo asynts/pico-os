@@ -11,6 +11,22 @@ namespace Kernel
 
     class Process {
     public:
+        explicit Process(String name, Optional<LoadedExecutable> executable = {})
+            : m_name(move(name))
+            , m_executable(move(executable))
+        {
+            auto& tty_file = FileSystem::lookup("/dev/tty");
+
+            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stdin_fileno == 0);
+
+            i32 stdout_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stdout_fileno == 1);
+
+            i32 stderr_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stderr_fileno == 2);
+        }
+
         static Process& active_process();
         static Process& create(StringView name, ElfWrapper);
 
@@ -29,23 +45,9 @@ namespace Kernel
 
         Path m_working_directory = "/";
         String m_name;
+        Optional<LoadedExecutable> m_executable;
 
     private:
-        explicit Process(String name)
-            : m_name(move(name))
-        {
-            auto& tty_file = FileSystem::lookup("/dev/tty");
-
-            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stdin_fileno == 0);
-
-            i32 stdout_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stdout_fileno == 1);
-
-            i32 stderr_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stderr_fileno == 2);
-        }
-
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
     };

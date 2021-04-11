@@ -70,6 +70,7 @@ namespace Kernel
     void Scheduler::loop()
     {
         Thread thread { __PRETTY_FUNCTION__ };
+        thread.m_privileged = true;
 
         thread.m_stack.align(8);
 
@@ -104,20 +105,20 @@ namespace Kernel
         stack = m_threads.front().m_stack.m_stack_if_inactive.must();
         m_threads.front().m_stack.m_stack_if_inactive.clear();
 
-        // The write to CONTROL.SPSEL is ignored by the processor because we are
-        // running in handler mode.
-        if (thread.m_process.is_valid()) {
-            asm volatile(
-                "msr control, %0;"
-                "isb;"
-                :
-                : "r"(0b01));
-        } else {
+        // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
+        // because we are running in handler mode
+        if (m_threads.front().m_privileged) {
             asm volatile(
                 "msr control, %0;"
                 "isb;"
                 :
                 : "r"(0b00));
+        } else {
+            asm volatile(
+                "msr control, %0;"
+                "isb;"
+                :
+                : "r"(0b01));
         }
 
         return stack;

@@ -19,7 +19,7 @@ extern "C" {
 void create_shell_process()
 {
     auto& shell_file = dynamic_cast<Kernel::FlashFile&>(Kernel::FileSystem::lookup("/bin/Shell.elf"));
-    Kernel::Process::create("/bin/Shell.elf", ElfWrapper { shell_file.m_data.data() });
+    Kernel::Process::create("/bin/Shell.elf", Kernel::ElfWrapper { shell_file.m_data.data() });
 }
 
 int main()

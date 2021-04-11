@@ -1,12 +1,13 @@
 #include <Std/Format.hpp>
 
 #include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Scheduler.hpp>
 
 // FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
 // FIXME: The debugger assumes that this is the shell binary.
 extern "C"
 {
-    volatile LoadedExecutable *volatile executable_for_debugger;
+    volatile Kernel::LoadedExecutable *volatile executable_for_debugger;
     [[gnu::noinline]]
     void inform_debugger_about_executable()
     {
@@ -14,69 +15,120 @@ extern "C"
     }
 }
 
-LoadedExecutable load_executable_into_memory(ElfWrapper elf)
+namespace Kernel
 {
-    LoadedExecutable executable;
+    LoadedExecutable load_executable_into_memory(ElfWrapper elf)
+    {
+        LoadedExecutable executable;
 
-    VERIFY(elf.header()->e_phnum == 3);
-    VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
+        VERIFY(elf.header()->e_phnum == 3);
+        VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
 
-    auto& readonly_segment = elf.segments()[0];
-    VERIFY(readonly_segment.p_type == PT_LOAD);
-    VERIFY(readonly_segment.p_flags == PF_R | PF_X);
+        auto& readonly_segment = elf.segments()[0];
+        VERIFY(readonly_segment.p_type == PT_LOAD);
+        VERIFY(readonly_segment.p_flags == PF_R | PF_X);
 
-    auto& writable_segment = elf.segments()[1];
-    VERIFY(writable_segment.p_type == PT_LOAD);
-    VERIFY(writable_segment.p_flags == PF_R | PF_W);
+        auto& writable_segment = elf.segments()[1];
+        VERIFY(writable_segment.p_type == PT_LOAD);
+        VERIFY(writable_segment.p_flags == PF_R | PF_W);
 
-    executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
+        executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
+        executable.m_readonly_size = readonly_segment.p_memsz;
 
-    u8 *writable = new u8[writable_segment.p_memsz];
-    VERIFY(writable != nullptr);
-    executable.m_writable_base = u32(writable);
+        u8 *writable = new u8[writable_segment.p_memsz];
+        VERIFY(writable != nullptr);
+        executable.m_writable_base = u32(writable);
+        executable.m_writable_size = writable_segment.p_memsz;
 
-    __builtin_memcpy(writable, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
+        __builtin_memcpy(writable, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
-    VERIFY(writable_segment.p_memsz >= writable_segment.p_filesz);
-    __builtin_memset(writable + writable_segment.p_filesz, 0, writable_segment.p_memsz - writable_segment.p_filesz);
+        VERIFY(writable_segment.p_memsz >= writable_segment.p_filesz);
+        __builtin_memset(writable + writable_segment.p_filesz, 0, writable_segment.p_memsz - writable_segment.p_filesz);
 
-    VERIFY(elf.header()->e_entry >= readonly_segment.p_vaddr);
-    VERIFY(elf.header()->e_entry - readonly_segment.p_vaddr < readonly_segment.p_memsz);
-    executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - readonly_segment.p_vaddr);
+        VERIFY(elf.header()->e_entry >= readonly_segment.p_vaddr);
+        VERIFY(elf.header()->e_entry - readonly_segment.p_vaddr < readonly_segment.p_memsz);
+        executable.m_entry = executable.m_readonly_base + (elf.header()->e_entry - readonly_segment.p_vaddr);
 
-    executable.m_text_base = 0;
-    executable.m_data_base = 0;
-    executable.m_stack_base = 0;
-    executable.m_bss_base = 0;
-    for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
-        auto& section = elf.sections()[section_index];
+        executable.m_text_base = 0;
+        executable.m_data_base = 0;
+        executable.m_stack_base = 0;
+        executable.m_bss_base = 0;
+        for (usize section_index = 1; section_index < elf.header()->e_shnum; ++section_index) {
+            auto& section = elf.sections()[section_index];
 
-        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
-            executable.m_stack_base = executable.m_writable_base + section.sh_addr;
-            executable.m_stack_size = 0x10000;
-            continue;
+            if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
+                executable.m_stack_base = executable.m_writable_base + section.sh_addr;
+                executable.m_stack_size = 0x10000;
+                continue;
+            }
+            if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
+                executable.m_data_base = executable.m_writable_base + section.sh_addr;
+                continue;
+            }
+            if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".bss") == 0) {
+                executable.m_bss_base = executable.m_writable_base + section.sh_addr;
+                continue;
+            }
+
+            if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".text") == 0) {
+                executable.m_text_base = executable.m_readonly_base + section.sh_addr;
+                continue;
+            }
         }
-        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
-            executable.m_data_base = executable.m_writable_base + section.sh_addr;
-            continue;
-        }
-        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".bss") == 0) {
-            executable.m_bss_base = executable.m_writable_base + section.sh_addr;
-            continue;
-        }
+        VERIFY(executable.m_text_base);
+        VERIFY(executable.m_data_base);
+        VERIFY(executable.m_stack_base);
+        VERIFY(executable.m_bss_base);
 
-        if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".text") == 0) {
-            executable.m_text_base = executable.m_readonly_base + section.sh_addr;
-            continue;
-        }
+        executable_for_debugger = &executable;
+        inform_debugger_about_executable();
+
+        return move(executable);
     }
-    VERIFY(executable.m_text_base);
-    VERIFY(executable.m_data_base);
-    VERIFY(executable.m_stack_base);
-    VERIFY(executable.m_bss_base);
 
-    executable_for_debugger = &executable;
-    inform_debugger_about_executable();
+    LoadedExecutable LoadedExecutable::clone()
+    {
+        LoadedExecutable copy;
 
-    return executable;
+        copy.m_writable_size = m_writable_size;
+        copy.m_writable_base = u32(new u8[m_writable_size]);
+
+        copy.m_readonly_size = m_readonly_size;
+        copy.m_readonly_base = u32(new u8[m_readonly_base]);
+
+        copy.m_entry = copy.m_readonly_base + (m_entry - m_readonly_base);
+
+        copy.m_data_base = copy.m_writable_base + (m_data_base - m_writable_base);
+        copy.m_text_base = copy.m_readonly_base + (m_text_base - m_readonly_base);
+        copy.m_bss_base = copy.m_writable_base + (m_bss_base - m_writable_base);
+
+        copy.m_stack_size = m_stack_size;
+        copy.m_stack_base = u32(new u8[m_stack_size]);
+
+        return copy;
+    }
+
+    void hand_over_to_loaded_executable(const LoadedExecutable& executable)
+    {
+        asm volatile(
+            "movs r0, #0;"
+            "msr psp, r0;"
+            "isb;"
+            "movs r0, #0b11;"
+            "msr control, r0;"
+            "isb;");
+
+        // FIXME: We got a race condition here
+        Scheduler::the().active_thread().m_privileged = false;
+
+        asm volatile(
+            "mov r0, %1;"
+            "mov sb, %2;"
+            "blx %0;"
+            :
+            : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
+            : "r0");
+
+        VERIFY_NOT_REACHED();
+    }
 }
