@@ -19,10 +19,17 @@ namespace Std
             dbgln("m_freelist:");
             for (auto *entry = m_freelist; entry; entry = entry->m_next)
                 dbgln("  {} ({} bytes)", entry, entry->m_size);
+
+            auto stats = statistics();
+
+            dbgln("statistics:");
+            dbgln("  m_largest_continous_block {}", stats.m_largest_continous_block);
+            dbgln("  m_avaliable_memory        {}", stats.m_avaliable_memory);
         }
 
         struct Statistics {
             usize m_largest_continous_block;
+            usize m_avaliable_memory;
         };
 
         Statistics statistics()
@@ -30,8 +37,11 @@ namespace Std
             Statistics stats;
 
             stats.m_largest_continous_block = 0;
+            stats.m_avaliable_memory = 0;
 
             for (auto *entry = m_freelist; entry; entry = entry->m_next) {
+                stats.m_avaliable_memory += entry->m_size;
+
                 if (entry->m_size > stats.m_largest_continous_block)
                     stats.m_largest_continous_block = entry->m_size;
             }

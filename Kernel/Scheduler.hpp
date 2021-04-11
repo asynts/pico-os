@@ -106,7 +106,7 @@ namespace Kernel
         }
 
         template<typename Callback>
-        void create_thread(Thread&& thread, Callback&& callback)
+        Thread& create_thread(Thread&& thread, Callback&& callback)
         {
             auto wrapper = [callback_ = move(callback)]() mutable {
                 callback_();
@@ -120,15 +120,15 @@ namespace Kernel
 
             void (*wrapper_wrapper_function_pointer)(void*) = wrap_member_function_call_magic<decltype(wrapper), &decltype(wrapper)::operator()>;
 
-            create_thread_impl(move(thread), wrapper_wrapper_function_pointer, moved_wrapper);
+            return create_thread_impl(move(thread), wrapper_wrapper_function_pointer, moved_wrapper);
         }
 
         template<typename Callback>
-        void create_thread(StringView name, Callback&& callback)
+        Thread& create_thread(StringView name, Callback&& callback)
         {
             Thread thread { String::format("Kernel: {}", name) };
 
-            create_thread(move(thread), move(callback));
+            return create_thread(move(thread), move(callback));
         }
 
         [[noreturn]]
@@ -143,7 +143,7 @@ namespace Kernel
         friend Singleton<Scheduler>;
         Scheduler();
 
-        void create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_);
+        Thread& create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_);
 
         CircularQueue<Thread, 8> m_threads;
         volatile bool m_enabled;

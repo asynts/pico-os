@@ -30,7 +30,7 @@ namespace Kernel
                         | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
     }
 
-    void Scheduler::create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_)
+    Thread& Scheduler::create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_)
     {
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
@@ -57,7 +57,7 @@ namespace Kernel
         thread.m_stack.push(0); // R11
 
         // FIXME: Mask PendSV for this operation
-        m_threads.enqueue(move(thread));
+        return m_threads.enqueue(move(thread));
     }
 
     void Scheduler::loop()

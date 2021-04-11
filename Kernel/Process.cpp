@@ -16,7 +16,7 @@ namespace Kernel
 
         Thread thread { String::format("Process: {}", name), move(process) };
 
-        Scheduler::the().create_thread(move(thread), [=] () mutable {
+        return Scheduler::the().create_thread(move(thread), [=] () mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
             auto executable = load_executable_into_memory(elf);
@@ -38,8 +38,6 @@ namespace Kernel
                 : "r0");
 
             VERIFY_NOT_REACHED();
-        });
-
-        return thread.m_process.must();
+        }).m_process.must();
     }
 }
