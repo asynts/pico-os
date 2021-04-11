@@ -16,33 +16,10 @@ extern "C" {
     extern u8 __fs_end[];
 }
 
-void load_and_execute_shell()
+void create_shell_process()
 {
     auto& shell_file = dynamic_cast<Kernel::FlashFile&>(Kernel::FileSystem::lookup("/bin/Shell.elf"));
-
-    ElfWrapper elf { shell_file.m_data.data() };
-    LoadedExecutable executable = load_executable_into_memory(elf);
-
-    // FIXME: Do this properly
-    Kernel::Process::current();
-
-    dbgln("[load_and_execute_shell] Switching to shell process");
-
-    asm volatile(
-        "movs r0, #0;"
-        "msr psp, r0;"
-        "isb;"
-        "movs r0, #0b11;"
-        "msr control, r0;"
-        "isb;"
-        "mov r0, %1;"
-        "mov sb, %2;"
-        "blx %0;"
-        :
-        : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
-        : "r0");
-
-    VERIFY_NOT_REACHED();
+    Kernel::Process::create("/bin/Shell.elf", ElfWrapper { shell_file.m_data.data() });
 }
 
 int main()
@@ -66,12 +43,9 @@ int main()
     auto& root_file = Kernel::FileSystem::lookup("/");
     dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
-    Kernel::Scheduler::the().create_thread("Shell", load_and_execute_shell);
+    create_shell_process();
 
     Kernel::Scheduler::the().loop();
 
-    load_and_execute_shell();
-
-    for(;;)
-        asm volatile("wfi");
+    VERIFY_NOT_REACHED();
 }

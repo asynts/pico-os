@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Std/Forward.hpp>
 
 #include <elf.h>

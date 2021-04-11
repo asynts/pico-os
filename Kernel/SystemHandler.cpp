@@ -29,6 +29,9 @@ namespace Kernel
     extern "C"
     isize syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3)
     {
+        // FIXME: Ensure that the scheduler doesn't switch before we grab this
+        auto& process = Process::active_process();
+
         if (syscall == _SC_read) {
             i32 fd = arg1.fd();
             auto *buffer = arg2.pointer<u8>();
@@ -37,7 +40,7 @@ namespace Kernel
             if (fd > 2)
                 dbgln("[syscall_handler] read({}, {}, {})", fd, buffer, count);
 
-            auto& handle = Kernel::Process::current().get_file_handle(fd);
+            auto& handle = process.get_file_handle(fd);
             return handle.read({ buffer, count }).must();
         }
 
@@ -49,7 +52,7 @@ namespace Kernel
             if (fd > 2)
                 dbgln("[syscall_handler] write({}, {}, {})", fd, buffer, count);
 
-            auto& handle = Kernel::Process::current().get_file_handle(fd);
+            auto& handle = process.get_file_handle(fd);
             return handle.write({ buffer, count }).must();
         }
 
@@ -61,7 +64,7 @@ namespace Kernel
             dbgln("[syscall_handler] open({}, {}, {})", path, flags, mode);
 
             if (!path.is_absolute())
-                path = Process::current().m_working_directory / path;
+                path = process.m_working_directory / path;
 
             auto& file = Kernel::FileSystem::lookup(path);
 
@@ -73,7 +76,7 @@ namespace Kernel
             }
 
             auto& handle = file.create_handle();
-            return Kernel::Process::current().add_file_handle(handle);
+            return process.add_file_handle(handle);
         }
 
         if (syscall == _SC_close) {
@@ -85,7 +88,7 @@ namespace Kernel
             i32 fd = arg1.fd();
             UserlandFileInfo *statbuf = arg2.pointer<UserlandFileInfo>();
 
-            auto& handle = Kernel::Process::current().get_file_handle(fd);
+            auto& handle = process.get_file_handle(fd);
             auto& file = handle.file();
 
             // FIXME: We need some sensible values here
@@ -108,7 +111,7 @@ namespace Kernel
             UserlandFileInfo *statbuf = arg2.pointer<UserlandFileInfo>();
 
             if (!path.is_absolute())
-                path = Process::current().m_working_directory / path;
+                path = process.m_working_directory / path;
 
             auto& file = FileSystem::lookup(path);
 

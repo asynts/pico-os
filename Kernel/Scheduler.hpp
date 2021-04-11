@@ -4,13 +4,16 @@
 #include <Std/String.hpp>
 #include <Std/CircularQueue.hpp>
 
+#include <Kernel/Process.hpp>
+
 namespace Kernel
 {
     using namespace Std;
 
     struct Thread {
-        explicit Thread(StringView name)
+        explicit Thread(StringView name, Optional<Process> process = {})
             : m_name(name)
+            , m_process(move(process))
         {
         }
 
@@ -86,6 +89,7 @@ namespace Kernel
 
         String m_name;
         Stack m_stack;
+        Optional<Process> m_process;
     };
 
     class Scheduler : public Singleton<Scheduler> {
@@ -96,11 +100,14 @@ namespace Kernel
             (reinterpret_cast<T*>(object)->*Method)();
         }
 
-        template<typename Callback>
-        void create_thread(StringView name, Callback&& callback)
+        Thread& active_thread()
         {
-            Thread thread { name };
+            return m_threads.front();
+        }
 
+        template<typename Callback>
+        void create_thread(Thread&& thread, Callback&& callback)
+        {
             auto wrapper = [callback_ = move(callback)]() mutable {
                 callback_();
                 FIXME();
@@ -114,6 +121,14 @@ namespace Kernel
             void (*wrapper_wrapper_function_pointer)(void*) = wrap_member_function_call_magic<decltype(wrapper), &decltype(wrapper)::operator()>;
 
             create_thread_impl(move(thread), wrapper_wrapper_function_pointer, moved_wrapper);
+        }
+
+        template<typename Callback>
+        void create_thread(StringView name, Callback&& callback)
+        {
+            Thread thread { String::format("Kernel: {}", name) };
+
+            create_thread(move(thread), move(callback));
         }
 
         [[noreturn]]

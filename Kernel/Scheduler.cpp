@@ -77,6 +77,7 @@ namespace Kernel
             :
             : "r"(stack_pointer), "r"(0b10));
 
+        dbgln("[Scheduler::loop] Enableling scheduling...");
         m_enabled = true;
 
         for(;;)

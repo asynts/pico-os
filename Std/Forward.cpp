@@ -63,6 +63,7 @@ namespace Std
             if (lexer.peek_or_null() != '%')
                 ASSERT(lexer.eof());
         }
+        write_output("\n");
 
 #if defined(TEST)
         std::abort();
