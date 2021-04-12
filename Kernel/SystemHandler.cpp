@@ -32,6 +32,9 @@ namespace Kernel
     {
         VERIFY(return_address >= 0x10000000 && return_address < 0x20000000);
 
+        // FIXME: Something goes horribly wrong when I return from this function,
+        //        I assume, I messed up the calling convention at some point
+
         // FIXME: Ensure that the scheduler doesn't switch before we grab this
         auto& process = Process::active_process();
 

@@ -20,12 +20,9 @@ isr_svcall:
     isb
     ldr r1, [r1, #0x18]
 
-    // FIXME: How to pass four arguments?
-
-    push {r4}
-    mov r4, r1
+    push {r1}
     bl syscall_handler
-    pop {r4}
+    pop {r1}
 
     str r0, [sp, #4]
     str r1, [sp, #8]
