@@ -15,13 +15,17 @@ isr_svcall:
     push {lr}
     push {lr}
 
+    push {r1} // slot for syscall_handler.return_address
+    push {r1} // saved value of r1
+
     // Extract return address
     mrs r1, psp
     isb
     ldr r1, [r1, #0x18]
+    str r1, [sp, #4]
+    pop {r1}
 
-    push {r1}
-    bl syscall_handler
+    blx syscall_handler
     pop {r1}
 
     str r0, [sp, #4]
