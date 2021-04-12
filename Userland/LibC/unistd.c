@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <sys/system.h>
+#include <sys/types.h>
 
 int chdir(const char *path)
 {
@@ -10,7 +12,7 @@ int chdir(const char *path)
 
 pid_t fork(void)
 {
-    abort();
+    return sys$fork();
 }
 
 int execle(const char *pathname, ...)

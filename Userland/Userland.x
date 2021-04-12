@@ -41,11 +41,11 @@ SECTIONS
     . = ALIGN(4);
     .heap (NOLOAD) : {
         __heap_start__ = .;
-        . += 0x2000;
+        . += 0x1000;
         __heap_end__ = .;
     } :data
     . = ALIGN(8);
     .stack (NOLOAD) : {
-        . += 0x2100;
+        . += 0x1100;
     } :data
 }

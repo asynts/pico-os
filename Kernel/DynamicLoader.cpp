@@ -2,6 +2,7 @@
 
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/Scheduler.hpp>
+#include <Kernel/GlobalMemoryAllocator.hpp>
 
 // FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
 // FIXME: The debugger assumes that this is the shell binary.
@@ -58,7 +59,7 @@ namespace Kernel
 
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
                 executable.m_stack_base = executable.m_writable_base + section.sh_addr;
-                executable.m_stack_size = 0x10000;
+                executable.m_stack_size = 0x1100;
                 continue;
             }
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
@@ -94,7 +95,7 @@ namespace Kernel
         copy.m_writable_base = u32(new u8[m_writable_size]);
 
         copy.m_readonly_size = m_readonly_size;
-        copy.m_readonly_base = u32(new u8[m_readonly_base]);
+        copy.m_readonly_base = m_readonly_base;
 
         copy.m_entry = copy.m_readonly_base + (m_entry - m_readonly_base);
 
