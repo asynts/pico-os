@@ -2,6 +2,7 @@
 .cpu cortex-m0plus
 .thumb
 
+// i32 syscall_handler(u32 syscall, TypeErasedArgument arg1, TypeErasedArgument arg2, TypeErasedArgument arg3, u32 return_address)
 .global syscall_handler
 
 // [[noreturn]]
@@ -14,7 +15,17 @@ isr_svcall:
     push {lr}
     push {lr}
 
+    // Extract return address
+    mrs r1, psp
+    isb
+    ldr r1, [r1, #0x18]
+
+    // FIXME: How to pass four arguments?
+
+    push {r4}
+    mov r4, r1
     bl syscall_handler
+    pop {r4}
 
     str r0, [sp, #4]
     str r1, [sp, #8]

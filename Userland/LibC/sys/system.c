@@ -44,3 +44,8 @@ pid_t sys$fork(void)
 {
     return syscall(_SC_fork, 0, 0, 0);
 }
+
+int sys$wait(int *wstatus)
+{
+    return syscall(_SC_wait, wstatus, 0, 0);
+}

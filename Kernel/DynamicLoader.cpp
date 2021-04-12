@@ -93,6 +93,7 @@ namespace Kernel
 
         copy.m_writable_size = m_writable_size;
         copy.m_writable_base = u32(new u8[m_writable_size]);
+        memcpy((void*)copy.m_writable_base, (void*)m_writable_base, m_writable_size);
 
         copy.m_readonly_size = m_readonly_size;
         copy.m_readonly_base = m_readonly_base;
@@ -105,9 +106,12 @@ namespace Kernel
 
         copy.m_stack_size = m_stack_size;
         copy.m_stack_base = u32(new u8[m_stack_size]);
+        memcpy((void*)copy.m_stack_base, (void*)m_stack_base, m_stack_size);
 
         return copy;
     }
+
+    // FIXME: This is a huge mess
 
     void hand_over_to_loaded_executable(const LoadedExecutable& executable)
     {
@@ -117,7 +121,10 @@ namespace Kernel
             "isb;"
             "movs r0, #0b11;"
             "msr control, r0;"
-            "isb;");
+            "isb;"
+            :
+            :
+            : "r0");
 
         // FIXME: We got a race condition here
         Scheduler::the().active_thread().m_privileged = false;
@@ -129,6 +136,40 @@ namespace Kernel
             :
             : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
             : "r0");
+
+        VERIFY_NOT_REACHED();
+    }
+
+    void hand_over_to_forked_executable(const LoadedExecutable& executable)
+    {
+        // Setup stack for process
+        asm volatile(
+            "msr psp, %0;"
+            "isb;"
+            :
+            : "r"(executable.m_stack_base + executable.m_stack_size));
+
+        // Setup the static base register
+        asm volatile(
+            "mov sb, %0;"
+            :
+            : "r"(executable.m_writable_base));
+
+        Scheduler::the().active_thread().m_privileged = false;
+
+        // Drop privileges
+        asm volatile(
+            "movs r0, #0b11;"
+            "msr control, r0;"
+            :
+            :
+            : "r0");
+
+        // Hand over execution
+        asm volatile(
+            "blx %0;"
+            :
+            : "r"(executable.m_entry));
 
         VERIFY_NOT_REACHED();
     }
