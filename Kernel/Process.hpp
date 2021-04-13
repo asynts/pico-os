@@ -51,6 +51,7 @@ namespace Kernel
         i32 sys$write(i32 fd, const u8 *buffer, usize count);
         i32 sys$open(const char *pathname, u32 flags, u32 mode);
         i32 sys$close(i32 fd);
+        i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
 
     private:
         HashMap<i32, VirtualFileHandle*> m_handles;

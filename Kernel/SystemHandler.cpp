@@ -59,6 +59,8 @@ namespace Kernel
             return process.sys$open(context->r1.cstring(), context->r2.value<u32>(), context->r3.value<u32>());
         else if (context->r0.syscall() == _SC_close)
             return process.sys$close(context->r1.fd());
+        else if (context->r0.syscall() == _SC_fstat)
+            return process.sys$fstat(context->r1.fd(), context->r2.pointer<UserlandFileInfo>());
 
         VERIFY_NOT_REACHED();
     }

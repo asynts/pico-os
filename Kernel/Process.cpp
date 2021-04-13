@@ -80,4 +80,25 @@ namespace Kernel
 
         return 0;
     }
+
+    i32 Process::sys$fstat(i32 fd, UserlandFileInfo *statbuf)
+    {
+        dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
+
+        auto& handle = get_file_handle(fd);
+        auto& file = handle.file();
+
+        statbuf->st_dev = FileSystemId::Invalid;
+        statbuf->st_rdev = 0xdead;
+        statbuf->st_size = 0xdead;
+        statbuf->st_blksize = 0xdead;
+        statbuf->st_blocks = 0xdead;
+
+        statbuf->st_ino = file.m_ino;
+        statbuf->st_mode = file.m_mode;
+        statbuf->st_uid = file.m_owning_user;
+        statbuf->st_gid = file.m_owning_group;
+
+        return 0;
+    }
 }
