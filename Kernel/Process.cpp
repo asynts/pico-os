@@ -106,8 +106,6 @@ namespace Kernel
 
     i32 Process::sys$fork()
     {
-        // FIXME: We never update active_thread.m_stack.m_stack_if_inactive in the isr_svcall path
-
         Thread new_thread {
             String::format("Process: Fork: {}", m_name),
             Process {
@@ -126,5 +124,14 @@ namespace Kernel
         Scheduler::the().create_thread(move(new_thread));
 
         return new_process_id;
+    }
+
+    i32 Process::sys$wait(i32 *status)
+    {
+        // FIXME: This implementation is so lazy...
+        // FIXME: We also don't detect if a child process completes...
+        // FIXME: We also don't have a concept of child processes...
+        Scheduler::the().donate_my_remaining_cpu_slice();
+        return -EINTR;
     }
 }

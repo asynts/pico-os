@@ -2,6 +2,7 @@
 #include <sys/system.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <fcntl.h>
 
 int fstat(int fd, struct stat *statbuf)
 {
@@ -10,8 +11,12 @@ int fstat(int fd, struct stat *statbuf)
 
 int stat(const char *pathname, struct stat *statbuf)
 {
-    int retval = sys$stat(pathname, statbuf);
-    assert(retval == 0);
+    // FIXME: This is really ugly
+    int fd = sys$open(pathname, O_RDONLY, 0);
 
-    return 0;
+    int retval = sys$fstat(fd, statbuf);
+
+    sys$close(fd);
+
+    return retval;
 }

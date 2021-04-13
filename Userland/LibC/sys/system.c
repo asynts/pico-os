@@ -35,11 +35,6 @@ int sys$fstat(int fd, struct stat *statbuf)
     return syscall(_SC_fstat, fd, statbuf, 0);
 }
 
-int sys$stat(const char *pathname, struct stat *statbuf)
-{
-    return syscall(_SC_stat, pathname, statbuf, 0);
-}
-
 pid_t sys$fork(void)
 {
     return syscall(_SC_fork, 0, 0, 0);

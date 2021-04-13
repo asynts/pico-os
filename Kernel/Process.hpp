@@ -55,6 +55,7 @@ namespace Kernel
         i32 sys$close(i32 fd);
         i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
         i32 sys$fork();
+        i32 sys$wait(i32 *status);
 
     private:
         static i32 m_next_process_id;

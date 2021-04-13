@@ -14,20 +14,33 @@ namespace Kernel
     i32 syscall_handler(RegisterContext *context)
     {
         auto& process = Process::active_process();
+        auto& thread = Scheduler::the().active_thread();
 
+        VERIFY(!thread.m_stack.m_stack_if_inactive.is_valid());
+        thread.m_stack.m_stack_if_inactive = reinterpret_cast<u8*>(context);
+
+        i32 return_value;
         if (context->r0.syscall() == _SC_read)
-            return process.sys$read(context->r1.fd(), context->r2.pointer<u8>(), context->r3.value<usize>());
+            return_value = process.sys$read(context->r1.fd(), context->r2.pointer<u8>(), context->r3.value<usize>());
         else if (context->r0.syscall() == _SC_write)
-            return process.sys$write(context->r1.fd(), context->r2.pointer<const u8>(), context->r3.value<usize>());
+            return_value = process.sys$write(context->r1.fd(), context->r2.pointer<const u8>(), context->r3.value<usize>());
         else if (context->r0.syscall() == _SC_open)
-            return process.sys$open(context->r1.cstring(), context->r2.value<u32>(), context->r3.value<u32>());
+            return_value = process.sys$open(context->r1.cstring(), context->r2.value<u32>(), context->r3.value<u32>());
         else if (context->r0.syscall() == _SC_close)
-            return process.sys$close(context->r1.fd());
+            return_value = process.sys$close(context->r1.fd());
         else if (context->r0.syscall() == _SC_fstat)
-            return process.sys$fstat(context->r1.fd(), context->r2.pointer<UserlandFileInfo>());
+            return_value = process.sys$fstat(context->r1.fd(), context->r2.pointer<UserlandFileInfo>());
         else if (context->r0.syscall() == _SC_fork)
-            return process.sys$fork();
+            return_value = process.sys$fork();
+        else if (context->r0.syscall() == _SC_wait)
+            return_value = process.sys$wait(context->r1.pointer<i32>());
+        else
+            VERIFY_NOT_REACHED();
 
-        VERIFY_NOT_REACHED();
+        VERIFY(&thread == &Scheduler::the().active_thread());
+        VERIFY(reinterpret_cast<u8*>(context) == thread.m_stack.m_stack_if_inactive.must());
+        thread.m_stack.m_stack_if_inactive.clear();
+
+        return return_value;
     }
 }
