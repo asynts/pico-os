@@ -1,6 +1,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Interface/System.hpp>
 
 namespace Kernel
 {
@@ -47,5 +48,36 @@ namespace Kernel
 
         auto& handle = get_file_handle(fd);
         return handle.write({ buffer, count }).must();
+    }
+
+    i32 Process::sys$open(const char *pathname, u32 flags, u32 mode)
+    {
+        dbgln("[Process::sys$open] pathname={} flags={} mode={}", pathname, flags, mode);
+
+        Path path = pathname;
+
+        if (!path.is_absolute())
+            path = m_working_directory / path;
+
+        auto& file = Kernel::FileSystem::lookup(path);
+
+        if ((flags & O_DIRECTORY)) {
+            if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory) {
+                dbgln("[Process::sys$open] -> ENOTDIR");
+                return -ENOTDIR;
+            }
+        }
+
+        auto& handle = file.create_handle();
+        return add_file_handle(handle);
+    }
+
+    i32 Process::sys$close(i32 fd)
+    {
+        dbgln("[Process::sys$close] fd={}", fd);
+
+        // FIXME
+
+        return 0;
     }
 }

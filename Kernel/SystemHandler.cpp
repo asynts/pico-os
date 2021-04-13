@@ -17,7 +17,9 @@ namespace Kernel
         template<typename T>
         T* pointer() { return bit_cast<T*>(m_storage); }
 
-        u32 syscall() { return m_storage; }
+        u32 syscall() { return value<u32>(); }
+        const char* cstring() { return pointer<const char>(); }
+        i32 fd() { return value<i32>(); }
 
         u32 m_storage;
     };
@@ -50,9 +52,13 @@ namespace Kernel
         auto& process = Process::active_process();
 
         if (context->r0.syscall() == _SC_read)
-            return process.sys$read(context->r1.value<i32>(), context->r2.pointer<u8>(), context->r3.value<usize>());
+            return process.sys$read(context->r1.fd(), context->r2.pointer<u8>(), context->r3.value<usize>());
         else if (context->r0.syscall() == _SC_write)
-            return process.sys$write(context->r1.value<i32>(), context->r2.pointer<const u8>(), context->r3.value<usize>());
+            return process.sys$write(context->r1.fd(), context->r2.pointer<const u8>(), context->r3.value<usize>());
+        else if (context->r0.syscall() == _SC_open)
+            return process.sys$open(context->r1.cstring(), context->r2.value<u32>(), context->r3.value<u32>());
+        else if (context->r0.syscall() == _SC_close)
+            return process.sys$close(context->r1.fd());
 
         VERIFY_NOT_REACHED();
     }
