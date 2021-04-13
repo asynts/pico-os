@@ -121,7 +121,7 @@ namespace Kernel
                 : "r"(0b01));
         }
 
-        dbgln("Scheduling '{}'", m_threads.front().m_name);
+        // dbgln("Scheduling '{}'", m_threads.front().m_name);
 
         return stack;
     }

@@ -68,6 +68,7 @@ namespace Std
 #if defined(TEST)
         std::abort();
 #else
+        asm volatile("bkpt #0");
         for(;;)
             asm volatile("wfi");
 #endif

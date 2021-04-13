@@ -30,4 +30,22 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }).m_process.must();
     }
+
+    i32 Process::sys$read(i32 fd, u8 *buffer, usize count)
+    {
+        if (fd > 2)
+            dbgln("[Process::sys$read] fd={} buffer={} count={}", fd, buffer, count);
+
+        auto& handle = get_file_handle(fd);
+        return handle.read({ buffer, count }).must();
+    }
+
+    i32 Process::sys$write(i32 fd, const u8 *buffer, usize count)
+    {
+        if (fd > 2)
+            dbgln("[Process::sys$write] fd={} buffer={} count={}", fd, buffer, count);
+
+        auto& handle = get_file_handle(fd);
+        return handle.write({ buffer, count }).must();
+    }
 }

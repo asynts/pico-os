@@ -81,10 +81,10 @@ isr_svcall:
     blx syscall_handler
 
     str r0, [sp, #4]
+    pop {r0}
 
     bl pop_callee_saved_registers
 
-    pop {r0}
     msr psp, r0
     isb
 

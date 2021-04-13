@@ -47,6 +47,9 @@ namespace Kernel
         String m_name;
         Optional<LoadedExecutable> m_executable;
 
+        i32 sys$read(i32 fd, u8 *buffer, usize count);
+        i32 sys$write(i32 fd, const u8 *buffer, usize count);
+
     private:
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
