@@ -15,6 +15,8 @@ namespace Kernel
             : m_name(move(name))
             , m_executable(move(executable))
         {
+            m_process_id = m_next_process_id++;
+
             auto& tty_file = FileSystem::lookup("/dev/tty");
 
             i32 stdin_fileno = add_file_handle(tty_file.create_handle());
@@ -52,9 +54,13 @@ namespace Kernel
         i32 sys$open(const char *pathname, u32 flags, u32 mode);
         i32 sys$close(i32 fd);
         i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
+        i32 sys$fork();
 
     private:
+        static i32 m_next_process_id;
+
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
+        i32 m_process_id;
     };
 }

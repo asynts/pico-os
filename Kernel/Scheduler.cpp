@@ -1,4 +1,5 @@
 #include <Kernel/Scheduler.hpp>
+#include <Kernel/SystemHandler.hpp>
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
@@ -7,9 +8,9 @@ namespace Kernel
 {
     extern "C"
     {
-        u8* scheduler_next(u8 *stack)
+        RegisterContext* scheduler_next(RegisterContext *context)
         {
-            return Scheduler::the().schedule_next(stack);
+            return Scheduler::the().schedule_next(context);
         }
 
         void isr_systick()
@@ -36,6 +37,8 @@ namespace Kernel
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
         thread.m_stack.align(8);
+
+        // FIXME: Do this with RegisterContext
 
         // Unpacked on exception return
         thread.m_stack.push(xpsr_thumb_mode); // XPSR
@@ -94,15 +97,14 @@ namespace Kernel
         }
     }
 
-    u8* Scheduler::schedule_next(u8 *stack)
+    RegisterContext* Scheduler::schedule_next(RegisterContext *context)
     {
         Thread thread = m_threads.dequeue();
         ASSERT(!thread.m_stack.m_stack_if_inactive.is_valid());
-        thread.m_stack.m_stack_if_inactive = stack;
-
+        thread.m_stack.m_stack_if_inactive = reinterpret_cast<u8*>(context);
         m_threads.enqueue(move(thread));
 
-        stack = m_threads.front().m_stack.m_stack_if_inactive.must();
+        context = reinterpret_cast<RegisterContext*>(m_threads.front().m_stack.m_stack_if_inactive.must());
         m_threads.front().m_stack.m_stack_if_inactive.clear();
 
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
@@ -121,8 +123,6 @@ namespace Kernel
                 : "r"(0b01));
         }
 
-        // dbgln("Scheduling '{}'", m_threads.front().m_name);
-
-        return stack;
+        return context;
     }
 }

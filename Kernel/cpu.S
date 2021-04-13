@@ -55,7 +55,7 @@ isr_pendsv:
 
     bl push_callee_saved_registers
 
-    // u8* scheduler_next(u8*)
+    // RegisterContext* scheduler_next(RegisterContext*)
     bl scheduler_next
 
     bl pop_callee_saved_registers

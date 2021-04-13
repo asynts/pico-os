@@ -5,6 +5,8 @@
 
 namespace Kernel
 {
+    i32 Process::m_next_process_id = 0;
+
     Process& Process::active_process()
     {
         auto& thread = Scheduler::the().active_thread();
@@ -100,5 +102,29 @@ namespace Kernel
         statbuf->st_gid = file.m_owning_group;
 
         return 0;
+    }
+
+    i32 Process::sys$fork()
+    {
+        // FIXME: We never update active_thread.m_stack.m_stack_if_inactive in the isr_svcall path
+
+        Thread new_thread {
+            String::format("Process: Fork: {}", m_name),
+            Process {
+                String::format("Fork: {}", m_name),
+                m_executable.must().clone(),
+            },
+        };
+
+        i32 new_process_id = new_thread.m_process.must().m_process_id;
+
+        dbgln("[Process::sys$fork] Forking new process PID {} from PID {}", new_process_id, m_process_id);
+
+        auto *context = reinterpret_cast<RegisterContext*>(new_thread.m_stack.m_stack_if_inactive.must());
+        context->r0.m_storage = 0;
+
+        Scheduler::the().create_thread(move(new_thread));
+
+        return new_process_id;
     }
 }

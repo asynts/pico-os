@@ -5,6 +5,7 @@
 #include <Std/CircularQueue.hpp>
 
 #include <Kernel/Process.hpp>
+#include <Kernel/SystemHandler.hpp>
 
 namespace Kernel
 {
@@ -17,6 +18,8 @@ namespace Kernel
         {
         }
 
+        // FIXME: We somehow need to store a RegisterContext, but the stack abstraction
+        //        is useful too
         struct Stack {
             Stack()
             {
@@ -108,6 +111,11 @@ namespace Kernel
 
         void donate_my_remaining_cpu_slice();
 
+        Thread& create_thread(Thread&& thread)
+        {
+            return m_threads.enqueue(move(thread));
+        }
+
         template<typename Callback>
         Thread& create_thread(Thread&& thread, Callback&& callback)
         {
@@ -138,7 +146,7 @@ namespace Kernel
         void loop();
 
         // Used by PendSV exception handler should return Thread.m_stack.m_current_stack
-        u8* schedule_next(u8 *stack);
+        RegisterContext* schedule_next(RegisterContext*);
 
         bool enabled() const { return m_enabled; }
 
