@@ -68,6 +68,11 @@ namespace Std
     template<typename T>
     class HashTable {
     public:
+        void clear()
+        {
+            m_set.clear();
+        }
+
         void insert(const T& value)
         {
             m_set.insert({ Hash<T>::compute(value), value });

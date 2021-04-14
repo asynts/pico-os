@@ -20,9 +20,9 @@ ssize_t sys$read(int fd, void *buffer, size_t count)
     return nread;
 }
 
-int sys$open(const char *path, int flags, int mode)
+int sys$open(const char *pathname, int flags, int mode)
 {
-    return syscall(_SC_open, path, flags, mode);
+    return syscall(_SC_open, pathname, flags, mode);
 }
 
 int sys$close(int fd)
@@ -43,4 +43,9 @@ pid_t sys$fork(void)
 int sys$wait(int *wstatus)
 {
     return syscall(_SC_wait, wstatus, 0, 0);
+}
+
+int sys$execve(const char *pathname, char **argv, char **envp)
+{
+    return syscall(_SC_execve, pathname, argv, envp);
 }

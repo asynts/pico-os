@@ -126,7 +126,6 @@ namespace Kernel
             :
             : "r0");
 
-        // FIXME: We got a race condition here
         Scheduler::the().active_thread().m_privileged = false;
 
         asm volatile(

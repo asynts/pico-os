@@ -2,6 +2,7 @@
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/DynamicLoader.hpp>
 #include <Kernel/Interface/System.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
 
 namespace Kernel
 {
@@ -139,5 +140,29 @@ namespace Kernel
         // FIXME: We also don't have a concept of child processes...
         Scheduler::the().donate_my_remaining_cpu_slice();
         return -EINTR;
+    }
+
+    i32 Process::sys$execve(const char *pathname, char **argv, char **envp)
+    {
+        Path path = pathname;
+
+        if (!path.is_absolute())
+            path = m_working_directory / path;
+
+        // FIXME: Deal with 'argv' and 'envp'
+
+        // FIXME: We blindly assume that this file is in the flash
+        auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
+
+        ElfWrapper elf { file.m_data.data() };
+
+        auto& process = Process::active_process();
+
+        process.m_name = String::format("Exec: '{}'", argv[0]);
+        process.m_executable = load_executable_into_memory(elf);
+
+        hand_over_to_loaded_executable(process.m_executable.must());
+
+        VERIFY_NOT_REACHED();
     }
 }

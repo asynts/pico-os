@@ -34,6 +34,8 @@ namespace Kernel
             return_value = process.sys$fork();
         else if (context->r0.syscall() == _SC_wait)
             return_value = process.sys$wait(context->r1.pointer<i32>());
+        else if (context->r0.syscall() == _SC_execve)
+            return_value = process.sys$execve(context->r1.cstring(), context->r2.pointer<char*>(), context->r3.pointer<char*>());
         else
             VERIFY_NOT_REACHED();
 

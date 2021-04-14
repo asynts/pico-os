@@ -15,9 +15,9 @@ pid_t fork(void)
     return sys$fork();
 }
 
-int execle(const char *pathname, ...)
+int execve(const char *pathname, char **argv, char **envp)
 {
-    abort();
+    return sys$execve(pathname, argv, envp);
 }
 
 // FIXME: Do this properly

@@ -128,7 +128,14 @@ int main(int argc, char **argv)
                 assert(pid >= 0);
 
                 if (pid == 0) {
-                    execle(fullpath, program, NULL, NULL);
+                    char *argv[] = {
+                        program,
+                        NULL,
+                    };
+                    char *envp[] = {
+                        NULL,
+                    };
+                    execve(fullpath, argv, envp);
                     assert(0);
                 } else {
                     int status;

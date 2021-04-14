@@ -10,6 +10,11 @@ namespace Std
     template<typename Key, typename Value>
     class HashMap {
     public:
+        void clear()
+        {
+            m_hash.clear();
+        }
+
         void set(const Key& key, const Value& value)
         {
             m_hash.insert({ key, value });

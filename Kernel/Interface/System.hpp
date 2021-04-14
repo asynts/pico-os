@@ -7,6 +7,7 @@
 #define _SC_fstat 5
 #define _SC_fork 7
 #define _SC_wait 8
+#define _SC_execve 9
 
 #define O_RDONLY (1 << 0)
 #define O_WRONLY (2 << 0)

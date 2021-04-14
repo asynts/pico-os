@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 _Noreturn void abort(void)
 {
@@ -10,6 +11,7 @@ _Noreturn void abort(void)
 
 _Noreturn void exit(int status)
 {
+    printf("Called exit() but we don't have a sys$exit syscall yet");
     abort();
 }
 
