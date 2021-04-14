@@ -32,35 +32,36 @@ namespace Kernel
                         | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
     }
 
-    Thread& Scheduler::create_thread_impl(Thread&& thread, void (*callback)(void*), u8 *this_)
+    Thread& Scheduler::create_thread_impl(Thread&& thread, StackWrapper stack, void (*callback)(void*), void *this_)
     {
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
-        thread.m_stack.align(8);
+        RegisterContext context;
 
-        // FIXME: Do this with RegisterContext
+        context.xpsr.m_storage = xpsr_thumb_mode;
+        context.pc.m_storage = u32(callback);
+        context.lr.m_storage = 0;
+        context.ip.m_storage = 0;
+        context.r3.m_storage = 0;
+        context.r2.m_storage = 0;
+        context.r1.m_storage = 0;
+        context.r0.m_storage = u32(this_);
 
-        // Unpacked on exception return
-        thread.m_stack.push(xpsr_thumb_mode); // XPSR
-        thread.m_stack.push(callback); // ReturnAddress
-        thread.m_stack.push(0); // LR (R14)
-        thread.m_stack.push(0); // IP (R12)
-        thread.m_stack.push(0); // R3
-        thread.m_stack.push(0); // R2
-        thread.m_stack.push(0); // R1
-        thread.m_stack.push(this_); // R0
+        context.r4.m_storage = 0;
+        context.r5.m_storage = 0;
+        context.r6.m_storage = 0;
+        context.r7.m_storage = 0;
+        context.r8.m_storage = 0;
+        context.r9.m_storage = 0;
+        context.r10.m_storage = 0;
+        context.r11.m_storage = 0;
 
-        // Unpacked by context switch routine
-        thread.m_stack.push(0); // R4
-        thread.m_stack.push(0); // R5
-        thread.m_stack.push(0); // R6
-        thread.m_stack.push(0); // R7
-        thread.m_stack.push(0); // R8
-        thread.m_stack.push(0); // R9
-        thread.m_stack.push(0); // R10
-        thread.m_stack.push(0); // R11
+        stack.align(8);
+        u8 *context_data = stack.push(bytes_from(context));
 
-        // FIXME: Mask PendSV for this operation
+        VERIFY(!thread.m_context.is_valid());
+        thread.m_context = reinterpret_cast<RegisterContext*>(context_data);
+
         return m_threads.enqueue(move(thread));
     }
 
@@ -75,11 +76,13 @@ namespace Kernel
         Thread thread { __PRETTY_FUNCTION__ };
         thread.m_privileged = true;
 
-        thread.m_stack.align(8);
+        usize stack_size = 0x800;
+        u8 *stack_data = new u8[stack_size];
+        StackWrapper stack { { stack_data, stack_size } };
 
-        u8 *stack_pointer = thread.m_stack.m_stack_if_inactive.must();
-        thread.m_stack.m_stack_if_inactive.clear();
+        u8 *stack_pointer = stack.align(8);
 
+        VERIFY(!thread.m_context.is_valid());
         m_threads.enqueue_front(move(thread));
 
         asm volatile("msr psp, %0;"
@@ -100,12 +103,12 @@ namespace Kernel
     RegisterContext* Scheduler::schedule_next(RegisterContext *context)
     {
         Thread thread = m_threads.dequeue();
-        ASSERT(!thread.m_stack.m_stack_if_inactive.is_valid());
-        thread.m_stack.m_stack_if_inactive = reinterpret_cast<u8*>(context);
+        VERIFY(!thread.m_context.is_valid());
+        thread.m_context = context;
         m_threads.enqueue(move(thread));
 
-        context = reinterpret_cast<RegisterContext*>(m_threads.front().m_stack.m_stack_if_inactive.must());
-        m_threads.front().m_stack.m_stack_if_inactive.clear();
+        context = m_threads.front().m_context.must();
+        m_threads.front().m_context.clear();
 
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
         // because we are running in handler mode
@@ -122,6 +125,8 @@ namespace Kernel
                 :
                 : "r"(0b01));
         }
+
+        dbgln("Scheduling '{}' with context pc={}", m_threads.front().m_name, context->pc.m_storage);
 
         return context;
     }

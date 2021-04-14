@@ -106,20 +106,27 @@ namespace Kernel
 
     i32 Process::sys$fork()
     {
-        Thread new_thread {
-            String::format("Process: Fork: {}", m_name),
-            Process {
-                String::format("Fork: {}", m_name),
-                m_executable.must().clone(),
-            },
+        Process new_process {
+            String::format("Fork: {}", m_name),
+            m_executable.must().clone(),
         };
 
-        i32 new_process_id = new_thread.m_process.must().m_process_id;
-
+        i32 new_process_id = new_process.m_process_id;
         dbgln("[Process::sys$fork] Forking new process PID {} from PID {}", new_process_id, m_process_id);
 
-        auto *context = reinterpret_cast<RegisterContext*>(new_thread.m_stack.m_stack_if_inactive.must());
-        context->r0.m_storage = 0;
+        auto& thread = Scheduler::the().active_thread();
+        auto& executable = m_executable.must();
+        auto& new_executable = new_process.m_executable.must();
+
+        auto *new_context = reinterpret_cast<RegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must() - executable.m_stack_base)));
+
+        new_context->r0.m_storage = 0;
+
+        Thread new_thread {
+            String::format("Process: {}", new_process.m_name),
+            move(new_process),
+            new_context,
+        };
 
         Scheduler::the().create_thread(move(new_thread));
 

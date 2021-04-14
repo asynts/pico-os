@@ -16,8 +16,8 @@ namespace Kernel
         auto& process = Process::active_process();
         auto& thread = Scheduler::the().active_thread();
 
-        VERIFY(!thread.m_stack.m_stack_if_inactive.is_valid());
-        thread.m_stack.m_stack_if_inactive = reinterpret_cast<u8*>(context);
+        VERIFY(!thread.m_context.is_valid());
+        thread.m_context = context;
 
         i32 return_value;
         if (context->r0.syscall() == _SC_read)
@@ -38,8 +38,8 @@ namespace Kernel
             VERIFY_NOT_REACHED();
 
         VERIFY(&thread == &Scheduler::the().active_thread());
-        VERIFY(reinterpret_cast<u8*>(context) == thread.m_stack.m_stack_if_inactive.must());
-        thread.m_stack.m_stack_if_inactive.clear();
+        VERIFY(context == thread.m_context.must());
+        thread.m_context.clear();
 
         return return_value;
     }
