@@ -34,6 +34,8 @@ namespace Kernel
 
     Thread& Scheduler::create_thread_impl(Thread&& thread, StackWrapper stack, void (*callback)(void*), void *this_)
     {
+        dbgln("[Scheduler::create_thread_impl] Creating RegisterContext for thread={}", &thread);
+
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
         RegisterContext context;
@@ -74,6 +76,8 @@ namespace Kernel
     void Scheduler::loop()
     {
         Thread thread { __PRETTY_FUNCTION__ };
+
+        // This thread has to be privileged because we want to donate it's CPU time
         thread.m_privileged = true;
 
         usize stack_size = 0x800;
@@ -125,8 +129,6 @@ namespace Kernel
                 :
                 : "r"(0b01));
         }
-
-        dbgln("Scheduling '{}' with context pc={}", m_threads.front().m_name, context->pc.m_storage);
 
         return context;
     }

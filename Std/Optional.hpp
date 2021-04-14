@@ -120,6 +120,7 @@ namespace Std {
         }
 
     private:
+        alignas(alignof(T))
         u8 m_value[sizeof(T)];
         bool m_is_valid = false;
     };

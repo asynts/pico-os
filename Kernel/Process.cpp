@@ -118,8 +118,7 @@ namespace Kernel
         auto& executable = m_executable.must();
         auto& new_executable = new_process.m_executable.must();
 
-        auto *new_context = reinterpret_cast<RegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must() - executable.m_stack_base)));
-
+        auto *new_context = reinterpret_cast<RegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must()) - executable.m_stack_base));
         new_context->r0.m_storage = 0;
 
         Thread new_thread {

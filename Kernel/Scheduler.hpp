@@ -90,16 +90,14 @@ namespace Kernel
                 FIXME();
             };
 
-            VERIFY(!thread.m_context.is_valid());
-
             usize stack_size = 0x1000;
             u8 *stack_data = new u8[stack_size];
             StackWrapper stack { { stack_data, stack_size } };
 
+            dbgln("[Scheduler::create_thread] Allocated stack for thread '{}'", thread.m_name);
+
             u8 *moved_wrapper = stack.reserve(sizeof(decltype(wrapper)));
             new (moved_wrapper) decltype(wrapper) { move(wrapper) };
-
-            // FIXME: Simplify this somehow
 
             void (*wrapper_wrapper_function_pointer)(void*) = wrap_member_function_call_magic<decltype(wrapper), &decltype(wrapper)::operator()>;
 
