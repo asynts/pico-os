@@ -32,12 +32,24 @@ namespace Kernel
             return data;
         }
 
+        template<typename T>
+        T* push_value(const T& value)
+        {
+            u8 *data = reserve(sizeof(value));
+            return new (data) T { value };
+        }
+
         u8* align(u32 boundary)
         {
             static_assert(sizeof(u8*) == sizeof(u32));
             if (u32(m_top) % boundary != 0)
                 reserve(u32(m_top) % boundary);
 
+            return m_top;
+        }
+
+        u8* top()
+        {
             return m_top;
         }
 

@@ -111,26 +111,70 @@ namespace Kernel
 
     void hand_over_to_loaded_executable(const LoadedExecutable& executable)
     {
-        asm volatile(
-            "movs r0, #0;"
-            "msr psp, r0;"
-            "isb;"
-            "movs r0, #0b11;"
-            "msr control, r0;"
-            "isb;"
-            :
-            :
-            : "r0");
+        StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
+        stack.align(8);
 
-        Scheduler::the().active_thread().m_privileged = false;
+        // We could reach this point in thread or handler mode
+        u32 ipsr;
+        asm ("mrs %0, ipsr;"
+             "isb;"
+            : "=r"(ipsr));
+        bool is_thread_mode = (ipsr == 0);
 
-        asm volatile(
-            "mov r0, %1;"
-            "mov sb, %2;"
-            "blx %0;"
-            :
-            : "r"(executable.m_entry), "r"(executable.m_stack_base + executable.m_stack_size), "r"(executable.m_writable_base)
-            : "r0");
+        if (is_thread_mode) {
+            // Setup stack pointer
+            asm volatile(
+                "msr psp, %0;"
+                "isb;"
+                :
+                : "r"(stack.top()));
+
+            // Drop privileges
+            asm volatile(
+                "msr control, %0;"
+                "isb;"
+                :
+                : "r"(0b11));
+            Scheduler::the().active_thread().m_privileged = false;
+
+            asm volatile(
+                "mov r0, %0;"
+                "mov sb, %1;"
+                "blx %2;"
+                :
+                : "r"(stack.top()), "r"(executable.m_writable_base), "r"(executable.m_entry));
+        } else {
+            constexpr u32 xpsr_thumb_mode = 1 << 24;
+
+            auto *context = stack.push_value(RegisterContext{});
+            context->pc.m_storage = executable.m_entry;
+            context->r0.m_storage = u32(context);
+            context->r9.m_storage = executable.m_writable_base;
+            context->xpsr.m_storage = xpsr_thumb_mode;
+
+            // Setup stack pointer
+            asm volatile(
+                "msr psp, %0;"
+                "isb;"
+                :
+                : "r"(context));
+
+            // Drop privileges
+            asm volatile(
+                "msr control, %0;"
+                "isb;"
+                :
+                : "r"(0b01));
+            Scheduler::the().active_thread().m_privileged = false;
+
+            // FIXME: The context is misaligned because it contains the r4-r11 registers
+
+            // Hand over to executable
+            asm volatile(
+                "bx %0;"
+                :
+                : "r"(0xfffffffd));
+        }
 
         VERIFY_NOT_REACHED();
     }

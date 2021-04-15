@@ -176,8 +176,6 @@ namespace Kernel
         process.m_name = String::format("Exec: '{}'", argv[0]);
         process.m_executable = load_executable_into_memory(elf);
 
-
-        // FIXME: This function isn't meant to be called in a signal handler
         hand_over_to_loaded_executable(process.m_executable.must());
 
         VERIFY_NOT_REACHED();
