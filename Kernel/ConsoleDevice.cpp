@@ -12,7 +12,9 @@ namespace Kernel
         gpio_set_function(PICO_DEFAULT_UART_TX_PIN, GPIO_FUNC_UART);
         gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
 
-        VERIFY(uart_getc(uart0) == 0xff);
+        // FIXME: There seems thre is an initial "junk" byte read, I've seen
+        //        0xff and 0xfc
+        uart_getc(uart0);
     }
 
     KernelResult<usize> ConsoleFileHandle::read(Bytes bytes)

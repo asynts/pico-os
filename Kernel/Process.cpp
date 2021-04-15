@@ -159,6 +159,7 @@ namespace Kernel
         // FIXME: We blindly assume that this file is in the flash
         auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
 
+        // FIXME: Do this properly
         StringView fullpath;
         if (StringView { pathname } == "Example.elf" || StringView { pathname } == "/bin/Example.elf") {
             fullpath = "Userland/Example.1.elf";
@@ -175,6 +176,8 @@ namespace Kernel
         process.m_name = String::format("Exec: '{}'", argv[0]);
         process.m_executable = load_executable_into_memory(elf);
 
+
+        // FIXME: This function isn't meant to be called in a signal handler
         hand_over_to_loaded_executable(process.m_executable.must());
 
         VERIFY_NOT_REACHED();

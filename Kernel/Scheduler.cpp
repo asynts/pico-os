@@ -111,13 +111,14 @@ namespace Kernel
         thread.m_context = context;
         m_threads.enqueue(move(thread));
 
-        context = m_threads.front().m_context.must();
-        m_threads.front().m_context.clear();
+        auto& next_thread = m_threads.front();
+
+        context = next_thread.m_context.must();
+        next_thread.m_context.clear();
 
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
         // because we are running in handler mode
-        if (m_threads.front().m_privileged) {
-            dbgln("Scheduling privileged thread {}", m_threads.front().m_name);
+        if (next_thread.m_privileged) {
             asm volatile(
                 "msr control, %0;"
                 "isb;"
@@ -137,7 +138,7 @@ namespace Kernel
              "isb;"
             : "=r"(control), "=r"(ipsr));
 
-        VERIFY((control & 1) == !m_threads.front().m_privileged);
+        VERIFY((control & 1) == !next_thread.m_privileged);
         VERIFY(ipsr != 0);
 
         return context;
