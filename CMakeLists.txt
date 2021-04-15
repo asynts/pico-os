@@ -28,8 +28,16 @@ add_subdirectory(Userland)
 
 file(GLOB_RECURSE Kernel_SOURCES CONFIGURE_DEPENDS Kernel/*.cpp Kernel/*.S Std/*.cpp)
 
-add_executable(Kernel ${Kernel_SOURCES})
-target_link_libraries(Kernel pico_stdlib pico_printf project_options LibEmbeddedFiles)
-target_compile_definitions(Kernel PRIVATE KERNEL)
-pico_enable_stdio_uart(Kernel 1)
-pico_add_extra_outputs(Kernel)
+add_executable(Kernel.1 ${Kernel_SOURCES})
+target_link_libraries(Kernel.1 pico_stdlib pico_printf project_options LibEmbeddedFiles)
+target_compile_definitions(Kernel.1 PRIVATE KERNEL)
+pico_enable_stdio_uart(Kernel.1 1)
+pico_add_extra_outputs(Kernel.1)
+
+add_custom_target(Kernel.elf ALL
+    COMMAND arm-none-eabi-objcopy
+        --strip-symbol=__flash_data_2
+        --strip-symbol=__flash_data_3
+        --strip-symbol=__flash_data_4
+    Kernel.1.elf Kernel.elf
+    DEPENDS Kernel.1)

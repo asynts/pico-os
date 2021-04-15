@@ -37,8 +37,6 @@ end
 
 set confirm off
 
-source ../Scripts/dynamic-loader.py
-
 set history save on
 set history size unlimited
 set history remove-duplicates 1

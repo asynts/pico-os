@@ -1,15 +1,19 @@
 #pragma once
 
 #include <Std/Forward.hpp>
+#include <Std/String.hpp>
 
 #include <elf.h>
 
 namespace Kernel
 {
+    using namespace Std;
+
     class ElfWrapper {
     public:
-        explicit ElfWrapper(const u8 *base)
+        explicit ElfWrapper(const u8 *base, StringView host_path)
             : m_base(base)
+            , m_host_path(host_path)
         {
         }
 
@@ -28,6 +32,8 @@ namespace Kernel
         {
             m_offset += size;
         }
+
+        String m_host_path;
 
     private:
         const u8 *m_base;
@@ -54,6 +60,8 @@ namespace Kernel
 
         u32 m_stack_base;
         u32 m_stack_size;
+
+        String m_host_path;
 
         LoadedExecutable clone();
     };

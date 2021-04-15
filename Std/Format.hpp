@@ -92,10 +92,10 @@ namespace Std {
         }
         String(const String& other)
         {
-            m_buffer = new char[other.m_buffer_size];
-            m_buffer_size = other.m_buffer_size;
+            m_buffer = nullptr;
+            m_buffer_size = 0;
 
-            memcpy(m_buffer, other.m_buffer, m_buffer_size);
+            *this = other;
         }
         String(String&& other)
         {
@@ -129,6 +129,16 @@ namespace Std {
 
             m_buffer = exchange(other.m_buffer, nullptr);
             m_buffer_size = exchange(other.m_buffer_size, 0);
+            return *this;
+        }
+        String& operator=(const String& other)
+        {
+            delete[] m_buffer;
+
+            m_buffer = new char[other.m_buffer_size];
+            m_buffer_size = other.m_buffer_size;
+
+            memcpy(m_buffer, other.m_buffer, m_buffer_size);
             return *this;
         }
 

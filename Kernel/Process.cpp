@@ -154,7 +154,16 @@ namespace Kernel
         // FIXME: We blindly assume that this file is in the flash
         auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
 
-        ElfWrapper elf { file.m_data.data() };
+        StringView fullpath;
+        if (StringView { pathname } == "Example.elf") {
+            fullpath = "Userland/Example.1.elf";
+        } else if (StringView { pathname } == "Shell.elf") {
+            fullpath = "Userland/Shell.1.elf";
+        } else {
+            VERIFY_NOT_REACHED();
+        }
+
+        ElfWrapper elf { file.m_data.data(), fullpath };
 
         auto& process = Process::active_process();
 

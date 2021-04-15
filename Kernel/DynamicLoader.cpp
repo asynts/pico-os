@@ -4,23 +4,12 @@
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
 
-// FIXME: I want this to be a watchpoint, or a function, but not whatever this is.
-// FIXME: The debugger assumes that this is the shell binary.
-extern "C"
-{
-    volatile Kernel::LoadedExecutable *volatile executable_for_debugger;
-    [[gnu::noinline]]
-    void inform_debugger_about_executable()
-    {
-        asm volatile("nop");
-    }
-}
-
 namespace Kernel
 {
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
         LoadedExecutable executable;
+        executable.m_host_path = elf.m_host_path;
 
         VERIFY(elf.header()->e_phnum == 3);
         VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
@@ -81,8 +70,11 @@ namespace Kernel
         VERIFY(executable.m_stack_base);
         VERIFY(executable.m_bss_base);
 
-        executable_for_debugger = &executable;
-        inform_debugger_about_executable();
+        dbgln("GDB: add-symbol-file {} -s .text {} -s .data {} -s .bss {}",
+            executable.m_host_path,
+            executable.m_text_base,
+            executable.m_data_base,
+            executable.m_bss_base);
 
         return move(executable);
     }
