@@ -117,6 +117,7 @@ namespace Kernel
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
         // because we are running in handler mode
         if (m_threads.front().m_privileged) {
+            dbgln("Scheduling privileged thread {}", m_threads.front().m_name);
             asm volatile(
                 "msr control, %0;"
                 "isb;"
@@ -129,6 +130,15 @@ namespace Kernel
                 :
                 : "r"(0b01));
         }
+
+        u32 control, ipsr;
+        asm ("mrs %0, control;"
+             "mrs %1, ipsr;"
+             "isb;"
+            : "=r"(control), "=r"(ipsr));
+
+        VERIFY((control & 1) == !m_threads.front().m_privileged);
+        VERIFY(ipsr != 0);
 
         return context;
     }

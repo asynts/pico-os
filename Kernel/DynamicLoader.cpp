@@ -70,6 +70,10 @@ namespace Kernel
         VERIFY(executable.m_stack_base);
         VERIFY(executable.m_bss_base);
 
+        dbgln("Loaded executable:");
+        dbgln("  m_readonly_base={}", executable.m_readonly_base);
+        dbgln("  m_writable_base={}", executable.m_writable_base);
+
         dbgln("GDB: add-symbol-file {} -s .text {} -s .data {} -s .bss {}",
             executable.m_host_path,
             executable.m_text_base,
