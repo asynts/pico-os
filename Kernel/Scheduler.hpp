@@ -86,6 +86,8 @@ namespace Kernel
         Thread& create_thread(Thread&& thread, Callback&& callback)
         {
             auto wrapper = [callback_ = move(callback)]() mutable {
+                dbgln("Calling wrapper in create_thread");
+
                 callback_();
                 FIXME();
             };

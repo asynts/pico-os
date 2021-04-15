@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <sys/system.h>
 #include <sys/types.h>
+#include <stdio.h>
 
 int chdir(const char *path)
 {
@@ -12,7 +13,9 @@ int chdir(const char *path)
 
 pid_t fork(void)
 {
-    return sys$fork();
+    pid_t retval = sys$fork();
+    printf("fork() returned %zi\n", (ssize_t)retval);
+    return retval;
 }
 
 int execve(const char *pathname, char **argv, char **envp)

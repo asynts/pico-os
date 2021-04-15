@@ -121,6 +121,7 @@ namespace Kernel
 
         auto *new_context = reinterpret_cast<RegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must()) - executable.m_stack_base));
         new_context->r0.m_storage = 0;
+        new_context->r9.m_storage = new_executable.m_writable_base;
 
         Thread new_thread {
             String::format("Process: {}", new_process.m_name),
@@ -128,7 +129,11 @@ namespace Kernel
             new_context,
         };
 
+        dbgln("Creating new thread '{}'", new_thread.m_name);
+
         Scheduler::the().create_thread(move(new_thread));
+
+        dbgln("Returning to parent process with PID {}", new_process_id);
 
         return new_process_id;
     }
@@ -155,7 +160,7 @@ namespace Kernel
         auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
 
         StringView fullpath;
-        if (StringView { pathname } == "Example.elf") {
+        if (StringView { pathname } == "Example.elf" || StringView { pathname } == "/bin/Example.elf") {
             fullpath = "Userland/Example.1.elf";
         } else if (StringView { pathname } == "Shell.elf") {
             fullpath = "Userland/Shell.1.elf";

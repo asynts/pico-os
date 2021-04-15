@@ -130,38 +130,4 @@ namespace Kernel
 
         VERIFY_NOT_REACHED();
     }
-
-    void hand_over_to_forked_executable(const LoadedExecutable& executable)
-    {
-        // Setup stack for process
-        asm volatile(
-            "msr psp, %0;"
-            "isb;"
-            :
-            : "r"(executable.m_stack_base + executable.m_stack_size));
-
-        // Setup the static base register
-        asm volatile(
-            "mov sb, %0;"
-            :
-            : "r"(executable.m_writable_base));
-
-        Scheduler::the().active_thread().m_privileged = false;
-
-        // Drop privileges
-        asm volatile(
-            "movs r0, #0b11;"
-            "msr control, r0;"
-            :
-            :
-            : "r0");
-
-        // Hand over execution
-        asm volatile(
-            "blx %0;"
-            :
-            : "r"(executable.m_entry));
-
-        VERIFY_NOT_REACHED();
-    }
 }
