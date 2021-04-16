@@ -180,4 +180,16 @@ namespace Kernel
 
         VERIFY_NOT_REACHED();
     }
+
+    i32 Process::sys$exit(i32 status)
+    {
+        Scheduler::the().terminate_active_thread();
+
+        // Since we are in handler mode, we can't instantly terminate but instead
+        // have to leave handler mode for PendSV to fire.
+        //
+        // Returning normally should clean up the stack and should be functionally
+        // equivalent to doing the complex stuff required to terminate instantly.
+        return -1;
+    }
 }

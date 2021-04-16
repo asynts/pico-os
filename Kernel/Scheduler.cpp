@@ -108,7 +108,9 @@ namespace Kernel
         Thread thread = m_threads.dequeue();
         VERIFY(!thread.m_context.is_valid());
         thread.m_context = context;
-        m_threads.enqueue(move(thread));
+
+        if (!thread.m_die_at_next_opportunity)
+            m_threads.enqueue(move(thread));
 
         auto& next_thread = m_threads.front();
 
@@ -141,5 +143,11 @@ namespace Kernel
         VERIFY(ipsr != 0);
 
         return context;
+    }
+
+    void Scheduler::terminate_active_thread()
+    {
+        active_thread().m_die_at_next_opportunity = true;
+        donate_my_remaining_cpu_slice();
     }
 }

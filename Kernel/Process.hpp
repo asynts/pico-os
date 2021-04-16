@@ -57,6 +57,7 @@ namespace Kernel
         i32 sys$fork();
         i32 sys$wait(i32 *status);
         i32 sys$execve(const char *pathname, char **argv, char **envp);
+        i32 sys$exit(i32 status);
 
     private:
         static i32 m_next_process_id;

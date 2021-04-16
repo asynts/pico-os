@@ -71,6 +71,7 @@ namespace Kernel
         Optional<Process> m_process;
         Optional<FullRegisterContext*> m_context;
         bool m_privileged = false;
+        bool m_die_at_next_opportunity = false;
     };
 
     class Scheduler : public Singleton<Scheduler> {
@@ -86,6 +87,7 @@ namespace Kernel
             return m_threads.front();
         }
 
+        void terminate_active_thread();
         void donate_my_remaining_cpu_slice();
 
         Thread& create_thread(Thread&& thread)

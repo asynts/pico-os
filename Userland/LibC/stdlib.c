@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/system.h>
 
 _Noreturn void abort(void)
 {
@@ -11,8 +12,8 @@ _Noreturn void abort(void)
 
 _Noreturn void exit(int status)
 {
-    printf("Called exit() but we don't have a sys$exit syscall yet");
-    abort();
+    sys$exit(status);
+    printf("How did we get here?\n");
 }
 
 static char __env_PATH[] = "/bin";

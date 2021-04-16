@@ -1,6 +1,7 @@
 #include <sys/system.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int32_t _syscall(uint32_t syscall, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 #define syscall(syscall, arg1, arg2, arg3) _syscall((uint32_t)(syscall), (uint32_t)(arg1), (uint32_t)(arg2), (uint32_t)(arg3))
@@ -48,4 +49,11 @@ int sys$wait(int *wstatus)
 int sys$execve(const char *pathname, char **argv, char **envp)
 {
     return syscall(_SC_execve, pathname, argv, envp);
+}
+
+void sys$exit(int status)
+{
+    syscall(_SC_exit, status, 0, 0);
+    printf("sys$exit returned?\n");
+    abort();
 }
