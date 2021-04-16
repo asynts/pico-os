@@ -7,7 +7,6 @@
 
 int fstat(int fd, struct stat *statbuf)
 {
-    printf("Calling fstat(%i, %p)\n", fd, statbuf);
     return sys$fstat(fd, statbuf);
 }
 
