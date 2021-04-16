@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/HashMap.hpp>
+#include <Std/CircularQueue.hpp>
 
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/DynamicLoader.hpp>
@@ -61,6 +62,14 @@ namespace Kernel
 
     private:
         static i32 m_next_process_id;
+
+        struct TerminatedProcess {
+            i32 m_process_id;
+            i32 m_status;
+        };
+
+        CircularQueue<TerminatedProcess, 8> m_terminated_children;
+        Process *m_parent = nullptr;
 
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;

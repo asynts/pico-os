@@ -14,18 +14,15 @@ namespace Std
         }
         ~CircularQueue()
         {
-            usize count = m_size;
-            for (usize i = 0; i < count; ++i) {
-                front().~T();
-                --m_size;
-            }
+            clear();
         }
+        CircularQueue(CircularQueue&& other)
+        {
+            m_size = 0;
+            m_offset = 0;
 
-        // FIXME: We want to be able to copy and move these
-        CircularQueue(const CircularQueue&) = delete;
-        CircularQueue(CircularQueue&&) = delete;
-        CircularQueue& operator=(const CircularQueue&) = delete;
-        CircularQueue& operator=(CircularQueue&&) = delete;
+            *this = move(other);
+        }
 
         void dump()
         {
@@ -95,6 +92,27 @@ namespace Std
         }
 
         usize size() const { return m_size; }
+
+        void clear()
+        {
+            usize count = m_size;
+            for (usize i = 0; i < count; ++i) {
+                front().~T();
+                --m_size;
+            }
+        }
+
+        CircularQueue& operator=(CircularQueue&& other)
+        {
+            clear();
+
+            m_size = other.m_size;
+            for (usize i = 0; i < other.m_size; ++i)
+                enqueue(other.dequeue());
+            ASSERT(other.m_size == 0);
+
+            return *this;
+        }
 
     private:
         template<typename T_>

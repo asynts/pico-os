@@ -112,6 +112,8 @@ namespace Kernel
             m_executable.must().clone(),
         };
 
+        new_process.m_parent = this;
+
         i32 new_process_id = new_process.m_process_id;
         dbgln("[Process::sys$fork] Forking new process PID {} from PID {}", new_process_id, m_process_id);
 
@@ -140,9 +142,17 @@ namespace Kernel
 
     i32 Process::sys$wait(i32 *status)
     {
-        // FIXME: This implementation is so lazy...
-        // FIXME: We also don't detect if a child process completes...
-        // FIXME: We also don't have a concept of child processes...
+        dbgln("[PID {} ({})] Checking wait condition...", m_process_id, this);
+        dbgln("  m_terminated_children.size() = {}", m_terminated_children.size());
+
+        if (m_terminated_children.size() > 0) {
+            auto terminated_child_process = m_terminated_children.dequeue();
+            *status = terminated_child_process.m_status;
+
+            dbgln("[PID {}] Detected terminated child {}", m_process_id, terminated_child_process.m_process_id);
+            return terminated_child_process.m_process_id;
+        }
+
         Scheduler::the().donate_my_remaining_cpu_slice();
         return -EINTR;
     }
@@ -183,6 +193,13 @@ namespace Kernel
 
     i32 Process::sys$exit(i32 status)
     {
+        if (m_parent) {
+            dbgln("[PID {}] Informing parent [PID {} ({})] about termination", m_process_id, m_parent->m_process_id, m_parent);
+            m_parent->m_terminated_children.enqueue({ m_process_id, status });
+
+            ASSERT(m_parent->m_terminated_children.size() > 0);
+        }
+
         Scheduler::the().terminate_active_thread();
 
         // Since we are in handler mode, we can't instantly terminate but instead
