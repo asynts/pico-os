@@ -18,8 +18,18 @@ namespace Kernel
         u32 m_storage;
     };
 
-    struct RegisterContext {
-        // Restored by exception handler
+    struct ExceptionRegisterContext {
+        TypeErasedValue r0;
+        TypeErasedValue r1;
+        TypeErasedValue r2;
+        TypeErasedValue r3;
+        TypeErasedValue ip;
+        TypeErasedValue lr;
+        TypeErasedValue pc;
+        TypeErasedValue xpsr;
+    };
+
+    struct FullRegisterContext {
         TypeErasedValue r11;
         TypeErasedValue r10;
         TypeErasedValue r9;
@@ -29,7 +39,6 @@ namespace Kernel
         TypeErasedValue r5;
         TypeErasedValue r4;
 
-        // Restored on exception return
         TypeErasedValue r0;
         TypeErasedValue r1;
         TypeErasedValue r2;

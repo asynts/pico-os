@@ -55,7 +55,7 @@ isr_pendsv:
 
     bl push_callee_saved_registers
 
-    // RegisterContext* scheduler_next(RegisterContext*)
+    // FullRegisterContext* scheduler_next(FullRegisterContext*)
     bl scheduler_next
 
     bl pop_callee_saved_registers
@@ -77,7 +77,7 @@ isr_svcall:
     push {r0} // slot for return value
     push {r0} // saved psp
 
-    // i32 syscall_handler(RegisterContext*)
+    // i32 syscall_handler(FullRegisterContext*)
     blx syscall_handler
 
     str r0, [sp, #4]

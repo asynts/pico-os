@@ -60,7 +60,7 @@ namespace Kernel
 
     class Thread {
     public:
-        Thread(StringView name, Optional<Process> process = {}, Optional<RegisterContext*> context = {})
+        Thread(StringView name, Optional<Process> process = {}, Optional<FullRegisterContext*> context = {})
             : m_name(name)
             , m_process(move(process))
             , m_context(context)
@@ -69,7 +69,7 @@ namespace Kernel
 
         String m_name;
         Optional<Process> m_process;
-        Optional<RegisterContext*> m_context;
+        Optional<FullRegisterContext*> m_context;
         bool m_privileged = false;
     };
 
@@ -130,7 +130,7 @@ namespace Kernel
         void loop();
 
         // Used by PendSV exception handler should return Thread.m_stack.m_current_stack
-        RegisterContext* schedule_next(RegisterContext*);
+        FullRegisterContext* schedule_next(FullRegisterContext*);
 
         bool enabled() const { return m_enabled; }
 

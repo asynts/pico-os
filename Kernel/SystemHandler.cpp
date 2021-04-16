@@ -11,7 +11,7 @@
 namespace Kernel
 {
     extern "C"
-    i32 syscall_handler(RegisterContext *context)
+    i32 syscall_handler(FullRegisterContext *context)
     {
         auto& process = Process::active_process();
         auto& thread = Scheduler::the().active_thread();

@@ -8,7 +8,7 @@ namespace Kernel
 {
     extern "C"
     {
-        RegisterContext* scheduler_next(RegisterContext *context)
+        FullRegisterContext* scheduler_next(FullRegisterContext *context)
         {
             return Scheduler::the().schedule_next(context);
         }
@@ -34,11 +34,11 @@ namespace Kernel
 
     Thread& Scheduler::create_thread_impl(Thread&& thread, StackWrapper stack, void (*callback)(void*), void *this_)
     {
-        dbgln("[Scheduler::create_thread_impl] Creating RegisterContext for thread={}", &thread);
+        dbgln("[Scheduler::create_thread_impl] Creating FullRegisterContext for thread={}", &thread);
 
         constexpr u32 xpsr_thumb_mode = 1 << 24;
 
-        RegisterContext context;
+        FullRegisterContext context;
 
         context.xpsr.m_storage = xpsr_thumb_mode;
         context.pc.m_storage = u32(callback);
@@ -59,10 +59,9 @@ namespace Kernel
         context.r11.m_storage = 0;
 
         stack.align(8);
-        u8 *context_data = stack.push(bytes_from(context));
 
         VERIFY(!thread.m_context.is_valid());
-        thread.m_context = reinterpret_cast<RegisterContext*>(context_data);
+        thread.m_context = stack.push_value(context);
 
         return m_threads.enqueue(move(thread));
     }
@@ -104,7 +103,7 @@ namespace Kernel
         }
     }
 
-    RegisterContext* Scheduler::schedule_next(RegisterContext *context)
+    FullRegisterContext* Scheduler::schedule_next(FullRegisterContext *context)
     {
         Thread thread = m_threads.dequeue();
         VERIFY(!thread.m_context.is_valid());

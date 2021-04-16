@@ -107,8 +107,6 @@ namespace Kernel
         return copy;
     }
 
-    // FIXME: This is a huge mess
-
     void hand_over_to_loaded_executable(const LoadedExecutable& executable)
     {
         StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
@@ -142,15 +140,16 @@ namespace Kernel
                 "mov sb, %1;"
                 "blx %2;"
                 :
-                : "r"(stack.top()), "r"(executable.m_writable_base), "r"(executable.m_entry));
+                : "r"(stack.top()), "r"(executable.m_writable_base), "r"(executable.m_entry)
+                : "r0", "sb");
         } else {
             constexpr u32 xpsr_thumb_mode = 1 << 24;
 
-            auto *context = stack.push_value(RegisterContext{});
+            auto *context = stack.push_value(ExceptionRegisterContext{});
             context->pc.m_storage = executable.m_entry;
             context->r0.m_storage = u32(context);
-            context->r9.m_storage = executable.m_writable_base;
             context->xpsr.m_storage = xpsr_thumb_mode;
+            Scheduler::the().active_thread().m_context.clear();
 
             // Setup stack pointer
             asm volatile(
@@ -167,13 +166,13 @@ namespace Kernel
                 : "r"(0b01));
             Scheduler::the().active_thread().m_privileged = false;
 
-            // FIXME: The context is misaligned because it contains the r4-r11 registers
-
             // Hand over to executable
             asm volatile(
-                "bx %0;"
+                "mov r9, %0;"
+                "bx %1;"
                 :
-                : "r"(0xfffffffd));
+                : "r"(executable.m_writable_base), "r"(0xfffffffd)
+                : "r9");
         }
 
         VERIFY_NOT_REACHED();
