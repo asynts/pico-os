@@ -59,8 +59,10 @@ namespace Kernel
 
         Path path = pathname;
 
-        if (!path.is_absolute())
+        if (!path.is_absolute()) {
+            dbgln("[Process::sys$open] m_working_directory={}", m_working_directory);
             path = m_working_directory / path;
+        }
 
         auto& file = Kernel::FileSystem::lookup(path);
 
@@ -208,5 +210,17 @@ namespace Kernel
         // Returning normally should clean up the stack and should be functionally
         // equivalent to doing the complex stuff required to terminate instantly.
         return -1;
+    }
+
+    i32 Process::sys$chdir(const char *pathname)
+    {
+        Path path { pathname };
+
+        if (!path.is_absolute())
+            path = m_working_directory / path;
+
+        m_working_directory = path;
+
+        return 0;
     }
 }

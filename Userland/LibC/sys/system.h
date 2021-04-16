@@ -14,6 +14,7 @@ int sys$fstat(int fd, struct stat *statbuf);
 pid_t sys$fork(void);
 int sys$wait(int *wstatus);
 int sys$execve(const char *pathname, char **argv, char **envp);
+int sys$chdir(const char *pathname);
 
 _Noreturn
 void sys$exit(int status);

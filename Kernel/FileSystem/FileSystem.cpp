@@ -5,15 +5,19 @@ namespace Kernel::FileSystem
 {
     VirtualFile& lookup(Path path)
     {
+        dbgln("[FileSystem::lookup] path={}", path);
+
         VERIFY(path.is_absolute());
 
         VirtualFile *file = &MemoryFileSystem::the().root();
+        dbgln("[FileSystem::lookup] file={} processed=/", file);
 
         for (auto& component : path.components()) {
             auto *directory = dynamic_cast<VirtualDirectory*>(file);
             ASSERT(directory != nullptr);
 
             file = directory->m_entries.get_opt(component).must();
+            dbgln("[FileSystem::lookup] file={} processed={}", file, component);
         }
 
         ASSERT(file != nullptr);

@@ -6,9 +6,9 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-int chdir(const char *path)
+int chdir(const char *pathname)
 {
-    abort();
+    return sys$chdir(pathname);
 }
 
 pid_t fork(void)
@@ -46,6 +46,5 @@ int access(const char *pathname, int mode)
     if (statbuf.st_gid == getegid() && (statbuf.st_mode & S_IXGRP))
         return 0;
 
-    // FIXME: Set errno
     return -1;
 }

@@ -57,3 +57,8 @@ void sys$exit(int status)
     printf("sys$exit returned?\n");
     abort();
 }
+
+int sys$chdir(const char *pathname)
+{
+    return syscall(_SC_chdir, pathname, 0, 0);
+}

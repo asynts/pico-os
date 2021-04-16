@@ -38,6 +38,8 @@ namespace Kernel
             return_value = process.sys$execve(context->r1.cstring(), context->r2.pointer<char*>(), context->r3.pointer<char*>());
         else if (context->r0.syscall() == _SC_exit)
             return_value = process.sys$exit(context->r1.value<i32>());
+        else if (context->r0.syscall() == _SC_chdir)
+            return_value = process.sys$chdir(context->r1.cstring());
         else
             VERIFY_NOT_REACHED();
 

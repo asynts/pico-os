@@ -7,7 +7,7 @@
 
 #define X_OK 1
 
-int chdir(const char *path);
+int chdir(const char *pathname);
 
 pid_t fork(void);
 
