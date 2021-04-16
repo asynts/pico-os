@@ -4,8 +4,10 @@
 
 pid_t wait(int *status)
 {
-    while (sys$wait(status) == -EINTR)
+    pid_t retval;
+
+    while ((retval = sys$wait(status)) == -EINTR)
         ;
 
-    abort();
+    return retval;
 }

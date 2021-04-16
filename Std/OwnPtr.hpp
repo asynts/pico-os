@@ -44,6 +44,9 @@ namespace Std
             return *this;
         }
 
+        operator const T&() const { return **this; }
+        operator T&() { return **this; }
+
     private:
         T *m_pointer;
     };
@@ -120,6 +123,9 @@ namespace Std
 
             return *this;
         }
+
+        operator const T&() const { return **this; }
+        operator T&() { return **this; }
 
     private:
         T *m_pointer;

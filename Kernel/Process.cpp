@@ -16,7 +16,7 @@ namespace Kernel
 
     Process& Process::create(StringView name, ElfWrapper elf)
     {
-        Process process { name };
+        auto process = make<Process>(name);
 
         Thread thread { String::format("Process: {}", name), move(process) };
 
@@ -107,26 +107,26 @@ namespace Kernel
 
     i32 Process::sys$fork()
     {
-        Process new_process {
+        auto new_process = make<Process>(
             String::format("Fork: {}", m_name),
-            m_executable.must().clone(),
-        };
+            m_executable.must().clone()
+        );
 
-        new_process.m_parent = this;
+        new_process->m_parent = this;
 
-        i32 new_process_id = new_process.m_process_id;
+        i32 new_process_id = new_process->m_process_id;
         dbgln("[Process::sys$fork] Forking new process PID {} from PID {}", new_process_id, m_process_id);
 
         auto& thread = Scheduler::the().active_thread();
         auto& executable = m_executable.must();
-        auto& new_executable = new_process.m_executable.must();
+        auto& new_executable = new_process->m_executable.must();
 
         auto *new_context = reinterpret_cast<FullRegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must()) - executable.m_stack_base));
         new_context->r0.m_storage = 0;
         new_context->r9.m_storage = new_executable.m_writable_base;
 
         Thread new_thread {
-            String::format("Process: {}", new_process.m_name),
+            String::format("Process: {}", new_process->m_name),
             move(new_process),
             new_context,
         };

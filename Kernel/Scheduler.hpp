@@ -3,6 +3,7 @@
 #include <Std/Singleton.hpp>
 #include <Std/String.hpp>
 #include <Std/CircularQueue.hpp>
+#include <Std/OwnPtr.hpp>
 
 #include <Kernel/Process.hpp>
 #include <Kernel/SystemHandler.hpp>
@@ -60,7 +61,7 @@ namespace Kernel
 
     class Thread {
     public:
-        Thread(StringView name, Optional<Process> process = {}, Optional<FullRegisterContext*> context = {})
+        Thread(StringView name, Optional<NonnullOwnPtr<Process>> process = {}, Optional<FullRegisterContext*> context = {})
             : m_name(name)
             , m_process(move(process))
             , m_context(context)
@@ -68,7 +69,7 @@ namespace Kernel
         }
 
         String m_name;
-        Optional<Process> m_process;
+        Optional<NonnullOwnPtr<Process>> m_process;
         Optional<FullRegisterContext*> m_context;
         bool m_privileged = false;
         bool m_die_at_next_opportunity = false;
