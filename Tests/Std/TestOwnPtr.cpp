@@ -46,4 +46,23 @@ TEST_CASE(ownptr_cons)
     Tests::Tracker::assert(1, 0, 0, 1);
 }
 
+TEST_CASE(ownptr_leak)
+{
+    Tests::Tracker::clear();
+
+    Tests::Tracker *raw_pointer = nullptr;
+
+    {
+        Std::OwnPtr<Tests::Tracker> pointer = Std::make<Tests::Tracker>();
+
+        Tests::Tracker::assert(1, 0, 0, 0);
+
+        raw_pointer = pointer.leak();
+    }
+
+    Tests::Tracker::assert(1, 0, 0, 0);
+
+    delete raw_pointer;
+}
+
 TEST_MAIN();
