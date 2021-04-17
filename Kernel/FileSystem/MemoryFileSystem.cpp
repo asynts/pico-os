@@ -14,10 +14,13 @@ namespace Kernel
         m_root->m_entries.set(".", m_root);
         m_root->m_entries.set("..", m_root);
 
-        auto& dev_file = *new MemoryDirectory;
+        auto& dev_directory = *new MemoryDirectory;
+        dev_directory.m_entries.set("..", m_root);
+        m_root->m_entries.set("dev", &dev_directory);
 
-        m_root->m_entries.set("dev", &dev_file);
-        m_root->m_entries.set("bin", &FlashFileSystem::the().root());
+        auto& bin_directory = dynamic_cast<VirtualDirectory&>(FlashFileSystem::the().root());
+        bin_directory.m_entries.set("..", m_root);
+        m_root->m_entries.set("bin", &bin_directory);
     }
 
     VirtualFileHandle& MemoryFile::create_handle()
