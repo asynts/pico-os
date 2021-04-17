@@ -20,6 +20,7 @@ int sys$posix_spawn(
     const posix_spawnattr_t *attrp,
     char **argv,
     char **envp);
+int sys$get_working_directory(void *buffer, size_t *buffer_size);
 
 _Noreturn
 void sys$exit(int status);

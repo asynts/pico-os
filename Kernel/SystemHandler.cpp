@@ -38,7 +38,7 @@ namespace Kernel
             return_value = process.sys$exit(context->r1.value<i32>());
         } else if (context->r0.syscall() == _SC_chdir) {
             return_value = process.sys$chdir(context->r1.cstring());
-        } else if (context) {
+        } else if (context->r0.syscall() == _SC_posix_spawn) {
             return_value = process.sys$posix_spawn(
                 context->r1.pointer<i32>(),
                 context->r2.cstring(),
@@ -46,6 +46,8 @@ namespace Kernel
                 extended_arguments->arg4.pointer<const UserlandSpawnAttributes>(),
                 extended_arguments->arg5.pointer<char*>(),
                 extended_arguments->arg6.pointer<char*>());
+        } else if (context->r0.syscall() == _SC_get_working_directory) {
+            return_value = process.sys$get_working_directory(context->r1.pointer<u8>(), context->r2.pointer<usize>());
         } else {
             VERIFY_NOT_REACHED();
         }

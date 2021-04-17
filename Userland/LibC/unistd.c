@@ -5,6 +5,7 @@
 #include <sys/system.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <malloc.h>
 
 int chdir(const char *pathname)
 {
@@ -35,4 +36,21 @@ int access(const char *pathname, int mode)
         return 0;
 
     return -1;
+}
+
+char* get_current_dir_name(void)
+{
+    int retval;
+
+    size_t buffer_size = 0;
+    retval = sys$get_working_directory(NULL, &buffer_size);
+    printf("sys$get_working_directory = %i\n", retval);
+    assert(retval == -ERANGE);
+
+    char *buffer = malloc(buffer_size);
+    retval = sys$get_working_directory(buffer, &buffer_size);
+    printf("sys$get_working_directory = %i\n", retval);
+    assert(retval == 0);
+
+    return buffer;
 }

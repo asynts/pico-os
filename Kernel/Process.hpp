@@ -58,6 +58,7 @@ namespace Kernel
         i32 sys$wait(i32 *status);
         i32 sys$exit(i32 status);
         i32 sys$chdir(const char *pathname);
+        i32 sys$get_working_directory(u8 *buffer, usize *size);
 
         i32 sys$posix_spawn(
             i32 *pid,

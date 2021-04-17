@@ -69,3 +69,9 @@ int sys$posix_spawn(
 
     return syscall(_SC_posix_spawn, pid, pathname, &extended_arguments);
 }
+
+int sys$get_working_directory(void *buffer, size_t *buffer_size)
+{
+    printf("[USERLAND] Calling sys$get_working_directory\n");
+    return syscall(_SC_get_working_directory, buffer, buffer_size, 0);
+}

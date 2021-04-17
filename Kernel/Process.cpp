@@ -180,10 +180,32 @@ namespace Kernel
 
         auto& new_process = Kernel::Process::create(pathname, move(elf));
         new_process.m_parent = this;
+        new_process.m_working_directory = m_working_directory;
 
         dbgln("[Process::sys$posix_spawn] Created new process PID {} running {}", new_process.m_process_id, path);
 
         *pid = new_process.m_process_id;
+        return 0;
+    }
+
+    i32 Process::sys$get_working_directory(u8 *buffer, usize *buffer_size)
+    {
+        dbgln("[Process::sys$get_working_directory] buffer={} buffer_size={} ({})", buffer, buffer_size, *buffer_size);
+
+        auto string = m_working_directory.string();
+
+        if (string.size() + 1 > *buffer_size) {
+            *buffer_size = string.size() + 1;
+
+            dbgln("[Process::sys$get_working_directory] Updated buffer_size={}", *buffer_size);
+            return -ERANGE;
+        } else {
+            dbgln("[Process::sys$get_working_directory] Buffer was large enough size={}+1 buffer_size={}", string.size(), *buffer_size);
+        }
+
+        string.strcpy_to({ (char*)buffer, *buffer_size });
+        *buffer_size = string.size() + 1;
+
         return 0;
     }
 }

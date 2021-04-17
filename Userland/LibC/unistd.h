@@ -13,3 +13,5 @@ int access(const char *pathname, int mode);
 
 int geteuid(void);
 int getegid(void);
+
+char* get_current_dir_name(void);
