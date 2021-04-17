@@ -36,6 +36,7 @@ namespace Std
                 entry->m_next = nullptr;
                 entry->m_size = round_to_word(size);
 
+                VERIFY(usize(entry->m_data) % 4 == 0);
                 return entry->m_data;
             }
 

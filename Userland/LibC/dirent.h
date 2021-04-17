@@ -5,6 +5,9 @@
 
 typedef struct {
     int fd;
+
+    // We return a pointer to this in each readdir call
+    struct dirent entry;
 } DIR;
 
 DIR* opendir(const char *path);
