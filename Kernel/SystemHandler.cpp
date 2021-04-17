@@ -13,6 +13,8 @@ namespace Kernel
     extern "C"
     i32 syscall_handler(FullRegisterContext *context)
     {
+        auto *extended_arguments = context->r3.pointer<ExtendedSystemCallArguments>();
+
         auto& process = Process::active_process();
         auto& thread = Scheduler::the().active_thread();
 
@@ -20,28 +22,37 @@ namespace Kernel
         thread.m_context = context;
 
         i32 return_value;
-        if (context->r0.syscall() == _SC_read)
+        if (context->r0.syscall() == _SC_read) {
             return_value = process.sys$read(context->r1.fd(), context->r2.pointer<u8>(), context->r3.value<usize>());
-        else if (context->r0.syscall() == _SC_write)
+        } else if (context->r0.syscall() == _SC_write) {
             return_value = process.sys$write(context->r1.fd(), context->r2.pointer<const u8>(), context->r3.value<usize>());
-        else if (context->r0.syscall() == _SC_open)
+        } else if (context->r0.syscall() == _SC_open) {
             return_value = process.sys$open(context->r1.cstring(), context->r2.value<u32>(), context->r3.value<u32>());
-        else if (context->r0.syscall() == _SC_close)
+        } else if (context->r0.syscall() == _SC_close) {
             return_value = process.sys$close(context->r1.fd());
-        else if (context->r0.syscall() == _SC_fstat)
+        } else if (context->r0.syscall() == _SC_fstat) {
             return_value = process.sys$fstat(context->r1.fd(), context->r2.pointer<UserlandFileInfo>());
-        else if (context->r0.syscall() == _SC_fork)
+        } else if (context->r0.syscall() == _SC_fork) {
             return_value = process.sys$fork();
-        else if (context->r0.syscall() == _SC_wait)
+        } else if (context->r0.syscall() == _SC_wait) {
             return_value = process.sys$wait(context->r1.pointer<i32>());
-        else if (context->r0.syscall() == _SC_execve)
+        } else if (context->r0.syscall() == _SC_execve) {
             return_value = process.sys$execve(context->r1.cstring(), context->r2.pointer<char*>(), context->r3.pointer<char*>());
-        else if (context->r0.syscall() == _SC_exit)
+        } else if (context->r0.syscall() == _SC_exit) {
             return_value = process.sys$exit(context->r1.value<i32>());
-        else if (context->r0.syscall() == _SC_chdir)
+        } else if (context->r0.syscall() == _SC_chdir) {
             return_value = process.sys$chdir(context->r1.cstring());
-        else
+        } else if (context) {
+            return_value = process.sys$posix_spawn(
+                context->r1.pointer<i32>(),
+                context->r2.cstring(),
+                extended_arguments->arg3.pointer<const UserlandSpawnFileActions>(),
+                extended_arguments->arg4.pointer<const UserlandSpawnAttributes>(),
+                extended_arguments->arg5.pointer<char*>(),
+                extended_arguments->arg6.pointer<char*>());
+        } else {
             VERIFY_NOT_REACHED();
+        }
 
         VERIFY(&thread == &Scheduler::the().active_thread());
         VERIFY(context == thread.m_context.must());

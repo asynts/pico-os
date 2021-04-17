@@ -14,8 +14,16 @@ namespace Kernel
         u32 syscall() { return value<u32>(); }
         const char* cstring() { return pointer<const char>(); }
         i32 fd() { return value<i32>(); }
+        i32 pid() { return value<i32>(); }
 
         u32 m_storage;
+    };
+
+    struct ExtendedSystemCallArguments {
+        TypeErasedValue arg3;
+        TypeErasedValue arg4;
+        TypeErasedValue arg5;
+        TypeErasedValue arg6;
     };
 
     struct ExceptionRegisterContext {

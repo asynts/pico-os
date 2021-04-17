@@ -61,6 +61,14 @@ namespace Kernel
         i32 sys$exit(i32 status);
         i32 sys$chdir(const char *pathname);
 
+        i32 sys$posix_spawn(
+            i32 *pid,
+            const char *pathname,
+            const UserlandSpawnFileActions *file_actions,
+            const UserlandSpawnAttributes *attrp,
+            char **argv,
+            char **envp);
+
     private:
         static i32 m_next_process_id;
 

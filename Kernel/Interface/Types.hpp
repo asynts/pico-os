@@ -101,6 +101,19 @@ struct dirent {
     char d_name[252];
     ino_t d_ino;
 };
+
+typedef struct posix_spawn_file_actions {
+} posix_spawn_file_actions_t;
+
+typedef struct posix_spawnattr {
+} posix_spawnattr_t;
+
+struct extended_system_call_arguments {
+    unsigned int arg3;
+    unsigned int arg4;
+    unsigned int arg5;
+    unsigned int arg6;
+};
 #endif
 
 #if defined(KERNEL)
@@ -140,6 +153,14 @@ namespace Kernel
         char m_name[252];
         FileInfo *m_info;
     };
+
+    struct UserlandSpawnFileActions {
+    };
+
+    struct UserlandSpawnAttributes {
+    };
+
+    // 'ExtendedSystemCallArguments' is defined in <Kernel/SystemHandler.hpp>
 }
 #endif
 

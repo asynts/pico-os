@@ -15,6 +15,13 @@ pid_t sys$fork(void);
 int sys$wait(int *wstatus);
 int sys$execve(const char *pathname, char **argv, char **envp);
 int sys$chdir(const char *pathname);
+int sys$posix_spawn(
+    pid_t *pid,
+    const char *pathname,
+    const posix_spawn_file_actions_t *file_actions,
+    const posix_spawnattr_t *attrp,
+    char **argv,
+    char **envp);
 
 _Noreturn
 void sys$exit(int status);

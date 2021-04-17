@@ -62,3 +62,20 @@ int sys$chdir(const char *pathname)
 {
     return syscall(_SC_chdir, pathname, 0, 0);
 }
+
+int sys$posix_spawn(
+    pid_t *pid,
+    const char *pathname,
+    const posix_spawn_file_actions_t *file_actions,
+    const posix_spawnattr_t *attrp,
+    char **argv,
+    char **envp)
+{
+    struct extended_system_call_arguments extended_arguments;
+    extended_arguments.arg3 = (uint32_t)file_actions;
+    extended_arguments.arg4 = (uint32_t)attrp;
+    extended_arguments.arg5 = (uint32_t)argv;
+    extended_arguments.arg6 = (uint32_t)envp;
+
+    return syscall(_SC_posix_spawn, pid, pathname, &extended_arguments);
+}

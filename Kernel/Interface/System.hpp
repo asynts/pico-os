@@ -10,6 +10,7 @@
 #define _SC_execve 9
 #define _SC_exit 10
 #define _SC_chdir 11
+#define _SC_posix_spawn 12
 
 #define O_RDONLY (1 << 0)
 #define O_WRONLY (2 << 0)

@@ -223,4 +223,15 @@ namespace Kernel
 
         return 0;
     }
+
+    i32 Process::sys$posix_spawn(
+        i32 *pid,
+        const char *pathname,
+        const UserlandSpawnFileActions *file_actions,
+        const UserlandSpawnAttributes *attrp,
+        char **argv,
+        char **envp)
+    {
+        FIXME();
+    }
 }

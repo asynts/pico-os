@@ -11,6 +11,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <spawn.h>
 
 char* find_executable(const char *name);
 
@@ -124,26 +125,31 @@ int main(int argc, char **argv)
             if (fullpath == NULL) {
                 printf("Error: unknown command '%s'\n", program);
             } else {
-                int pid = fork();
-                assert(pid >= 0);
+                int retval;
 
-                if (pid == 0) {
-                    char *argv[] = {
-                        program,
-                        NULL,
-                    };
-                    char *envp[] = {
-                        NULL,
-                    };
-                    execve(fullpath, argv, envp);
-                    assert(0);
-                } else {
-                    int status;
-                    int retval = wait(&status);
-                    assert(retval >= 0);
+                char *argv[] = {
+                    program,
+                    NULL,
+                };
+                char *envp[] = {
+                    NULL,
+                };
 
-                    printf("Child terminated with status %i\n", status);
-                }
+                pid_t pid;
+                retval = posix_spawn(
+                    &pid,
+                    fullpath,
+                    NULL,
+                    NULL,
+                    argv,
+                    envp);
+                assert(retval == 0);
+
+                int status;
+                retval = wait(&status);
+                assert(retval >= 0);
+
+                printf("Child terminated with status %i\n", status);
             }
         }
 
