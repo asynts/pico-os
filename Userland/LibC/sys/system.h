@@ -11,9 +11,7 @@ ssize_t sys$read(int fd, void *buffer, size_t count);
 int sys$open(const char *pathname, int flags, int mode);
 int sys$close(int fd);
 int sys$fstat(int fd, struct stat *statbuf);
-pid_t sys$fork(void);
 int sys$wait(int *wstatus);
-int sys$execve(const char *pathname, char **argv, char **envp);
 int sys$chdir(const char *pathname);
 int sys$posix_spawn(
     pid_t *pid,

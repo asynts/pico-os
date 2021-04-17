@@ -32,12 +32,8 @@ namespace Kernel
             return_value = process.sys$close(context->r1.fd());
         } else if (context->r0.syscall() == _SC_fstat) {
             return_value = process.sys$fstat(context->r1.fd(), context->r2.pointer<UserlandFileInfo>());
-        } else if (context->r0.syscall() == _SC_fork) {
-            return_value = process.sys$fork();
         } else if (context->r0.syscall() == _SC_wait) {
             return_value = process.sys$wait(context->r1.pointer<i32>());
-        } else if (context->r0.syscall() == _SC_execve) {
-            return_value = process.sys$execve(context->r1.cstring(), context->r2.pointer<char*>(), context->r3.pointer<char*>());
         } else if (context->r0.syscall() == _SC_exit) {
             return_value = process.sys$exit(context->r1.value<i32>());
         } else if (context->r0.syscall() == _SC_chdir) {

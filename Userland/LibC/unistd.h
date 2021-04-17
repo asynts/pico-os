@@ -9,10 +9,6 @@
 
 int chdir(const char *pathname);
 
-pid_t fork(void);
-
-int execve(const char *pathname, char **argv, char **envp);
-
 int access(const char *pathname, int mode);
 
 int geteuid(void);

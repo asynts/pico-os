@@ -36,19 +36,9 @@ int sys$fstat(int fd, struct stat *statbuf)
     return syscall(_SC_fstat, fd, statbuf, 0);
 }
 
-pid_t sys$fork(void)
-{
-    return syscall(_SC_fork, 0, 0, 0);
-}
-
 int sys$wait(int *wstatus)
 {
     return syscall(_SC_wait, wstatus, 0, 0);
-}
-
-int sys$execve(const char *pathname, char **argv, char **envp)
-{
-    return syscall(_SC_execve, pathname, argv, envp);
 }
 
 void sys$exit(int status)

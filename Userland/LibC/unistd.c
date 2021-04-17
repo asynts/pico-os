@@ -11,18 +11,6 @@ int chdir(const char *pathname)
     return sys$chdir(pathname);
 }
 
-pid_t fork(void)
-{
-    pid_t retval = sys$fork();
-    printf("fork() returned %zi\n", (ssize_t)retval);
-    return retval;
-}
-
-int execve(const char *pathname, char **argv, char **envp)
-{
-    return sys$execve(pathname, argv, envp);
-}
-
 // FIXME: Do this properly
 int geteuid(void)
 {

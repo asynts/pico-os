@@ -107,41 +107,6 @@ namespace Kernel
         return 0;
     }
 
-    i32 Process::sys$fork()
-    {
-        auto new_process = make<Process>(
-            String::format("Fork: {}", m_name),
-            m_executable.must().clone()
-        );
-
-        new_process->m_parent = this;
-
-        i32 new_process_id = new_process->m_process_id;
-        dbgln("[Process::sys$fork] Forking new process PID {} from PID {}", new_process_id, m_process_id);
-
-        auto& thread = Scheduler::the().active_thread();
-        auto& executable = m_executable.must();
-        auto& new_executable = new_process->m_executable.must();
-
-        auto *new_context = reinterpret_cast<FullRegisterContext*>(new_executable.m_stack_base + (reinterpret_cast<u8*>(thread.m_context.must()) - executable.m_stack_base));
-        new_context->r0.m_storage = 0;
-        new_context->r9.m_storage = new_executable.m_writable_base;
-
-        Thread new_thread {
-            String::format("Process: {}", new_process->m_name),
-            move(new_process),
-            new_context,
-        };
-
-        dbgln("Creating new thread '{}'", new_thread.m_name);
-
-        Scheduler::the().create_thread(move(new_thread));
-
-        dbgln("Returning to parent process with PID {}", new_process_id);
-
-        return new_process_id;
-    }
-
     i32 Process::sys$wait(i32 *status)
     {
         dbgln("[PID {} ({})] Checking wait condition...", m_process_id, this);
@@ -157,40 +122,6 @@ namespace Kernel
 
         Scheduler::the().donate_my_remaining_cpu_slice();
         return -EINTR;
-    }
-
-    i32 Process::sys$execve(const char *pathname, char **argv, char **envp)
-    {
-        Path path = pathname;
-
-        if (!path.is_absolute())
-            path = m_working_directory / path;
-
-        // FIXME: Deal with 'argv' and 'envp'
-
-        // FIXME: We blindly assume that this file is in the flash
-        auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
-
-        // FIXME: Do this properly
-        StringView fullpath;
-        if (StringView { pathname } == "Example.elf" || StringView { pathname } == "/bin/Example.elf") {
-            fullpath = "Userland/Example.1.elf";
-        } else if (StringView { pathname } == "Shell.elf") {
-            fullpath = "Userland/Shell.1.elf";
-        } else {
-            VERIFY_NOT_REACHED();
-        }
-
-        ElfWrapper elf { file.m_data.data(), fullpath };
-
-        auto& process = Process::active_process();
-
-        process.m_name = String::format("Exec: '{}'", argv[0]);
-        process.m_executable = load_executable_into_memory(elf);
-
-        hand_over_to_loaded_executable(process.m_executable.must());
-
-        VERIFY_NOT_REACHED();
     }
 
     i32 Process::sys$exit(i32 status)
