@@ -53,7 +53,7 @@ namespace Std
             if (node)
                 return node->m_value;
             else
-                return nullptr;
+                return {};
         }
 
         void remove(const Key& key)

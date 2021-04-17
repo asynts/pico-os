@@ -232,6 +232,27 @@ namespace Kernel
         char **argv,
         char **envp)
     {
-        FIXME();
+        FIXME_ASSERT(file_actions == nullptr);
+        FIXME_ASSERT(attrp == nullptr);
+
+        Path path { pathname };
+
+        if (!path.is_absolute())
+            path = m_working_directory / path;
+
+        HashMap<String, String> system_to_host;
+        system_to_host.set("/bin/Shell.elf", "Userland/Shell.1.elf");
+        system_to_host.set("/bin/Example.elf", "Userland/Example.1.elf");
+
+        auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
+        ElfWrapper elf { file.m_data.data(), system_to_host.get_opt(path.string()).must() };
+
+        auto& new_process = Kernel::Process::create(pathname, move(elf));
+        new_process.m_parent = this;
+
+        dbgln("[Process::sys$posix_spawn] Created new process PID {} running {}", new_process.m_process_id, path);
+
+        *pid = new_process.m_process_id;
+        return 0;
     }
 }
