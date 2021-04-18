@@ -1,5 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
+#include <sys/types.h>
 
-#define assert(...) ((__VA_ARGS__) ? (void)0 : abort())
+__attribute__((noinline))
+void breakpoint(const char *filename, size_t line);
+
+#define assert(condition) ((condition) ? (void)0 : breakpoint(__FILE__, __LINE__))
