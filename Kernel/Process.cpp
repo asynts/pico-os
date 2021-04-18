@@ -6,8 +6,6 @@
 
 namespace Kernel
 {
-    i32 Process::m_next_process_id = 0;
-
     Process& Process::active_process()
     {
         auto& thread = Scheduler::the().active_thread();

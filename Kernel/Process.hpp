@@ -69,7 +69,7 @@ namespace Kernel
             char **envp);
 
     private:
-        static i32 m_next_process_id;
+        static inline i32 m_next_process_id = 0;
 
         struct TerminatedProcess {
             i32 m_process_id;
