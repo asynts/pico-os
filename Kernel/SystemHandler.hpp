@@ -57,3 +57,23 @@ namespace Kernel
         TypeErasedValue xpsr;
     };
 }
+
+template<>
+struct Std::Formatter<Kernel::ExceptionRegisterContext> {
+    static void format(StringBuilder& builder, const Kernel::ExceptionRegisterContext& context)
+    {
+        builder.appendf("r0={} r1={} r2={}   r3={}\n", context.r0.m_storage, context.r1.m_storage, context.r2.m_storage, context.r3.m_storage);
+        builder.appendf("ip={} lr={} pc={} xpsr={}\n", context.ip.m_storage, context.lr.m_storage, context.pc.m_storage, context.xpsr.m_storage);
+    }
+};
+
+template<>
+struct Std::Formatter<Kernel::FullRegisterContext> {
+    static void format(StringBuilder& builder, const Kernel::FullRegisterContext& context)
+    {
+        builder.appendf("r0={} r1={}  r2={}   r3={}\n", context.r1.m_storage, context.r2.m_storage, context.r3.m_storage, context.r4.m_storage);
+        builder.appendf("ip={} lr={}  pc={} xpsr={}\n", context.ip.m_storage, context.lr.m_storage, context.pc.m_storage, context.xpsr.m_storage);
+        builder.appendf("r4={} r5={}  r6={}   r7={}\n", context.r4.m_storage, context.r5.m_storage, context.r6.m_storage, context.r7.m_storage);
+        builder.appendf("r8={} sb={} r10={}  r11={}\n", context.r8.m_storage, context.r9.m_storage, context.r10.m_storage, context.r11.m_storage);
+    }
+};
