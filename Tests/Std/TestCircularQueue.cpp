@@ -106,4 +106,47 @@ TEST_CASE(circularqueue_enqueue_return_value)
     ASSERT(value_3 == 3);
 }
 
+TEST_CASE(circularqueue_move)
+{
+    Tests::Tracker::clear();
+
+    {
+        Std::CircularQueue<Tests::Tracker, 4> queue1;
+
+        Tests::Tracker::assert(0, 0, 0, 0);
+
+        queue1.enqueue({});
+
+        ASSERT(queue1.size() == 1);
+
+        Tests::Tracker::assert(1, 1, 0, 1);
+
+        {
+            Std::CircularQueue<Tests::Tracker, 4> queue2 = move(queue1);
+
+            Tests::Tracker::assert(1, {}, 0, {});
+
+            ASSERT(queue1.size() == 0);
+            ASSERT(queue2.size() == 1);
+        }
+
+        Tests::Tracker::assert(1, {}, 0, {});
+    }
+
+    Tests::Tracker::assert(1, {}, 0, {});
+}
+
+TEST_CASE(circularqueue_correct_order_after_move)
+{
+    Std::CircularQueue<int, 4> queue1;
+
+    queue1.enqueue(1);
+    queue1.enqueue(2);
+
+    Std::CircularQueue<int, 4> queue2 { move(queue1) };
+
+    ASSERT(queue2.dequeue() == 1);
+    ASSERT(queue2.dequeue() == 2);
+}
+
 TEST_MAIN();

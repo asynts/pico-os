@@ -106,8 +106,8 @@ namespace Std
         {
             clear();
 
-            m_size = other.m_size;
-            for (usize i = 0; i < other.m_size; ++i)
+            usize count = other.m_size;
+            for (usize i = 0; i < count; ++i)
                 enqueue(other.dequeue());
             ASSERT(other.m_size == 0);
 
