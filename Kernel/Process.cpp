@@ -57,21 +57,29 @@ namespace Kernel
 
         Path path = pathname;
 
-        if (!path.is_absolute()) {
-            dbgln("[Process::sys$open] m_working_directory={}", m_working_directory);
+        if (!path.is_absolute())
             path = m_working_directory / path;
+
+        auto file_opt = Kernel::FileSystem::try_lookup(path);
+
+        if (file_opt.is_error()) {
+            if (file_opt.error() == ENOENT && (flags & O_CREAT))
+                FIXME();
+
+            dbgln("[Process::sys$open] error={}", file_opt.error());
+            return -file_opt.error();
         }
 
-        auto& file = Kernel::FileSystem::lookup(path);
+        VirtualFile *file = file_opt.value();
 
         if ((flags & O_DIRECTORY)) {
-            if ((file.m_mode & ModeFlags::Format) != ModeFlags::Directory) {
-                dbgln("[Process::sys$open] -> ENOTDIR");
+            if ((file->m_mode & ModeFlags::Format) != ModeFlags::Directory) {
+                dbgln("[Process::sys$open] error={}", ENOTDIR);
                 return -ENOTDIR;
             }
         }
 
-        auto& handle = file.create_handle();
+        auto& handle = file->create_handle();
         return add_file_handle(handle);
     }
 

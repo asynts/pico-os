@@ -24,3 +24,4 @@
 #define ENOTDIR 1
 #define EINTR 2
 #define ERANGE 3
+#define ENOENT 4

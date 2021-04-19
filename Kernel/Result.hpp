@@ -6,12 +6,8 @@ namespace Kernel
 {
     using namespace Std;
 
-    enum class KernelError {
-    };
+    // FIXME: I would like to have errors in an enum, sounds like something for <Kernel/Interface/Errors.hpp>
 
     template<typename T>
-    class KernelResult : public Result<T, KernelError> {
-    public:
-        using Result<T, KernelError>::Result;
-    };
+    using KernelResult = Result<T, int>;
 }

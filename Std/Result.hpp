@@ -2,29 +2,52 @@
 
 namespace Std
 {
+    struct ResultValueTag {
+    };
+    struct ResultErrorTag {
+    };
+
     template<typename ValueType, typename ErrorType>
     class Result {
     public:
-        Result(const ValueType& value)
+        Result(const ValueType& value, ResultValueTag = {})
             : m_value(value)
             , m_ok(true)
         {
         }
-        Result(ValueType&& value)
+        Result(ValueType&& value, ResultValueTag = {})
             : m_value(move(value))
             , m_ok(true)
         {
         }
 
-        Result(const ErrorType& error)
+        Result(const ErrorType& error, ResultErrorTag = {})
             : m_error(error)
             , m_ok(false)
         {
         }
-        Result(ErrorType&& error)
+        Result(ErrorType&& error, ResultErrorTag = {})
             : m_error(move(error))
             , m_ok(false)
         {
+        }
+
+        static Result from_value(const ValueType& value)
+        {
+            return Result { value, ResultValueTag{} };
+        }
+        static Result from_value(ValueType&& value)
+        {
+            return Result { move(value), ResultValueTag{} };
+        }
+
+        static Result from_error(const ErrorType& error)
+        {
+            return Result { error, ResultErrorTag{} };
+        }
+        static Result from_error(ErrorType&& error)
+        {
+            return Result { move(error), ResultErrorTag{} };
         }
 
         ~Result()

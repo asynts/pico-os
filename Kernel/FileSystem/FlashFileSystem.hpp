@@ -90,7 +90,7 @@ namespace Kernel
             ASSERT(bytes.size() == sizeof(UserlandDirectoryInfo));
 
             if (m_iterator.begin() == m_iterator.end())
-                return 0;
+                return KernelResult<usize>::from_value(0);
 
             auto& [name, file] = *m_iterator++;
 
