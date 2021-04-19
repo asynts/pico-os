@@ -18,6 +18,14 @@ void* malloc(usize size)
 }
 
 extern "C"
+void* calloc(usize nmembers, usize size)
+{
+    u8 *pointer = Kernel::GlobalMemoryAllocator::the().allocate(nmembers * size);
+    __builtin_memset(pointer, 0, nmembers * size);
+    return pointer;
+}
+
+extern "C"
 void free(void *pointer)
 {
     return Kernel::GlobalMemoryAllocator::the().deallocate(reinterpret_cast<u8*>(pointer));
@@ -27,4 +35,10 @@ extern "C"
 void* realloc(void *pointer, usize size)
 {
     return Kernel::GlobalMemoryAllocator::the().reallocate(reinterpret_cast<u8*>(pointer), size);
+}
+
+extern "C"
+void* reallocarray(void *pointer, usize nmembers, usize size)
+{
+    return Kernel::GlobalMemoryAllocator::the().reallocate(reinterpret_cast<u8*>(pointer), nmembers * size);
 }

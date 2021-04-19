@@ -11,11 +11,6 @@
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 
-extern "C" {
-    extern u8 __fs_start[];
-    extern u8 __fs_end[];
-}
-
 void create_shell_process()
 {
     auto& shell_file = dynamic_cast<Kernel::FlashFile&>(Kernel::FileSystem::lookup("/bin/Shell.elf"));
