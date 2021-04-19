@@ -1,6 +1,6 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/Scheduler.hpp>
-#include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Loader.hpp>
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 

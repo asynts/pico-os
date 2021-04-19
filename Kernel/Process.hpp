@@ -4,7 +4,7 @@
 #include <Std/CircularQueue.hpp>
 
 #include <Kernel/FileSystem/FileSystem.hpp>
-#include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Loader.hpp>
 
 namespace Kernel
 {

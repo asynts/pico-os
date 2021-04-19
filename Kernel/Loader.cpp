@@ -1,6 +1,6 @@
 #include <Std/Format.hpp>
 
-#include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Loader.hpp>
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
 

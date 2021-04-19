@@ -1,7 +1,7 @@
 #include <Std/Forward.hpp>
 #include <Std/Format.hpp>
 
-#include <Kernel/DynamicLoader.hpp>
+#include <Kernel/Loader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
