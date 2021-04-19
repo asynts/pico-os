@@ -47,21 +47,25 @@ namespace Kernel
             auto& section = elf.sections()[section_index];
 
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".stack") == 0) {
-                executable.m_stack_base = executable.m_writable_base + section.sh_addr;
-                executable.m_stack_size = 0x1100;
+                executable.m_stack_base = executable.m_writable_base + (section.sh_addr - writable_segment.p_vaddr);
+                executable.m_stack_size = section.sh_size;
+
+                // FIXME: I don't think we need this anymore with our own LibC
+                ASSERT(executable.m_stack_size == 0x1100);
+
                 continue;
             }
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".data") == 0) {
-                executable.m_data_base = executable.m_writable_base + section.sh_addr;
+                executable.m_data_base = executable.m_writable_base + (section.sh_addr - writable_segment.p_vaddr);
                 continue;
             }
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".bss") == 0) {
-                executable.m_bss_base = executable.m_writable_base + section.sh_addr;
+                executable.m_bss_base = executable.m_writable_base + (section.sh_addr - writable_segment.p_vaddr);
                 continue;
             }
 
             if (__builtin_strcmp(elf.section_name_base() + section.sh_name, ".text") == 0) {
-                executable.m_text_base = executable.m_readonly_base + section.sh_addr;
+                executable.m_text_base = executable.m_readonly_base + (section.sh_addr - readonly_segment.p_vaddr);
                 continue;
             }
         }
