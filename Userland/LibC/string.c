@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <sys/abi.h>
 
 char* strchr(const char *str, int ch)
 {
@@ -68,19 +69,10 @@ void* memset(void *dest, int ch, size_t count)
     return dest;
 }
 
-void* __aeabi_memcpy(void *dest, const void *src, size_t count)
-{
-    char *dest_ = dest;
-    const char *src_ = src;
-
-    for (size_t i = 0; i < count; ++i)
-        dest_[i] = src_[i];
-
-    return dest;
-}
 void* memcpy(void *dest, const void *src, size_t count)
 {
-    return __aeabi_memcpy(dest, src, count);
+    __aeabi_memcpy(dest, src, count);
+    return dest;
 }
 
 size_t strlen(const char *str)
