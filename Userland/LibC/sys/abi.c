@@ -37,6 +37,19 @@ void __aeabi_memcpy(void *dest, const void *src, size_t n)
 {
     rom_functions_init();
 
-    typedef void (*fn_memcpy)(void*, const void*, size_t);
+    typedef uint8_t* (*fn_memcpy)(void*, const void*, size_t);
     ((fn_memcpy)rom_functions[ROM_MEMCPY])(dest, src, n);
+}
+
+void __aeabi_memset(void *dest, size_t n, int c)
+{
+    rom_functions_init();
+
+    typedef uint8_t* (*fn_memset)(uint8_t *ptr, uint8_t c, uint32_t n);
+    ((fn_memset)rom_functions[ROM_MEMSET])(dest, (uint8_t)c, n);
+}
+
+void __aeabi_memclr(void *dest, size_t n)
+{
+    __aeabi_memset(dest, n, 0);
 }
