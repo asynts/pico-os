@@ -15,6 +15,12 @@
 
 char* find_executable(const char *name);
 
+__attribute__((constructor))
+void init()
+{
+    volatile int x = 42;
+}
+
 int main(int argc, char **argv)
 {
     for(;;) {
