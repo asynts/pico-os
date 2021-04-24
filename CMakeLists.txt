@@ -39,5 +39,6 @@ add_custom_target(Kernel.elf ALL
         --strip-symbol=__flash_data_2
         --strip-symbol=__flash_data_3
         --strip-symbol=__flash_data_4
+        --strip-symbol=__flash_base
     Kernel.1.elf Kernel.elf
     DEPENDS Kernel.1)

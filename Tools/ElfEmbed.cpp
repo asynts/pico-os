@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     std::map<std::string, uint32_t> bin_files;
     bin_files["Shell.elf"] = fs.add_host_file("Shell.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
     bin_files["Example.elf"] = fs.add_host_file("Example.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
+    bin_files["Editor.elf"] = fs.add_host_file("Editor.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
 
     fs.add_root_directory(bin_files);
 
