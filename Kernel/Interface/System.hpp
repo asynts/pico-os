@@ -16,7 +16,6 @@
 
 #define O_DIRECTORY (1 << 4)
 #define O_CREAT (1 << 5)
-#define O_TRUNC (1 << 6)
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1

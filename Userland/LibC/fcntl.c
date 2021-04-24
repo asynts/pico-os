@@ -8,11 +8,6 @@ int close(int fd)
     return sys$close(fd);
 }
 
-int creat(const char *path, mode_t mode)
-{
-    return open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
-}
-
 int open(const char *path, int flags, ...)
 {
     if ((flags & O_CREAT))

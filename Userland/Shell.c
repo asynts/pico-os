@@ -110,7 +110,7 @@ int main(int argc, char **argv)
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
             assert(path != NULL);
 
-            int fd = creat(path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+            int fd = open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
             assert(fd >= 0);
 
             int retval = close(fd);
