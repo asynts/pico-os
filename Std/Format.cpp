@@ -7,6 +7,7 @@
 # include <iostream>
 #elif defined(KERNEL)
 # include <Kernel/ConsoleDevice.hpp>
+# include <Kernel/Scheduler.hpp>
 #else
 # error "Only TEST and KERNEL are supported"
 #endif
@@ -19,14 +20,12 @@ namespace Std {
 #else
         auto& handle = Kernel::ConsoleFile::the().create_handle();
 
-        // FIXME: If multiple threads create debug output at the same time, we got
-        //        a race condition. This does not solve the race condition, but it
-        //        makes the window much smaller.
+        Kernel::SchedulerGuard guard;
+
         StringBuilder builder;
         builder.append("\e[36m");
         builder.append(str);
         builder.append("\e[0m\n");
-
         handle.write(builder.view().bytes());
 #endif
     }

@@ -4,6 +4,7 @@
 #include <Std/String.hpp>
 #include <Std/CircularQueue.hpp>
 #include <Std/OwnPtr.hpp>
+#include <Std/ArmedScopeGuard.hpp>
 
 #include <Kernel/Process.hpp>
 #include <Kernel/SystemHandler.hpp>
@@ -75,6 +76,8 @@ namespace Kernel
         bool m_die_at_next_opportunity = false;
     };
 
+    class SchedulerGuard;
+
     class Scheduler : public Singleton<Scheduler> {
     public:
         template<typename T, void (T::*Method)()>
@@ -144,6 +147,32 @@ namespace Kernel
         Thread& create_thread_impl(Thread&& thread, StackWrapper, void (*callback)(void*), void *this_);
 
         CircularQueue<Thread, 8> m_threads;
+
+        friend SchedulerGuard;
         volatile bool m_enabled;
+    };
+
+    class SchedulerGuard {
+    public:
+        SchedulerGuard()
+        {
+            m_armed = exchange(Scheduler::the().m_enabled, false);
+        }
+        ~SchedulerGuard()
+        {
+            if (m_armed)
+                Scheduler::the().m_enabled = true;
+        }
+        SchedulerGuard(SchedulerGuard&& other)
+        {
+            m_armed = exchange(other.m_armed, false);
+        }
+
+        SchedulerGuard(const SchedulerGuard&) = delete;
+        SchedulerGuard& operator=(const SchedulerGuard&) = delete;
+        SchedulerGuard& operator=(SchedulerGuard&&) = delete;
+
+    private:
+        bool m_armed;
     };
 }
