@@ -73,4 +73,15 @@ TEST_CASE(path_filename)
     ASSERT(path1.parent().filename() == "x");
 }
 
+TEST_CASE(path_absolute_regression)
+{
+    Std::Path path1 { "/foo.txt" };
+
+    ASSERT(path1.is_absolute() == true);
+
+    Std::Path path2 = path1.parent();
+    ASSERT(path2.string() == "/");
+    ASSERT(path2.is_absolute() == true);
+}
+
 TEST_MAIN();

@@ -43,7 +43,7 @@ namespace Std
 
         Path parent() const
         {
-            VERIFY(m_components.size() >= 2);
+            VERIFY(m_components.size() >= 1);
 
             Path parent;
             parent.m_is_absolute = m_is_absolute;
