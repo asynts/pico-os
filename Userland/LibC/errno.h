@@ -2,6 +2,8 @@
 
 extern int errno;
 
+char* strerror(int error);
+
 #define libc_check_errno(variable) \
     do { \
         if (variable < 0) { \

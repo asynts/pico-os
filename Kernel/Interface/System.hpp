@@ -20,8 +20,10 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
+// Remember to update LibC as well
 #define ENOTDIR 1
 #define EINTR 2
 #define ERANGE 3
 #define ENOENT 4
 #define EACCES 5
+#define EMAX 6

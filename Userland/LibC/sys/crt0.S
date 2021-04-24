@@ -41,3 +41,13 @@ _syscall:
 _static_base:
     mov r0, sb
     bx lr
+
+// u32 _pc_base()
+.global _pc_base
+.thumb_func
+_pc_base:
+    mov r0, pc
+    ldr r1, =_pc_base
+    subs r0, r0, r1
+    subs r0, r0, #3
+    bx lr

@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <spawn.h>
+#include <errno.h>
 
 char* find_executable(const char *name);
 
@@ -42,10 +43,17 @@ int main(int argc, char **argv)
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
 
-            assert(path != NULL);
+            if (path == NULL) {
+                printf("stat: Missing operand\n");
+                goto next_iteration;
+            }
 
             int fd = open(path, O_RDONLY);
-            assert(fd >= 2);
+
+            if (fd < 0) {
+                printf("stat: %s\n", strerror(errno));
+                goto next_iteration;
+            }
 
             struct stat statbuf;
             int retval = fstat(fd, &statbuf);
@@ -151,6 +159,7 @@ int main(int argc, char **argv)
             }
         }
 
+    next_iteration:
         free(buffer);
     }
 }
