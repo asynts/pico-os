@@ -186,7 +186,7 @@ namespace Kernel
         FIXME_ASSERT(file_actions == nullptr);
         FIXME_ASSERT(attrp == nullptr);
 
-        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)\n", pid, pathname, file_actions, attrp, argv, envp);
+        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
 
         Path path { pathname };
 
@@ -196,6 +196,7 @@ namespace Kernel
         HashMap<String, String> system_to_host;
         system_to_host.set("/bin/Shell.elf", "Userland/Shell.1.elf");
         system_to_host.set("/bin/Example.elf", "Userland/Example.1.elf");
+        system_to_host.set("/bin/Editor.elf", "Userland/Editor.1.elf");
 
         auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
         ElfWrapper elf { file.m_data.data(), system_to_host.get_opt(path.string()).must() };
@@ -212,22 +213,15 @@ namespace Kernel
 
     i32 Process::sys$get_working_directory(u8 *buffer, usize *buffer_size)
     {
-        dbgln("[Process::sys$get_working_directory] buffer={} buffer_size={} ({})", buffer, buffer_size, *buffer_size);
-
         auto string = m_working_directory.string();
 
         if (string.size() + 1 > *buffer_size) {
             *buffer_size = string.size() + 1;
-
-            dbgln("[Process::sys$get_working_directory] Updated buffer_size={}", *buffer_size);
             return -ERANGE;
         } else {
-            dbgln("[Process::sys$get_working_directory] Buffer was large enough size={}+1 buffer_size={}", string.size(), *buffer_size);
+            string.strcpy_to({ (char*)buffer, *buffer_size });
+            *buffer_size = string.size() + 1;
+            return 0;
         }
-
-        string.strcpy_to({ (char*)buffer, *buffer_size });
-        *buffer_size = string.size() + 1;
-
-        return 0;
     }
 }

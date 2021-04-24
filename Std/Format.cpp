@@ -19,9 +19,15 @@ namespace Std {
 #else
         auto& handle = Kernel::ConsoleFile::the().create_handle();
 
-        handle.write(StringView { "\e[36m" }.bytes());
-        handle.write(str.bytes());
-        handle.write(StringView { "\e[0m\n" }.bytes());
+        // FIXME: If multiple threads create debug output at the same time, we got
+        //        a race condition. This does not solve the race condition, but it
+        //        makes the window much smaller.
+        StringBuilder builder;
+        builder.append("\e[36m");
+        builder.append(str);
+        builder.append("\e[0m\n");
+
+        handle.write(builder.view().bytes());
 #endif
     }
 

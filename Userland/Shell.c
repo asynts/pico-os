@@ -159,11 +159,7 @@ char* find_executable(const char *program)
 {
     assert(strlen(program) >= 1);
 
-    printf("%s:%i\n", __FILE__, __LINE__);
-
     printf("Searching for program %s\n", program);
-
-    printf("%s:%i\n", __FILE__, __LINE__);
 
     if (program[0] == '/') {
         if (access(program, X_OK) == 0)
@@ -171,29 +167,19 @@ char* find_executable(const char *program)
         return NULL;
     }
 
-    printf("%s:%i\n", __FILE__, __LINE__);
-
     char *path = strdup(getenv("PATH"));
     char *saveptr;
 
-    printf("%s:%i\n", __FILE__, __LINE__);
-
     for (char *directory = strtok_r(path, ":", &saveptr); directory; directory = strtok_r(NULL, ":", &saveptr)) {
-        printf("%s:%i\n", __FILE__, __LINE__);
-
         char *fullpath = malloc(strlen(directory) + strlen(program) + 2);
         fullpath = strcpy(fullpath, directory);
         fullpath = strcat(fullpath, "/");
         fullpath = strcat(fullpath, program);
 
-        printf("%s:%i\n", __FILE__, __LINE__);
-
         printf("Checking %s\n", fullpath);
 
         if (access(fullpath, X_OK) == 0)
             return fullpath;
-
-        printf("%s:%i\n", __FILE__, __LINE__);
 
         free(fullpath);
     }

@@ -24,15 +24,9 @@ static uint32_t rom_functions[] = {
 
 static void rom_functions_init()
 {
-    printf("[rom_functions_init] rom_functions_are_not_initialized=%i\n", rom_functions_are_not_initialized);
-
-    if (rom_functions_are_not_initialized == 0) {
-        printf("[rom_functions_init] ROM functions already initialized...\n");
+    if (rom_functions_are_not_initialized == 0)
         return;
-    }
     rom_functions_are_not_initialized = 0;
-
-    printf("[rom_functions_init] rom_functions_are_not_initialized=%i (after clearing it)\n", rom_functions_are_not_initialized);
 
     typedef uint32_t (*fn_table_lookup)(uint16_t *table, uint32_t code);
 
