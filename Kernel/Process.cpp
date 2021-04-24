@@ -3,6 +3,7 @@
 #include <Kernel/Loader.hpp>
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 
 namespace Kernel
 {
@@ -63,8 +64,21 @@ namespace Kernel
         auto file_opt = Kernel::FileSystem::try_lookup(path);
 
         if (file_opt.is_error()) {
-            if (file_opt.error() == ENOENT && (flags & O_CREAT))
-                FIXME();
+            if (file_opt.error() == ENOENT && (flags & O_CREAT)) {
+                dbgln("[sys$open] path={}", path);
+                dbgln("[sys$open] path={} parent={}", path, path.parent());
+
+                auto parent_opt = Kernel::FileSystem::try_lookup(path.parent());
+
+                if (parent_opt.is_error())
+                    return -ENOTDIR;
+
+                auto& new_file = *new Kernel::MemoryFile;
+                dynamic_cast<Kernel::VirtualDirectory*>(parent_opt.value())->m_entries.set(path.filename(), &new_file);
+
+                auto& new_handle = new_file.create_handle();
+                return add_file_handle(new_handle);
+            }
 
             dbgln("[Process::sys$open] error={}", file_opt.error());
             return -file_opt.error();
