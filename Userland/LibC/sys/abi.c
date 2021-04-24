@@ -8,26 +8,13 @@
 #define ROM_MEMSET 1
 #define ROM_MAX 2
 
-// We have to phrase it like this, because otherwise the compiler could put it into
-// the .bss section, resetting it back to zero since it calls abi functions before clearing
-// that section.
-//
-// It seems that if we make this static, the compiler tries to do some sort of optimization
-// where it just changes the value to be able to put it into the .bss section.  Thus this
-// symbol is defined globally and marked volatile.
-volatile int rom_functions_are_not_initialized = 1;
-
 static uint32_t rom_functions[] = {
     [ROM_MEMCPY] = rom_table_code('M', 'C'),
     [ROM_MEMSET] = rom_table_code('M', 'S'),
 };
 
-static void rom_functions_init()
+void rom_functions_init()
 {
-    if (rom_functions_are_not_initialized == 0)
-        return;
-    rom_functions_are_not_initialized = 0;
-
     typedef uint32_t (*fn_table_lookup)(uint16_t *table, uint32_t code);
 
     uint16_t *table_lookup_ptr = (uint16_t*)0x00000018;
@@ -47,16 +34,12 @@ static void rom_functions_init()
 
 void __aeabi_memcpy(void *dest, const void *src, size_t n)
 {
-    rom_functions_init();
-
     typedef uint8_t* (*fn_memcpy)(void*, const void*, size_t);
     ((fn_memcpy)rom_functions[ROM_MEMCPY])(dest, src, n);
 }
 
 void __aeabi_memset(void *dest, size_t n, int c)
 {
-    rom_functions_init();
-
     typedef uint8_t* (*fn_memset)(uint8_t *ptr, uint8_t c, uint32_t n);
     ((fn_memset)rom_functions[ROM_MEMSET])(dest, (uint8_t)c, n);
 }
