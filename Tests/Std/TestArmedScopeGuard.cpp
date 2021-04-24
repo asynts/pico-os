@@ -31,4 +31,31 @@ TEST_CASE(armedscopeguard)
     ASSERT(i == 14);
 }
 
+TEST_CASE(armedscopeguard_move)
+{
+    int i = 0;
+
+    {
+        Std::ArmedScopeGuard guard1 = [&] {
+            ++i;
+        };
+
+        ASSERT(i == 0);
+
+        {
+            Std::ArmedScopeGuard guard2 = move(guard1);
+
+            ASSERT(i == 0);
+
+            Std::ArmedScopeGuard guard3 = move(guard2);
+
+            ASSERT(i == 0);
+        }
+
+        ASSERT(i == 1);
+    }
+
+    ASSERT(i == 1);
+}
+
 TEST_MAIN();
