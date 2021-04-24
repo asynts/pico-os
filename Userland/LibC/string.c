@@ -63,9 +63,7 @@ int strcmp(const char *lhs, const char *rhs)
 
 void* memset(void *dest, int ch, size_t count)
 {
-    for (size_t index = 0; index < count; ++index)
-        ((char*)dest)[index] = ch;
-
+    __aeabi_memset(dest, count, ch);
     return dest;
 }
 

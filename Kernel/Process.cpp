@@ -186,6 +186,8 @@ namespace Kernel
         FIXME_ASSERT(file_actions == nullptr);
         FIXME_ASSERT(attrp == nullptr);
 
+        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)\n", pid, pathname, file_actions, attrp, argv, envp);
+
         Path path { pathname };
 
         if (!path.is_absolute())

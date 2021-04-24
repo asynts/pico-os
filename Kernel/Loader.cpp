@@ -30,6 +30,7 @@ namespace Kernel
         executable.m_writable_base = u32(writable);
         executable.m_writable_size = writable_segment.p_memsz;
 
+        dbgln("Copying {} bytes into writeable segment", writable_segment.p_filesz);
         __builtin_memcpy(writable, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
         VERIFY(writable_segment.p_memsz >= writable_segment.p_filesz);

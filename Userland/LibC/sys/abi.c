@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <assert.h>
+#include <stdio.h>
 
 #define rom_table_code(code1, code2) ((code2) << 8 | (code1))
 
@@ -7,7 +8,15 @@
 #define ROM_MEMSET 1
 #define ROM_MAX 2
 
-static int rom_functions_initialized = 0;
+// We have to phrase it like this, because otherwise the compiler could put it into
+// the .bss section, resetting it back to zero since it calls abi functions before clearing
+// that section.
+//
+// It seems that if we make this static, the compiler tries to do some sort of optimization
+// where it just changes the value to be able to put it into the .bss section.  Thus this
+// symbol is defined globally and marked volatile.
+volatile int rom_functions_are_not_initialized = 1;
+
 static uint32_t rom_functions[] = {
     [ROM_MEMCPY] = rom_table_code('M', 'C'),
     [ROM_MEMSET] = rom_table_code('M', 'S'),
@@ -15,9 +24,15 @@ static uint32_t rom_functions[] = {
 
 static void rom_functions_init()
 {
-    if (rom_functions_initialized)
+    printf("[rom_functions_init] rom_functions_are_not_initialized=%i\n", rom_functions_are_not_initialized);
+
+    if (rom_functions_are_not_initialized == 0) {
+        printf("[rom_functions_init] ROM functions already initialized...\n");
         return;
-    rom_functions_initialized = 1;
+    }
+    rom_functions_are_not_initialized = 0;
+
+    printf("[rom_functions_init] rom_functions_are_not_initialized=%i (after clearing it)\n", rom_functions_are_not_initialized);
 
     typedef uint32_t (*fn_table_lookup)(uint16_t *table, uint32_t code);
 
@@ -28,7 +43,10 @@ static void rom_functions_init()
     uint16_t *func_table = (uint16_t*)(uint32_t)*func_table_ptr;
 
     for (size_t i = 0; i < ROM_MAX; ++i) {
+        uint32_t rom_function_code = rom_functions[i];
         uint32_t value = rom_functions[i] = table_lookup(func_table, rom_functions[i]);
+        if (value == 0)
+            printf("Could not find ROM function %u (i=%zu)\n", rom_function_code, i);
         assert(value);
     }
 }
