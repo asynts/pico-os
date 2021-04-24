@@ -8,6 +8,10 @@ namespace Std
 {
     class Path {
     public:
+        Path()
+        {
+            m_is_absolute = false;
+        }
         Path(StringView path)
         {
             VERIFY(path.size() >= 1);
@@ -36,6 +40,25 @@ namespace Std
 
         bool is_absolute() const { return m_is_absolute; }
         auto components() const { return m_components.iter(); }
+
+        Path parent() const
+        {
+            VERIFY(m_components.size() >= 2);
+
+            Path parent;
+            parent.m_is_absolute = m_is_absolute;
+
+            for (usize i = 0; i < m_components.size() - 1; ++i)
+                parent.m_components.append(m_components[i]);
+
+            return move(parent);
+        }
+
+        String filename() const
+        {
+            VERIFY(m_components.size() >= 1);
+            return m_components[m_components.size() - 1];
+        }
 
         String string() const
         {
