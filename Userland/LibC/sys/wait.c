@@ -1,6 +1,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/system.h>
+#include <errno.h>
 
 pid_t wait(int *status)
 {
@@ -9,5 +10,6 @@ pid_t wait(int *status)
     while ((retval = sys$wait(status)) == -EINTR)
         ;
 
-    return retval;
+    libc_check_errno(retval);
+    return 0;
 }

@@ -29,7 +29,10 @@ void* malloc(size_t size)
     size = round_to_word(size);
 
     heap += size;
-    return heap - size;
+
+    char *pointer = heap - size;
+    assert(pointer <= __heap_end__);
+    return pointer;
 }
 
 void* realloc(void *pointer, size_t size)

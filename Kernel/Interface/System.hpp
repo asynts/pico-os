@@ -24,3 +24,4 @@
 #define EINTR 2
 #define ERANGE 3
 #define ENOENT 4
+#define EACCES 5

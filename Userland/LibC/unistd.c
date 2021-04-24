@@ -6,10 +6,13 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <malloc.h>
+#include <errno.h>
 
 int chdir(const char *pathname)
 {
-    return sys$chdir(pathname);
+    int retval = sys$chdir(pathname);
+    libc_check_errno(retval);
+    return 0;
 }
 
 // FIXME: Do this properly
@@ -28,13 +31,14 @@ int access(const char *pathname, int mode)
 
     struct stat statbuf;
     int retval = stat(pathname, &statbuf);
-    assert(retval == 0);
+    libc_check_errno(retval);
 
     if (statbuf.st_uid == geteuid() && (statbuf.st_mode & S_IXUSR))
         return 0;
     if (statbuf.st_gid == getegid() && (statbuf.st_mode & S_IXGRP))
         return 0;
 
+    errno = EACCES;
     return -1;
 }
 

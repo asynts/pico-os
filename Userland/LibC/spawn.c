@@ -1,5 +1,6 @@
 #include <spawn.h>
 #include <sys/system.h>
+#include <errno.h>
 
 int posix_spawn(
     pid_t *pid,
@@ -9,5 +10,7 @@ int posix_spawn(
     char **argv,
     char **envp)
 {
-    return sys$posix_spawn(pid, pathname, file_actions, attrp, argv, envp);
+    int retval = sys$posix_spawn(pid, pathname, file_actions, attrp, argv, envp);
+    libc_check_errno(retval);
+    return 0;
 }

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <errno.h>
 
 static size_t format_integer(int is_negative, unsigned long long value, size_t bits, char *buffer)
 {
@@ -150,14 +151,22 @@ int printf(const char *format, ...)
 int putchar(int ch)
 {
     char buffer[1] = { ch };
-    sys$write(STDOUT_FILENO, buffer, sizeof(buffer));
+
+    int retval = sys$write(STDOUT_FILENO, buffer, sizeof(buffer));
+    libc_check_errno(retval);
 
     return ch;
 }
 
 int puts(const char *str)
 {
-    sys$write(STDOUT_FILENO, str, strlen(str));
-    putchar('\n');
+    ssize_t retval;
+
+    retval = sys$write(STDOUT_FILENO, str, strlen(str));
+    libc_check_errno(retval);
+
+    retval = putchar('\n');
+    libc_check_errno(retval);
+
     return 0;
 }
