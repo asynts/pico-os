@@ -25,7 +25,7 @@ static void buffer_append_at_offset(struct buffer *buf, size_t offset, const cha
     buf->last_lineno += 1;
 }
 
-static int parse_integer(char *buffer, int *value_out, size_t *end_out)
+static int parse_integer(char *buffer, int *value_out, char **end_out)
 {
     size_t offset = 0;
     int value = 0;
@@ -41,7 +41,7 @@ static int parse_integer(char *buffer, int *value_out, size_t *end_out)
     if (value_out)
         *value_out = value;
     if (end_out)
-        *end_out = offset;
+        *end_out = buffer + offset;
 
     return 0;
 }
@@ -91,8 +91,21 @@ int main() {
 
         char *line = raw_line;
 
+        int selection_start = -1;
+        int selection_end = -1;
+
+        if (parse_integer(line, &selection_start, &line) == 0) {
+            if (*line == ',') {
+                ++line;
+                parse_integer(line, &selection_end, &line);
+            }
+        }
+
         if (*line == 'w') {
             ++line;
+
+            assert(selection_start == -1);
+            assert(selection_end == -1);
 
             assert(*line == ' ');
             ++line;
@@ -113,6 +126,8 @@ int main() {
         if (*line == 'q') {
             ++line;
 
+            assert(selection_start == -1);
+            assert(selection_end == -1);
             assert(strlen(line) == 0);
 
             free(raw_line);
@@ -121,14 +136,22 @@ int main() {
         if (*line == 'a') {
             ++line;
 
+            assert(selection_end == -1);
             assert(strlen(line) == 0);
+
+            size_t offset = buf.used;
+
+            if (selection_start != -1) {
+                int retval = buffer_get_line_offset(&buf, (size_t)selection_start, &offset);
+                assert(retval == 0);
+            }
 
             char *new_line = readline("");
 
             assert(strlen(new_line) >= 1);
             assert(new_line[strlen(new_line) - 1] == '\n');
 
-            buffer_append_at_offset(&buf, buf.used, new_line, strlen(new_line));
+            buffer_append_at_offset(&buf, offset, new_line, strlen(new_line));
 
             free(new_line);
 
