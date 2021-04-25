@@ -41,23 +41,24 @@ int main(int argc, char **argv)
             printf("\n");
         } else if (strcmp(program, "stat") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            if (strtok_r(NULL, " ", &saveptr) != NULL) {
+                printf("stat: Trailing arguments\n");
+                goto next_iteration;
+            }
 
             if (path == NULL) {
                 printf("stat: Missing operand\n");
                 goto next_iteration;
             }
 
-            int fd = open(path, O_RDONLY);
+            struct stat statbuf;
+            int retval = stat(path, &statbuf);
 
-            if (fd < 0) {
+            if (retval < 0) {
                 printf("stat: %s\n", strerror(errno));
                 goto next_iteration;
             }
-
-            struct stat statbuf;
-            int retval = fstat(fd, &statbuf);
-            assert(retval == 0);
 
             printf("st_dev: %u\n", statbuf.st_dev);
             printf("st_ino: %u\n", statbuf.st_ino);
@@ -68,9 +69,6 @@ int main(int argc, char **argv)
             printf("st_blocks: %u\n", statbuf.st_blocks);
             printf("st_uid: %u\n", statbuf.st_uid);
             printf("st_gid: %u\n", statbuf.st_gid);
-
-            retval = close(fd);
-            assert(retval == 0);
         } else if (strcmp(program, "ls") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
