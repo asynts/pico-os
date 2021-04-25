@@ -11,7 +11,6 @@ struct buffer {
     char *data;
     size_t size;
     size_t used;
-    size_t last_lineno;
 };
 
 static void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
@@ -22,7 +21,6 @@ static void buffer_append_at_offset(struct buffer *buf, size_t offset, const cha
     memcpy(buf->data + offset, data, data_size);
 
     buf->used += data_size;
-    buf->last_lineno += 1;
 }
 
 static int parse_integer(char *buffer, int *value_out, char **end_out)
@@ -51,16 +49,12 @@ static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *off
     assert(lineno >= 1);
     --lineno;
 
-    printf("Looking for line (index) %zu\n", lineno);
-
     size_t offset = 0;
     while (lineno > 0) {
         if (offset >= buf->used)
             return -1;
 
         if (buf->data[offset] == '\n') {
-            printf("Found a line-feed lineno=%zu\n", lineno);
-
             --lineno;
             ++offset;
         } else {
@@ -74,12 +68,31 @@ static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *off
     return 0;
 }
 
+static void buffer_delete_range(struct buffer *buf, size_t from_line, size_t to_line)
+{
+    assert(from_line <= to_line);
+
+    int retval;
+
+    size_t from_offset;
+    retval = buffer_get_line_offset(buf, from_line, &from_offset);
+    assert(retval == 0);
+
+    size_t to_offset;
+    retval = buffer_get_line_offset(buf, to_line + 1, &to_offset);
+    assert(retval == 0);
+
+    assert(to_offset - from_offset <= buf->used);
+
+    memmove(buf->data + from_offset, buf->data + to_offset, to_offset - from_offset);
+    buf->used -= to_offset - from_offset;
+}
+
 int main() {
     struct buffer buf = {
         .data = malloc(0x200),
         .size = 0x200,
         .used = 0,
-        .last_lineno = 1,
     };
 
     for (;;) {
@@ -136,7 +149,6 @@ int main() {
         if (*line == 'a') {
             ++line;
 
-            assert(selection_end == -1);
             assert(strlen(line) == 0);
 
             size_t offset = buf.used;
@@ -144,6 +156,9 @@ int main() {
             if (selection_start != -1) {
                 int retval = buffer_get_line_offset(&buf, (size_t)selection_start, &offset);
                 assert(retval == 0);
+
+                if (selection_end != -1)
+                    buffer_delete_range(&buf, selection_start, selection_end);
             }
 
             char *new_line = readline("");
