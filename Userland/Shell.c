@@ -162,21 +162,38 @@ int main(int argc, char **argv)
             }
         } else if (strcmp(program, "touch") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
-            assert(path != NULL);
+
+            if (path == NULL) {
+                printf("touch: Missing operand\n");
+                goto next_iteration;
+            }
+
+            if (strtok_r(NULL, " ", &saveptr) != NULL) {
+                printf("touch: Trailing arguments\n");
+                goto next_iteration;
+            }
 
             int fd = open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-            assert(fd >= 0);
 
-            int retval = close(fd);
-            assert(retval == 0);
+            if (fd < 0) {
+                printf("touch: %s\n", strerror(errno));
+                goto next_iteration;
+            }
+
+            close(fd);
         } else {
+            if (strlen(program) < 1) {
+                printf("sh: %s\n", strerror(ENOENT));
+                goto next_iteration;
+            }
+
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
 
             char *fullpath = find_executable(program);
 
             if (fullpath == NULL) {
-                printf("Error: unknown command '%s'\n", program);
+                printf("sh: %s\n", strerror(ENOENT));
+                goto next_iteration;
             } else {
                 int retval;
 
@@ -196,11 +213,19 @@ int main(int argc, char **argv)
                     NULL,
                     argv,
                     envp);
-                assert(retval == 0);
+
+                if (retval < 0) {
+                    printf("sh: %s\n", strerror(errno));
+                    goto next_iteration;
+                }
 
                 int status;
                 retval = wait(&status);
-                assert(retval >= 0);
+
+                if (retval < 0) {
+                    printf("sh: %s\n", strerror(errno));
+                    goto next_iteration;
+                }
 
                 printf("Child terminated with status %i\n", status);
             }
@@ -213,10 +238,6 @@ int main(int argc, char **argv)
 
 char* find_executable(const char *program)
 {
-    assert(strlen(program) >= 1);
-
-    printf("Searching for program %s\n", program);
-
     if (program[0] == '/') {
         if (access(program, X_OK) == 0)
             return strdup(program);
@@ -231,8 +252,6 @@ char* find_executable(const char *program)
         fullpath = strcpy(fullpath, directory);
         fullpath = strcat(fullpath, "/");
         fullpath = strcat(fullpath, program);
-
-        printf("Checking %s\n", fullpath);
 
         if (access(fullpath, X_OK) == 0)
             return fullpath;
