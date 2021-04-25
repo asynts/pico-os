@@ -73,6 +73,18 @@ void* memcpy(void *dest, const void *src, size_t count)
     return dest;
 }
 
+void* memmove(void *dest, const void *src, size_t count)
+{
+    // FIXME: Is it feasible to implement this without allocating?
+
+    void *tmp = malloc(count);
+    memcpy(tmp, src, count);
+    memcpy(dest, tmp, count);
+    free(tmp);
+
+    return dest;
+}
+
 size_t strlen(const char *str)
 {
     size_t length = 0;

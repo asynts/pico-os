@@ -47,7 +47,10 @@ _static_base:
 .thumb_func
 _pc_base:
     mov r0, pc
-    ldr r1, =_pc_base
-    subs r0, r0, r1
     subs r0, r0, #3
+
+    ldr r1, =_pc_base
+
+    subs r0, r0, r1
+
     bx lr

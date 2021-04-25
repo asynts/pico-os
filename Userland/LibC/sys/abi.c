@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #define rom_table_code(code1, code2) ((code2) << 8 | (code1))
 
