@@ -16,9 +16,11 @@ struct buffer {
 
 static void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
 {
+    printf("buffer_append_at_offset(%p, %zu, %p, %zu)\n", buf, offset, data, data_size);
+
     assert(buf->size >= buf->used + data_size);
 
-    memmove(buf->data + offset + data_size, buf->data + offset, data_size);
+    memmove(buf->data + offset + data_size, buf->data + offset, buf->used);
     memcpy(buf->data + offset, data, data_size);
 
     buf->used += data_size;
@@ -47,6 +49,8 @@ static int parse_integer(char *buffer, int *value_out, char **end_out)
 
 static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *offset_out)
 {
+    printf("buffer_get_line_offset(%p, %zu, %p)\n", buf, lineno, offset_out);
+
     assert(lineno >= 1);
     --lineno;
 
@@ -71,6 +75,8 @@ static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *off
 
 static void buffer_delete_range(struct buffer *buf, size_t from_line, size_t to_line)
 {
+    printf("buffer_delete_range(%p, %zu, %zu)\n", buf, from_line, to_line);
+
     assert(from_line <= to_line);
 
     int retval;
