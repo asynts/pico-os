@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 struct buffer {
     char *data;
@@ -177,6 +178,31 @@ int main() {
 
                 free(new_line);
             }
+
+            goto next_iteration;
+        }
+        if (*line == 'p') {
+            ssize_t retval;
+
+            size_t start_offset = 0;
+            size_t end_offset = buf.used;
+
+            if (selection_start != -1) {
+                retval = buffer_get_line_offset(&buf, selection_start, &start_offset);
+                assert(retval == 0);
+
+                retval = buffer_get_line_offset(&buf, selection_start + 1, &end_offset);
+                assert(retval == 0);
+            }
+            if (selection_end != -1) {
+                retval = buffer_get_line_offset(&buf, selection_end + 1, &end_offset);
+                assert(retval == 0);
+            }
+
+            assert(end_offset >= start_offset);
+
+            retval = write(STDOUT_FILENO, buf.data + start_offset, end_offset - start_offset);
+            assert(retval == end_offset - start_offset);
 
             goto next_iteration;
         }
