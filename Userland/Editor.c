@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 struct buffer {
     char *data;
@@ -13,7 +14,7 @@ struct buffer {
     size_t last_lineno;
 };
 
-void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
+static void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
 {
     assert(buf->size >= buf->used + data_size);
 
@@ -22,6 +23,27 @@ void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data
 
     buf->used += data_size;
     buf->last_lineno += 1;
+}
+
+static int parse_integer(char *buffer, int *value_out, size_t *end_out)
+{
+    size_t offset = 0;
+    int value = 0;
+
+    while (isdigit(buffer[offset])) {
+        value = value * 10 + (buffer[offset] - '0');
+        ++offset;
+    }
+
+    if (offset == 0)
+        return -1;
+
+    if (value_out)
+        *value_out = value;
+    if (end_out)
+        *end_out = offset;
+
+    return 0;
 }
 
 int main() {
