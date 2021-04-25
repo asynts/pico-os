@@ -38,12 +38,19 @@ namespace Kernel
         u32 m_owning_user;
         u32 m_owning_group;
 
+        virtual void truncate() = 0;
+
         virtual VirtualFileHandle& create_handle() = 0;
     };
 
     class VirtualDirectory : public VirtualFile {
     public:
         virtual ~VirtualDirectory() = default;
+
+        void truncate() override
+        {
+            VERIFY_NOT_REACHED();
+        }
 
         HashMap<String, VirtualFile*> m_entries;
     };

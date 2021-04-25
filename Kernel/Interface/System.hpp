@@ -16,6 +16,7 @@
 
 #define O_DIRECTORY (1 << 4)
 #define O_CREAT (1 << 5)
+#define O_TRUNC (1 << 6)
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
@@ -26,4 +27,5 @@
 #define ERANGE 3
 #define ENOENT 4
 #define EACCES 5
-#define EMAX 6
+#define EISDIR 6
+#define EMAX 7

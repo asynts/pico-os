@@ -27,6 +27,11 @@ namespace Kernel {
             return *new ConsoleFileHandle;
         }
 
+        void truncate() override
+        {
+            VERIFY_NOT_REACHED();
+        }
+
     private:
         friend Singleton<ConsoleFile>;
         ConsoleFile();

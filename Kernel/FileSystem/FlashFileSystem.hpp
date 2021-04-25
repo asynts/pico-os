@@ -40,6 +40,11 @@ namespace Kernel
 
         VirtualFileHandle& create_handle() override;
 
+        void truncate() override
+        {
+            VERIFY_NOT_REACHED();
+        }
+
         ReadonlyBytes m_data;
     };
 

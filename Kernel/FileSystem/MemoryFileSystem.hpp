@@ -44,6 +44,11 @@ namespace Kernel
 
         VirtualFileHandle& create_handle() override;
 
+        void truncate() override
+        {
+            m_data.clear();
+        }
+
         void append(ReadonlyBytes bytes)
         {
             m_data.extend(bytes);

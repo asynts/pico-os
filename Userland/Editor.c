@@ -29,8 +29,11 @@ int main() {
             assert(*line == ' ');
             ++line;
 
-            // FIXME: Add O_TRUNC
-            int fd = open(line, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+            int fd = open(
+                line,
+                O_WRONLY | O_CREAT | O_TRUNC,
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+
             assert(fd >= 0);
 
             ssize_t retval = write(fd, buf.data, buf.offset);

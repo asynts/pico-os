@@ -16,6 +16,7 @@ const char *const strerror_lookup[] = {
     [ERANGE] = "Numerical result out of range",
     [ENOENT] = "No such file or directory",
     [EACCES] = "Permission denied",
+    [EISDIR] = "Is a directory",
 };
 
 uint32_t _pc_base();

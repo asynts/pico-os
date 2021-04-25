@@ -93,6 +93,15 @@ namespace Kernel
             }
         }
 
+        if ((flags & O_TRUNC)) {
+            if ((file->m_mode & ModeFlags::Format) != ModeFlags::Regular) {
+                ASSERT((file->m_mode & ModeFlags::Format) == ModeFlags::Directory);
+                return -EISDIR;
+            }
+
+            file->truncate();
+        }
+
         auto& handle = file->create_handle();
         return add_file_handle(handle);
     }
