@@ -161,14 +161,22 @@ int main() {
                     buffer_delete_range(&buf, selection_start, selection_end);
             }
 
-            char *new_line = readline("");
+            for(;;) {
+                char *new_line = readline("");
 
-            assert(strlen(new_line) >= 1);
-            assert(new_line[strlen(new_line) - 1] == '\n');
+                assert(strlen(new_line) >= 1);
+                assert(new_line[strlen(new_line) - 1] == '\n');
 
-            buffer_append_at_offset(&buf, offset, new_line, strlen(new_line));
+                if (strcmp(new_line, ".\n") == 0) {
+                    free(new_line);
+                    break;
+                }
 
-            free(new_line);
+                buffer_append_at_offset(&buf, offset, new_line, strlen(new_line));
+                offset += strlen(new_line);
+
+                free(new_line);
+            }
 
             goto next_iteration;
         }
