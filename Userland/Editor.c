@@ -136,8 +136,7 @@ int main() {
             assert(retval == buf.used);
 
             goto next_iteration;
-        }
-        if (*line == 'q') {
+        } else if (*line == 'q') {
             ++line;
 
             assert(selection_start == -1);
@@ -146,8 +145,7 @@ int main() {
 
             free(raw_line);
             break;
-        }
-        if (*line == 'a') {
+        } else if (*line == 'a') {
             ++line;
 
             assert(strlen(line) == 0);
@@ -155,7 +153,7 @@ int main() {
             size_t offset = buf.used;
 
             if (selection_start != -1) {
-                int retval = buffer_get_line_offset(&buf, (size_t)selection_start, &offset);
+                int retval = buffer_get_line_offset(&buf, (size_t)selection_start + 1, &offset);
                 assert(retval == 0);
 
                 if (selection_end != -1)
@@ -180,8 +178,7 @@ int main() {
             }
 
             goto next_iteration;
-        }
-        if (*line == 'p') {
+        } else if (*line == 'p') {
             ssize_t retval;
 
             size_t start_offset = 0;
@@ -203,8 +200,8 @@ int main() {
 
             retval = write(STDOUT_FILENO, buf.data + start_offset, end_offset - start_offset);
             assert(retval == end_offset - start_offset);
-
-            goto next_iteration;
+        } else {
+            printf("ed: Unknown command\n");
         }
 
     next_iteration:
