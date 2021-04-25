@@ -46,6 +46,34 @@ static int parse_integer(char *buffer, int *value_out, size_t *end_out)
     return 0;
 }
 
+static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *offset_out)
+{
+    assert(lineno >= 1);
+    --lineno;
+
+    printf("Looking for line (index) %zu\n", lineno);
+
+    size_t offset = 0;
+    while (lineno > 0) {
+        if (offset >= buf->used)
+            return -1;
+
+        if (buf->data[offset] == '\n') {
+            printf("Found a line-feed lineno=%zu\n", lineno);
+
+            --lineno;
+            ++offset;
+        } else {
+            ++offset;
+        }
+    }
+
+    if (offset_out)
+        *offset_out = offset;
+
+    return 0;
+}
+
 int main() {
     struct buffer buf = {
         .data = malloc(0x200),
