@@ -71,19 +71,39 @@ int main(int argc, char **argv)
             printf("st_gid: %u\n", statbuf.st_gid);
         } else if (strcmp(program, "ls") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            if (strtok_r(NULL, " ", &saveptr) != NULL) {
+                printf("ls: Trailing arguments\n");
+                goto next_iteration;
+            }
 
             if (path == NULL)
                 path = ".";
 
             DIR *dir = opendir(path);
-            assert(dir);
 
-            for (struct dirent *entry; (entry = readdir(dir)); )
+            if (dir == NULL) {
+                printf("ls: %s\n", strerror(errno));
+                goto next_iteration;
+            }
+
+            for(;;) {
+                errno = 0;
+                struct dirent *entry = readdir(dir);
+
+                if (entry == NULL) {
+                    if (errno < 0) {
+                        printf("ls: %s\n", strerror(errno));
+                        goto next_iteration;
+                    }
+
+                    break;
+                }
+
                 printf("%s\n", entry->d_name);
+            }
 
-            int retval = closedir(dir);
-            assert(retval == 0);
+            closedir(dir);
         } else if (strcmp(program, "cat") == 0) {
             const char *filename = strtok_r(NULL, " ", &saveptr);
             assert(filename != NULL);
