@@ -143,11 +143,23 @@ int main(int argc, char **argv)
             close(fd);
         } else if (strcmp(program, "cd") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
-            assert(path != NULL);
+
+            if (path == NULL) {
+                printf("cd: Missing operand\n");
+                goto next_iteration;
+            }
+
+            if (strtok_r(NULL, " ", &saveptr) != NULL) {
+                printf("cd: Trailing arguments\n");
+                goto next_iteration;
+            }
 
             int retval = chdir(path);
-            assert(retval == 0);
+
+            if (retval < 0) {
+                printf("cd: %s\n", strerror(errno));
+                goto next_iteration;
+            }
         } else if (strcmp(program, "touch") == 0) {
             const char *path = strtok_r(NULL, " ", &saveptr);
             assert(strtok_r(NULL, " ", &saveptr) == NULL);
