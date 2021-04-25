@@ -106,15 +106,32 @@ int main(int argc, char **argv)
             closedir(dir);
         } else if (strcmp(program, "cat") == 0) {
             const char *filename = strtok_r(NULL, " ", &saveptr);
-            assert(filename != NULL);
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+
+            if (filename == NULL) {
+                printf("stat: Missing operand\n");
+                goto next_iteration;
+            }
+
+            if (strtok_r(NULL, " ", &saveptr) != NULL) {
+                printf("cat: Trailing arguments\n");
+                goto next_iteration;
+            }
 
             int fd = open(filename, O_RDONLY);
+
+            if (fd < 0) {
+                printf("cat: %s\n", strerror(errno));
+                goto next_iteration;
+            }
 
             char buffer[0x1000];
             for(;;) {
                 ssize_t nread = read(fd, buffer, sizeof(buffer));
-                assert(nread >= 0);
+
+                if (nread < 0) {
+                    printf("cat: %s\n", strerror(errno));
+                    goto next_iteration;
+                }
 
                 ssize_t nwritten = write(STDOUT_FILENO, buffer, nread);
                 assert(nwritten == nread);
