@@ -10,9 +10,9 @@ namespace Std
 
         usize heap_size() const { return m_heap.size(); }
 
-        u8* allocate(usize);
-        void deallocate(u8*);
-        u8* reallocate(u8*, usize);
+        u8* allocate(usize, bool debug_override = true, void *address = nullptr);
+        void deallocate(u8*, bool debug_override = true, void *address = nullptr);
+        u8* reallocate(u8*, usize, bool debug_override = true, void *address = nullptr);
 
         void dump()
         {
@@ -48,6 +48,8 @@ namespace Std
 
             return stats;
         }
+
+        bool m_debug = false;
 
     protected:
         struct Node {

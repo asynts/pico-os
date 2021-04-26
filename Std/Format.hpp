@@ -265,7 +265,7 @@ namespace Std {
 
     template<typename T>
     struct Formatter<T*> {
-        static void format(StringBuilder& builder, T *value)
+        static void format(StringBuilder& builder, const T *value)
         {
             if constexpr(sizeof(T*) == 4) {
                 return Formatter<u32>::format(builder, reinterpret_cast<u32>(value));
@@ -274,6 +274,12 @@ namespace Std {
                 return Formatter<u64>::format(builder, reinterpret_cast<u64>(value));
             }
         }
+    };
+    template<typename T, usize Size>
+    struct Formatter<T[Size]> : Formatter<T*> {
+    };
+    template<typename T>
+    struct Formatter<T[]> : Formatter<T*> {
     };
 
     template<>
