@@ -12,20 +12,21 @@
 # error "Only TEST and KERNEL are supported"
 #endif
 
-namespace Std {
+namespace Std
+{
     void dbgln_raw(StringView str)
     {
 #ifdef TEST
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #else
-        auto& handle = Kernel::ConsoleFile::the().create_handle();
-
         Kernel::SchedulerGuard guard;
 
         StringBuilder builder;
         builder.append("\e[36m");
         builder.append(str);
         builder.append("\e[0m\n");
+
+        Kernel::ConsoleFileHandle handle;
         handle.write(builder.view().bytes());
 #endif
     }

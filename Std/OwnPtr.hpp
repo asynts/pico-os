@@ -26,6 +26,8 @@ namespace Std
             delete m_pointer;
         }
 
+        bool is_null() const { return false; }
+
         const T* ptr() const { return m_pointer; }
         T* ptr() { return m_pointer; }
 
@@ -78,6 +80,8 @@ namespace Std
         {
             clear();
         }
+
+        bool is_null() const { return m_pointer == nullptr; }
 
         void clear()
         {
