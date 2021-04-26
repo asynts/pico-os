@@ -12,6 +12,7 @@ struct buffer {
     char *data;
     size_t size;
     size_t used;
+    size_t nlines;
 };
 
 static void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
@@ -93,13 +94,17 @@ static void buffer_delete_range(struct buffer *buf, size_t from_line, size_t to_
 
     memmove(buf->data + from_offset, buf->data + to_offset, to_offset - from_offset);
     buf->used -= to_offset - from_offset;
+    buf->nlines -= (to_line - from_line) + 1;
 }
 
 int main() {
+    ssize_t retval;
+
     struct buffer buf = {
         .data = malloc(0x200),
         .size = 0x200,
         .used = 0,
+        .nlines = 0,
     };
 
     for (;;) {
@@ -137,7 +142,7 @@ int main() {
 
             assert(fd >= 0);
 
-            ssize_t retval = write(fd, buf.data, buf.used);
+            retval = write(fd, buf.data, buf.used);
             assert(retval >= 0);
             assert(retval == buf.used);
 
@@ -159,7 +164,7 @@ int main() {
             size_t offset = buf.used;
 
             if (selection_start != -1) {
-                int retval = buffer_get_line_offset(&buf, (size_t)selection_start + 1, &offset);
+                retval = buffer_get_line_offset(&buf, (size_t)selection_start + 1, &offset);
                 assert(retval == 0);
 
                 if (selection_end != -1)
@@ -178,6 +183,8 @@ int main() {
                 }
 
                 buffer_append_at_offset(&buf, offset, new_line, strlen(new_line));
+                buf.nlines += 1;
+
                 offset += strlen(new_line);
 
                 free(new_line);
@@ -185,8 +192,6 @@ int main() {
 
             goto next_iteration;
         } else if (*line == 'p') {
-            ssize_t retval;
-
             size_t start_offset = 0;
             size_t end_offset = buf.used;
 
@@ -206,6 +211,31 @@ int main() {
 
             retval = write(STDOUT_FILENO, buf.data + start_offset, end_offset - start_offset);
             assert(retval == end_offset - start_offset);
+        } else if (*line == 'l') {
+            size_t start_line = 1;
+            size_t end_line = buf.nlines + 1;
+
+            if (selection_start != -1) {
+                start_line = selection_start;
+                end_line = selection_start + 1;
+            }
+            if (selection_end != -1)
+                end_line = selection_end + 1;
+
+            for (size_t lineno = start_line; lineno < end_line; ++lineno) {
+                size_t start_offset;
+                retval = buffer_get_line_offset(&buf, lineno, &start_offset);
+                assert(retval == 0);
+
+                size_t end_offset;
+                retval = buffer_get_line_offset(&buf, lineno + 1, &end_offset);
+                assert(retval == 0);
+
+                printf("%zu ", lineno);
+
+                retval = write(STDOUT_FILENO, buf.data + start_offset , end_offset - start_offset);
+                assert(retval == end_offset - start_offset);
+            }
         } else {
             printf("ed: Unknown command\n");
         }
