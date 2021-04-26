@@ -11,7 +11,6 @@ constexpr void* operator new[](usize count, void* ptr)
 {
     return ptr;
 }
-// Defined by the SDK.
 void* operator new(usize);
 void* operator new[](usize);
 void operator delete(void*);
