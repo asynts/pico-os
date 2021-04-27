@@ -114,6 +114,9 @@ namespace Std {
         template<typename... Parameters>
         static String format(StringView fmtstr, const Parameters&...);
 
+        // FIXME: Do we want to provide this overload?
+        char* data() { return m_buffer; }
+
         const char* data() const { return m_buffer; }
         usize size() const { return m_buffer_size - 1; }
 

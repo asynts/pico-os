@@ -31,7 +31,9 @@ namespace Kernel
         }
 
         static Process& active_process();
+
         static Process& create(StringView name, ElfWrapper);
+        static Process& create(StringView name, ElfWrapper, const Vector<String>& arguments, const Vector<String>& variables);
 
         i32 add_file_handle(VirtualFileHandle& handle)
         {

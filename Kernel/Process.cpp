@@ -15,11 +15,32 @@ namespace Kernel
 
     Process& Process::create(StringView name, ElfWrapper elf)
     {
+        Vector<String> arguments;
+        arguments.append(name);
+
+        Vector<String> variables;
+
+        return Process::create(name, elf, arguments, variables);
+    }
+    Process& Process::create(StringView name, ElfWrapper elf, const Vector<String>& arguments, const Vector<String>& variables)
+    {
+        // FIXME: Allocate argv/envp on the stack
+
+        auto *argv = new Vector<char*>;
+        for (auto& argument : arguments.iter())
+            argv->append((new String { argument })->data());
+        argv->append(nullptr);
+
+        auto *envp = new Vector<char*>;
+        for (auto& variable : variables.iter())
+            envp->append((new String { variable })->data());
+        envp->append(nullptr);
+
         auto process = make<Process>(name);
 
         Thread thread { String::format("Process: {}", name), move(process) };
 
-        return Scheduler::the().create_thread(move(thread), [name, elf] () mutable {
+        return Scheduler::the().create_thread(move(thread), [name, elf, argv, envp] () mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
             auto& process = Process::active_process();
@@ -27,7 +48,9 @@ namespace Kernel
             process.m_executable = load_executable_into_memory(elf);
 
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
+            dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
 
+            // FIXME: Forward argv/envp
             hand_over_to_loaded_executable(process.m_executable.must());
 
             VERIFY_NOT_REACHED();
