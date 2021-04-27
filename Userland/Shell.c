@@ -187,7 +187,17 @@ int main(int argc, char **argv)
                 goto next_iteration;
             }
 
-            assert(strtok_r(NULL, " ", &saveptr) == NULL);
+            char *saveptr_clone = strdup(saveptr);
+            int argc = 1;
+            while (strtok_r(NULL, " ", &saveptr_clone) != NULL)
+                ++argc;
+
+            char **argv = malloc((argc + 1) * sizeof(char*));
+            argv[0] = program;
+            argv[argc] = NULL;
+
+            for (size_t i = 1; i < argc; ++i)
+                argv[i] = strtok_r(NULL, " ", &saveptr);
 
             char *fullpath = find_executable(program);
 
@@ -197,10 +207,6 @@ int main(int argc, char **argv)
             } else {
                 int retval;
 
-                char *argv[] = {
-                    program,
-                    NULL,
-                };
                 char *envp[] = {
                     NULL,
                 };

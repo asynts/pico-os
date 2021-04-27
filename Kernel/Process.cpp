@@ -224,6 +224,14 @@ namespace Kernel
 
         dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
 
+        Vector<String> arguments;
+        while (*argv != nullptr)
+            arguments.append(*argv++);
+
+        Vector<String> environment;
+        while (*envp != nullptr)
+            arguments.append(*envp++);
+
         Path path { pathname };
 
         if (!path.is_absolute())
@@ -237,7 +245,7 @@ namespace Kernel
         auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
         ElfWrapper elf { file.m_data.data(), system_to_host.get_opt(path.string()).must() };
 
-        auto& new_process = Kernel::Process::create(pathname, move(elf));
+        auto& new_process = Kernel::Process::create(pathname, move(elf), arguments, environment);
         new_process.m_parent = this;
         new_process.m_working_directory = m_working_directory;
 

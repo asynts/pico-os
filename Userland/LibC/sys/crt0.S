@@ -13,10 +13,9 @@
 .global _start
 .thumb_func
 _start:
+    push {r0, r1, r2}
     bl _init
-
-    movs r0, #0
-    movs r1, #0
+    pop {r0, r1, r2}
     bl main
 
     push {r0}
