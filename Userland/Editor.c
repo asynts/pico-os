@@ -17,8 +17,6 @@ struct buffer {
 
 static void buffer_append_at_offset(struct buffer *buf, size_t offset, const char *data, size_t data_size)
 {
-    printf("buffer_append_at_offset(%p, %zu, %p, %zu)\n", buf, offset, data, data_size);
-
     assert(buf->size >= buf->used + data_size);
 
     memmove(buf->data + offset + data_size, buf->data + offset, buf->used);
@@ -50,8 +48,6 @@ static int parse_integer(char *buffer, int *value_out, char **end_out)
 
 static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *offset_out)
 {
-    printf("buffer_get_line_offset(%p, %zu, %p)\n", buf, lineno, offset_out);
-
     assert(lineno >= 1);
     --lineno;
 
@@ -76,8 +72,6 @@ static int buffer_get_line_offset(struct buffer *buf, size_t lineno, size_t *off
 
 static void buffer_delete_range(struct buffer *buf, size_t from_line, size_t to_line)
 {
-    printf("buffer_delete_range(%p, %zu, %zu)\n", buf, from_line, to_line);
-
     assert(from_line <= to_line);
 
     int retval;
@@ -236,6 +230,18 @@ int main() {
                 retval = write(STDOUT_FILENO, buf.data + start_offset , end_offset - start_offset);
                 assert(retval == end_offset - start_offset);
             }
+        } else if (*line == 'd') {
+            size_t start_line = 0;
+            size_t end_line = buf.nlines + 1;
+
+            if (selection_start != -1) {
+                start_line = selection_start;
+                end_line = selection_start;
+            }
+            if (selection_end != -1)
+                end_line = selection_end;
+
+            buffer_delete_range(&buf, start_line, end_line);
         } else {
             printf("ed: Unknown command\n");
         }
