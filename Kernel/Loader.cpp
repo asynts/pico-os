@@ -114,6 +114,8 @@ namespace Kernel
 
     void hand_over_to_loaded_executable(const LoadedExecutable& executable, i32 argc, char **argv, char **envp)
     {
+        // FIXME: What happens to the current execution context when we hand over?
+
         // Avoid a ton of edge cases by executing in handler mode
         execute_in_handler_mode([&] {
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };

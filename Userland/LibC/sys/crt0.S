@@ -13,9 +13,6 @@
 .global _start
 .thumb_func
 _start:
-    // Initialize stack.
-    mov sp, r0
-
     bl _init
 
     movs r0, #0
