@@ -3,6 +3,7 @@
 #include <Kernel/Loader.hpp>
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
+#include <Kernel/HandlerMode.hpp>
 
 namespace Kernel
 {
@@ -111,12 +112,6 @@ namespace Kernel
         return copy;
     }
 
-    template<typename Callback>
-    static void execute_in_handler_mode(Callback&& callback)
-    {
-        FIXME();
-    }
-
     void hand_over_to_loaded_executable(const LoadedExecutable& executable, i32 argc, char **argv, char **envp)
     {
         // Avoid a ton of edge cases by executing in handler mode
@@ -140,7 +135,8 @@ namespace Kernel
                 :
                 : "r"(stack.top()));
 
-            // Drop privileges, we will continue to use the main stack pointer because we are in handler mode
+            // Drop privileges, we continue to use the main stack pointer because we
+            // are in handler mode
             asm volatile(
                 "msr control, %0;"
                 "isb;"

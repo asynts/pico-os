@@ -72,6 +72,34 @@ isr_svcall:
     mrs r0, psp
     isb
 
+    // Extract pointer to call site
+    ldr r2, [r0, #0x18]
+    subs r2, r2, #2
+
+    // Extract SVC argument
+    ldr r2, [r2]
+    movs r3, #0xff
+    ands r2, r2, r3
+
+    beq 2f
+
+1:
+    // SVC 1 is a request to execute a function in handler mode
+
+    // FIXME: We should check if this call came from the kernel but I really
+    //        don't want to do this in assembly.
+
+    ldr r1, [r0, #4]
+    ldr r0, [r0, #0]
+
+    push {lr}
+    blx r1
+    pop {r0}
+    bx r0
+
+2:
+    // SVC 0 is a system call
+
     bl push_callee_saved_registers
 
     push {r0} // slot for return value
@@ -93,3 +121,11 @@ isr_svcall:
 
     ldr r1, =0xfffffffd
     bx r1
+
+
+// void _handler_trampoline(void *argument, void (*function)())
+.global _handler_trampoline
+.thumb_func
+_handler_trampoline:
+    svc #1
+    bx lr
