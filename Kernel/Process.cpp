@@ -26,6 +26,8 @@ namespace Kernel
     {
         // FIXME: Allocate argv/envp on the stack
 
+        i32 argc = arguments.size();
+
         auto *argv = new Vector<char*>;
         for (auto& argument : arguments.iter())
             argv->append((new String { argument })->data());
@@ -40,7 +42,7 @@ namespace Kernel
 
         Thread thread { String::format("Process: {}", name), move(process) };
 
-        return Scheduler::the().create_thread(move(thread), [name, elf, argv, envp] () mutable {
+        return Scheduler::the().create_thread(move(thread), [name, elf, argc, argv, envp] () mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
             auto& process = Process::active_process();
@@ -50,8 +52,7 @@ namespace Kernel
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
 
-            // FIXME: Forward argv/envp
-            hand_over_to_loaded_executable(process.m_executable.must());
+            hand_over_to_loaded_executable(process.m_executable.must(), argc, argv->data(), envp->data());
 
             VERIFY_NOT_REACHED();
         }).m_process.must();

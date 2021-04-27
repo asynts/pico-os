@@ -68,5 +68,5 @@ namespace Kernel
 
     LoadedExecutable load_executable_into_memory(ElfWrapper);
 
-    void hand_over_to_loaded_executable(const LoadedExecutable&);
+    void hand_over_to_loaded_executable(const LoadedExecutable&, i32 argc, char **argv, char **envp);
 }

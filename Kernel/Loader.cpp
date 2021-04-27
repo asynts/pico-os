@@ -111,19 +111,28 @@ namespace Kernel
         return copy;
     }
 
-    void hand_over_to_loaded_executable(const LoadedExecutable& executable)
+    template<typename Callback>
+    static void execute_in_handler_mode(Callback&& callback)
     {
-        StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
-        stack.align(8);
+        FIXME();
+    }
 
-        // We could reach this point in thread or handler mode
-        u32 ipsr;
-        asm ("mrs %0, ipsr;"
-             "isb;"
-            : "=r"(ipsr));
-        bool is_thread_mode = (ipsr == 0);
+    void hand_over_to_loaded_executable(const LoadedExecutable& executable, i32 argc, char **argv, char **envp)
+    {
+        // Avoid a ton of edge cases by executing in handler mode
+        execute_in_handler_mode([&] {
+            StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
+            stack.align(8);
 
-        if (is_thread_mode) {
+            constexpr u32 xpsr_thumb_mode = 1 << 24;
+
+            auto *context = stack.push_value(ExceptionRegisterContext{});
+            context->pc.m_storage = executable.m_entry;
+            context->xpsr.m_storage = xpsr_thumb_mode;
+            context->r0.m_storage = bit_cast<u32>(argc);
+            context->r1.m_storage = bit_cast<u32>(argv);
+            context->r2.m_storage = bit_cast<u32>(envp);
+
             // Setup stack pointer
             asm volatile(
                 "msr psp, %0;"
@@ -131,54 +140,26 @@ namespace Kernel
                 :
                 : "r"(stack.top()));
 
-            // Drop privileges
+            // Drop privileges, we will continue to use the main stack pointer because we are in handler mode
             asm volatile(
                 "msr control, %0;"
                 "isb;"
                 :
                 : "r"(0b11));
-            Scheduler::the().active_thread().m_privileged = false;
 
-            asm volatile(
-                "mov r0, %0;"
-                "mov sb, %1;"
-                "blx %2;"
-                :
-                : "r"(stack.top()), "r"(executable.m_writable_base), "r"(executable.m_entry)
-                : "r0", "sb");
-        } else {
-            constexpr u32 xpsr_thumb_mode = 1 << 24;
-
-            auto *context = stack.push_value(ExceptionRegisterContext{});
-            context->pc.m_storage = executable.m_entry;
-            context->r0.m_storage = u32(context);
-            context->xpsr.m_storage = xpsr_thumb_mode;
+            // This is safe, because we are executing in handler mode
             Scheduler::the().active_thread().m_context.clear();
-
-            // Setup stack pointer
-            asm volatile(
-                "msr psp, %0;"
-                "isb;"
-                :
-                : "r"(context));
-
-            // Drop privileges
-            asm volatile(
-                "msr control, %0;"
-                "isb;"
-                :
-                : "r"(0b01));
             Scheduler::the().active_thread().m_privileged = false;
 
             // Hand over to executable
             asm volatile(
-                "mov r9, %0;"
+                "mov sb, %0;"
                 "bx %1;"
                 :
                 : "r"(executable.m_writable_base), "r"(0xfffffffd)
-                : "r9");
-        }
+                : "sb");
 
-        VERIFY_NOT_REACHED();
+            VERIFY_NOT_REACHED();
+        });
     }
 }
