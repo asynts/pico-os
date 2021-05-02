@@ -154,7 +154,7 @@ namespace Kernel
                 size_for_enum_value(size));
 
             VERIFY(base % size_for_enum_value(size) == 0);
-            m_base = base;
+            m_region_base_address_register = base;
 
             m_region_attribute_and_size_register = u32(size)
                                                  | u32(allow_instruction_fetch)
@@ -164,16 +164,15 @@ namespace Kernel
                                                  | u32(bufferable);
         }
 
-        u32 region_base_address_register(u32 region_index) const
+        u32 region_base_address_register() const
         {
-            VERIFY(region_index <= 8);
-            return m_base | (1 << 4) | region_index;
+            return m_region_base_address_register;
         }
 
         u32 region_attribute_and_size_register() const { return m_region_attribute_and_size_register; }
 
     private:
-        u32 m_base;
+        u32 m_region_base_address_register;
         u32 m_region_attribute_and_size_register;
     };
 

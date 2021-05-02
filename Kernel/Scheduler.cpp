@@ -117,6 +117,8 @@ namespace Kernel
         context = next_thread.m_context.must();
         next_thread.m_context.clear();
 
+        setup_mpu(next_thread.m_regions);
+
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
         // because we are running in handler mode
         if (next_thread.m_privileged) {

@@ -5,6 +5,8 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/HandlerMode.hpp>
 
+#include <hardware/structs/mpu.h>
+
 namespace Kernel
 {
     // FIXME: Reference to pointer
@@ -126,12 +128,44 @@ namespace Kernel
         return copy;
     }
 
-    void hand_over_to_loaded_executable(const LoadedExecutable& executable, i32 argc, char **argv, char **envp)
+    void setup_mpu(Vector<Region>& regions)
+    {
+        // FIXME: We should never have uninitialized regions
+        if (regions.size() == 0) {
+            dbgln("[setup_mpu] Uninitialized regions, disabling MPU");
+            mpu_hw->ctrl = 0;
+            return;
+        }
+
+        mpu_hw->ctrl = 0;
+
+        VERIFY(regions.size() <= 8);
+        for (size_t index = 0; index < regions.size(); ++index) {
+            mpu_hw->rnr = index;
+            mpu_hw->rbar = regions[index].region_base_address_register();
+            mpu_hw->rasr = regions[index].region_attribute_and_size_register();
+
+            dbgln("[setup_mpu] Initialized region region_base_address_register={} region_attribute_and_size_register={}",
+                regions[index].region_base_address_register(),
+                regions[index].region_attribute_and_size_register());
+        }
+
+        mpu_hw->ctrl = M0PLUS_MPU_CTRL_PRIVDEFENA_BITS
+                     | M0PLUS_MPU_CTRL_HFNMIENA_RESET
+                     | M0PLUS_MPU_CTRL_ENABLE_BITS;
+
+        dbgln("[setup_mpu] Enabled MPU with {} regions", regions.size());
+    }
+
+    // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
+    void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<Region> &regions, i32 argc, char **argv, char **envp)
     {
         // FIXME: What happens to the current execution context when we hand over?
 
         // Avoid a ton of edge cases by executing in handler mode
         execute_in_handler_mode([&] {
+            setup_mpu(regions);
+
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
             stack.align(8);
 

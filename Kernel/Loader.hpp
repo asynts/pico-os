@@ -9,6 +9,8 @@ namespace Kernel
 {
     using namespace Std;
 
+    class Region;
+
     class ElfWrapper {
     public:
         explicit ElfWrapper(const u8 *base, StringView host_path)
@@ -68,5 +70,7 @@ namespace Kernel
 
     LoadedExecutable load_executable_into_memory(ElfWrapper);
 
-    void hand_over_to_loaded_executable(const LoadedExecutable&, i32 argc, char **argv, char **envp);
+    void setup_mpu(Vector<Region>&);
+
+    void hand_over_to_loaded_executable(const LoadedExecutable&, Vector<Region>&, i32 argc, char **argv, char **envp);
 }

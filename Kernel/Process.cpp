@@ -55,7 +55,7 @@ namespace Kernel
 
             // Flash
             thread.m_regions.append({
-                0x20'00'00'00,
+                0x10'00'00'00,
 
                 // FIXME: We don't want to give the user access to the kernel image
                 Region::Size::M2,
@@ -100,7 +100,7 @@ namespace Kernel
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
 
-            hand_over_to_loaded_executable(process.m_executable.must(), argc, argv->data(), envp->data());
+            hand_over_to_loaded_executable(process.m_executable.must(), thread.m_regions, argc, argv->data(), envp->data());
 
             VERIFY_NOT_REACHED();
         }).m_process.must();
