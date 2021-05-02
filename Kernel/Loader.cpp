@@ -7,6 +7,22 @@
 
 namespace Kernel
 {
+    // FIXME: Reference to pointer
+    static void allocate_for_mpu(u8 **pointer, usize& size)
+    {
+        usize requested_size = size;
+        usize rounded_size = round_to_power_of_two(requested_size);
+        usize allocated_size = 2 * rounded_size;
+
+        *pointer = new u8[allocated_size];
+        *pointer += rounded_size - reinterpret_cast<u32>(*pointer) % rounded_size;
+
+        size = rounded_size;
+
+        VERIFY(u32(*pointer) % size == 0);
+        VERIFY(__builtin_popcount(size) == 1);
+    }
+
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
         LoadedExecutable executable;
@@ -26,15 +42,13 @@ namespace Kernel
         executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
         executable.m_readonly_size = readonly_segment.p_memsz;
 
-        u8 *writable = new u8[writable_segment.p_memsz];
-        VERIFY(writable != nullptr);
-        executable.m_writable_base = u32(writable);
         executable.m_writable_size = writable_segment.p_memsz;
+        allocate_for_mpu((u8**)&executable.m_writable_base, executable.m_writable_size);
 
-        __builtin_memcpy(writable, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
+        __builtin_memcpy((u8*)executable.m_writable_base, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
         VERIFY(writable_segment.p_memsz >= writable_segment.p_filesz);
-        __builtin_memset(writable + writable_segment.p_filesz, 0, writable_segment.p_memsz - writable_segment.p_filesz);
+        __builtin_memset((u8*)executable.m_writable_base + writable_segment.p_filesz, 0, writable_segment.p_memsz - writable_segment.p_filesz);
 
         VERIFY(elf.header()->e_entry >= readonly_segment.p_vaddr);
         VERIFY(elf.header()->e_entry - readonly_segment.p_vaddr < readonly_segment.p_memsz);

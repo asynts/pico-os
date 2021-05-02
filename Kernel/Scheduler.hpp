@@ -118,12 +118,25 @@ namespace Kernel
             Mask = 0b11111 << 1,
         };
 
-        static constexpr Size enum_value_for_size(usize size)
+        static Size enum_value_for_size(usize size)
         {
             VERIFY(__builtin_popcount(size) == 1);
-            u32 power = 32 - __builtin_clzl(size);
+
+            // FIXME: Move this into a helper function
+
+            // FIXME: Is this calculation correct? I would expect '31 - clz' but that doesn't work
+            u32 power = 30 - __builtin_clzl(size);
             VERIFY(power <= 20);
+
+            dbgln("computed power {} (enum: {}) for size {}", power, power << 1, size);
+
             return static_cast<Size>(power << 1);
+        }
+
+        static usize size_for_enum_value(Size size)
+        {
+            VERIFY(size != Size::Mask);
+            return 1 << ((static_cast<u32>(size) >> 1) + 1);
         }
 
         Region(
@@ -135,11 +148,13 @@ namespace Kernel
             Cacheable cacheable,
             Bufferable bufferable)
         {
-            // FIXME: Validate alignment of base address
+            dbgln("[Region::Region] base={} size(enum)={} size(u32)={}",
+                base,
+                static_cast<u32>(size),
+                size_for_enum_value(size));
 
-            // FIXME: We have to compute 'm_region_base_address_register' here, but I don't know exactly
-            //        how that works
-            FIXME();
+            VERIFY(base % size_for_enum_value(size) == 0);
+            m_base = base;
 
             m_region_attribute_and_size_register = u32(size)
                                                  | u32(allow_instruction_fetch)
@@ -149,11 +164,16 @@ namespace Kernel
                                                  | u32(bufferable);
         }
 
-        u32 region_base_address_register() const { return m_region_base_address_register; }
+        u32 region_base_address_register(u32 region_index) const
+        {
+            VERIFY(region_index <= 8);
+            return m_base | (1 << 4) | region_index;
+        }
+
         u32 region_attribute_and_size_register() const { return m_region_attribute_and_size_register; }
 
     private:
-        u32 m_region_base_address_register;
+        u32 m_base;
         u32 m_region_attribute_and_size_register;
     };
 
