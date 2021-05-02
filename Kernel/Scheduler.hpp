@@ -111,9 +111,20 @@ namespace Kernel
             K64  = 15 << 1,
             K128 = 16 << 1,
             K256 = 17 << 1,
+            K512 = 18 << 1,
+            M1   = 19 << 1,
+            M2   = 20 << 1,
 
             Mask = 0b11111 << 1,
         };
+
+        static constexpr Size enum_value_for_size(usize size)
+        {
+            VERIFY(__builtin_popcount(size) == 1);
+            u32 power = 32 - __builtin_clzl(size);
+            VERIFY(power <= 20);
+            return static_cast<Size>(power << 1);
+        }
 
         Region(
             u32 base,

@@ -48,6 +48,54 @@ namespace Kernel
             auto& process = Process::active_process();
 
             process.m_executable = load_executable_into_memory(elf);
+            auto& executable = process.m_executable.must();
+
+            auto& thread = Scheduler::the().active_thread();
+            VERIFY(thread.m_regions.size() == 0);
+
+            // Flash
+            thread.m_regions.append({
+                0x20'00'00'00,
+
+                // FIXME: We don't want to give the user access to the kernel image
+                Region::Size::M2,
+
+                Region::AllowInstructionFetch::Yes,
+                Region::Access::ByUserReadOnly,
+
+                // FIXME: No idea what this does
+                Region::Shareable::Yes,
+                Region::Cacheable::Yes,
+                Region::Bufferable::Yes,
+            });
+
+            // RAM
+            VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
+            VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
+            thread.m_regions.append({
+                executable.m_writable_base,
+                Region::enum_value_for_size(executable.m_writable_size),
+                Region::AllowInstructionFetch::No,
+                Region::Access::Full,
+
+                // FIXME: No idea what this does
+                Region::Shareable::Yes,
+                Region::Cacheable::Yes,
+                Region::Bufferable::Yes,
+            });
+
+            // ROM
+            thread.m_regions.append({
+                0x00'00'00'00,
+                Region::Size::K16,
+                Region::AllowInstructionFetch::Yes,
+                Region::Access::ByUserReadOnly,
+
+                // FIXME: No idea what this does
+                Region::Shareable::Yes,
+                Region::Cacheable::Yes,
+                Region::Bufferable::Yes,
+            });
 
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
