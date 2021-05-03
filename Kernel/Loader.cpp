@@ -154,6 +154,8 @@ namespace Kernel
                      | M0PLUS_MPU_CTRL_HFNMIENA_RESET
                      | M0PLUS_MPU_CTRL_ENABLE_BITS;
 
+        // FIXME: Does the MPU become active imediatelly, or do we have to poll here?
+
         dbgln("[setup_mpu] Enabled MPU with {} regions", regions.size());
     }
 
@@ -164,7 +166,9 @@ namespace Kernel
 
         // Avoid a ton of edge cases by executing in handler mode
         execute_in_handler_mode([&] {
+            dbgln("[hand_over_to_loaded_executable] Calling 'setup_mpu'");
             setup_mpu(regions);
+            dbgln("[hand_over_to_loaded_executable] Returned from 'setup_mpu'");
 
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
             stack.align(8);
@@ -178,12 +182,16 @@ namespace Kernel
             context->r1.m_storage = bit_cast<u32>(argv);
             context->r2.m_storage = bit_cast<u32>(envp);
 
+            dbgln("[hand_over_to_loaded_executable] Setting up process stack pointer");
+
             // Setup stack pointer
             asm volatile(
                 "msr psp, %0;"
                 "isb;"
                 :
                 : "r"(stack.top()));
+
+            dbgln("[hand_over_to_loaded_executable] Droping privileges");
 
             // Drop privileges, we continue to use the main stack pointer because we
             // are in handler mode
@@ -196,6 +204,8 @@ namespace Kernel
             // This is safe, because we are executing in handler mode
             Scheduler::the().active_thread().m_context.clear();
             Scheduler::the().active_thread().m_privileged = false;
+
+            dbgln("[hand_over_to_loaded_executable] Handing over");
 
             // Hand over to executable
             asm volatile(
