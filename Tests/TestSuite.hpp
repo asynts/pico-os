@@ -13,6 +13,7 @@
 #include <functional>
 #include <vector>
 #include <span>
+#include <optional>
 
 namespace Tests
 {
