@@ -57,7 +57,7 @@ namespace Kernel
             auto& flash_region = thread.m_regions.append({});
             flash_region.rbar.region = 0;
             flash_region.rbar.valid = 0;
-            flash_region.rbar.addr = 0x10000000 >> 8;
+            flash_region.rbar.addr = 0x10000000 >> 5; // FIXME: This doesn't work
             flash_region.rasr.enable = 1;
             flash_region.rasr.size = 20;
             flash_region.rasr.srd = 0b00000000;
@@ -68,13 +68,15 @@ namespace Kernel
             flash_region.rasr.attrs_ap = 0b111;
             flash_region.rasr.attrs_xn = 0;
 
+            dbgln("[Process::create] flash_region.rbar={}", flash_region.rbar.raw);
+
             // RAM
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
             VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
             auto& ram_region = thread.m_regions.append({});
             ram_region.rbar.region = 0;
             ram_region.rbar.valid = 0;
-            ram_region.rbar.addr = executable.m_writable_base >> 8;
+            ram_region.rbar.addr = executable.m_writable_base >> 5; // FIXME: This doesn't work
             ram_region.rasr.enable = 1;
             ram_region.rasr.size = MPU::compute_size(executable.m_writable_size);
             ram_region.rasr.srd = 0b00000000;
@@ -85,11 +87,13 @@ namespace Kernel
             ram_region.rasr.attrs_ap = 0b011;
             ram_region.rasr.attrs_xn = 1;
 
+            dbgln("[Process::create] ram_region.rbar={}", ram_region.rbar.raw);
+
             // ROM
             auto& rom_region = thread.m_regions.append({});
             rom_region.rbar.region = 0;
             rom_region.rbar.valid = 0;
-            rom_region.rbar.addr = 0x00000000 >> 8;
+            rom_region.rbar.addr = 0x00000000 >> 5;
             rom_region.rasr.enable = 1;
             rom_region.rasr.size = 13;
             rom_region.rasr.srd = 0b00000000;
@@ -99,6 +103,8 @@ namespace Kernel
             rom_region.rasr.attrs_tex = 0b000;
             rom_region.rasr.attrs_ap = 0b111;
             rom_region.rasr.attrs_xn = 0;
+
+            dbgln("[Process::create] rom_region.rbar={}", rom_region.rbar.raw);
 
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv->data(), envp->data());

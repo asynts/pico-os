@@ -82,4 +82,19 @@ namespace Kernel::MPU
 
         return power_of_two - 1;
     }
+
+    inline void dump()
+    {
+        dbgln("[MPU::dump]");
+        dbgln("  CTRL={} RNR={} TYPE={}", ctrl().raw, u32(mpu_hw->rnr), u32(mpu_hw->type));
+
+        u32 rnr = mpu_hw->rnr;
+
+        for (size_t index = 0; index < 8; ++index) {
+            mpu_hw->rnr = index;
+            dbgln("  RBAR={} RASR={}", rbar().raw, rasr().raw);
+        }
+
+        mpu_hw->rnr = rnr;
+    }
 }

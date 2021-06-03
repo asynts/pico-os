@@ -140,6 +140,12 @@ namespace Kernel
 
         mpu_hw->ctrl = 0;
 
+        for (size_t index = 0; index < 8; ++index) {
+            mpu_hw->rnr = index;
+            mpu_hw->rbar = 0;
+            mpu_hw->rasr = 0;
+        }
+
         VERIFY(regions.size() <= 8);
         for (size_t index = 0; index < regions.size(); ++index) {
             VERIFY((regions[index].rbar.raw & 0b11111) == 0);
@@ -165,6 +171,8 @@ namespace Kernel
         // FIXME: Does the MPU become active imediatelly, or do we have to poll here?
 
         dbgln("[setup_mpu] Enabled MPU with {} regions", regions.size());
+
+        MPU::dump();
     }
 
     // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
