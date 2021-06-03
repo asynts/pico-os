@@ -4,6 +4,8 @@
 
 namespace Kernel::MPU
 {
+    // FIXME: This API sucks
+
     union RASR {
         struct {
             u32 enable : 1;

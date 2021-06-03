@@ -13,12 +13,7 @@ ssize_t sys$write(int fd, const void *buffer, size_t count)
 
 ssize_t sys$read(int fd, void *buffer, size_t count)
 {
-    ssize_t nread = syscall(_SC_read, fd, buffer, count);
-
-    if (fd >= 2)
-        printf("[sys$read] nread=%zi\n", nread);
-
-    return nread;
+    return syscall(_SC_read, fd, buffer, count);
 }
 
 int sys$open(const char *pathname, int flags, int mode)

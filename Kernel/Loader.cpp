@@ -8,6 +8,8 @@
 
 namespace Kernel
 {
+    constexpr bool debug_loader = false;
+
     // FIXME: Reference to pointer
     static void allocate_for_mpu(u8 **pointer, usize& size)
     {
@@ -131,7 +133,9 @@ namespace Kernel
     {
         // FIXME: We should never have uninitialized regions
         if (regions.size() == 0) {
-            dbgln("[setup_mpu] Uninitialized regions, disabling MPU");
+            // FIXME: This actually happens sometimes, what is going on?
+            if (debug_loader)
+                dbgln("[setup_mpu] Uninitialized regions, disabling MPU");
             auto ctrl = MPU::ctrl();
             ctrl.enable = 0;
             MPU::set_ctrl(ctrl);
@@ -159,9 +163,11 @@ namespace Kernel
             rasr.reserved_4 = rasr_active.reserved_4;
             MPU::set_rasr(rasr);
 
-            dbgln("[setup_mpu] Initialized region region_base_address_register={} region_attribute_and_size_register={}",
-                regions[index].rbar.raw,
-                regions[index].rasr.raw);
+            if (debug_loader) {
+                dbgln("[setup_mpu] Initialized region region_base_address_register={} region_attribute_and_size_register={}",
+                    regions[index].rbar.raw,
+                    regions[index].rasr.raw);
+            }
         }
 
         mpu_hw->ctrl = M0PLUS_MPU_CTRL_PRIVDEFENA_BITS
@@ -170,9 +176,11 @@ namespace Kernel
 
         // FIXME: Does the MPU become active imediatelly, or do we have to poll here?
 
-        dbgln("[setup_mpu] Enabled MPU with {} regions", regions.size());
+        if (debug_loader) {
+            dbgln("[setup_mpu] Enabled MPU with {} regions", regions.size());
 
-        MPU::dump();
+            MPU::dump();
+        }
     }
 
     // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
