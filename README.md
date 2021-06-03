@@ -1,12 +1,20 @@
 ### TODO
 
+#### Bugs
+
+  - `argv` is currently put somewhere in the kernel and is thus inaccessible to user code.
+
+    Reproduce with:
+
+    ~~~none
+    > Example.elf 1 2 3
+    ~~~
+
 #### Future features
 
   - Run inside QEMU
 
-#### Future tweaks (Everywhere)
-
-  - Figure out the placement `new` and `reinterpret_cast` situation
+  - Write userland applications in Zig
 
 #### Future tweaks (Userland)
 
@@ -23,7 +31,7 @@
   - Add a buddy page allocator; the curring "allocate twice as much and align"
     strategy is a joke
 
-  - We are allocating the stack twice; is this still accurate with
+  - We were allocating the stack twice; is this still accurate with
     `posix_spawn`?
 
   - Lookup devices via `devno`

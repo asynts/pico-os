@@ -92,15 +92,42 @@ static void buffer_delete_range(struct buffer *buf, size_t from_line, size_t to_
     buf->nlines -= (to_line - from_line) + 1;
 }
 
-int main() {
-    ssize_t retval;
+int main(int argc, char **argv) {
+    if (argc > 2) {
+        printf("ed: invalid operands\n");
+        exit(1);
+    }
 
     struct buffer buf = {
-        .data = malloc(0x200),
-        .size = 0x200,
+        .data = NULL,
+        .size = 0,
         .used = 0,
         .nlines = 0,
     };
+
+    ssize_t retval;
+
+    if (argc == 2) {
+        int fd = open(argv[1], O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        assert(fd >= 0);
+
+        struct stat statbuf;
+        retval = fstat(fd, &statbuf);
+        assert(retval == 0);
+
+        assert(statbuf.st_size != 0x0000dead);
+
+        // FIXME: Make it possible for the buffer to grow
+        buf.size = statbuf.st_size + 0x200;
+        buf.data = malloc(buf.size);
+
+        retval = read(fd, buf.data, statbuf.st_size);
+        assert(retval == statbuf.st_size);
+    } else {
+        // FIXME: Make it possible for the buffer to grow
+        buf.size = 0x200;
+        buf.data = malloc(0x200);
+    }
 
     for (;;) {
         char *raw_line = readline("% ");
