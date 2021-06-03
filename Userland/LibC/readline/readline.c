@@ -35,7 +35,8 @@ char* readline(const char *prompt)
 
         if (ch == '\n') {
             assert(index < buffer_size);
-            buffer[index] = 0;
+            assert(index > 0);
+            buffer[index - 1] = 0;
 
             return buffer;
         }

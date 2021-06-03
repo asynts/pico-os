@@ -7,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <unistd.h>
 
 struct buffer {
     char *data;
@@ -105,9 +106,6 @@ int main() {
         char *raw_line = readline("% ");
         assert(raw_line != NULL);
 
-        if (strchr(raw_line, '\n'))
-            *strchr(raw_line, '\n') = 0;
-
         char *line = raw_line;
 
         int selection_start = -1;
@@ -169,17 +167,18 @@ int main() {
                 char *new_line = readline("");
 
                 assert(strlen(new_line) >= 1);
-                assert(new_line[strlen(new_line) - 1] == '\n');
 
-                if (strcmp(new_line, ".\n") == 0) {
+                if (strcmp(new_line, ".") == 0) {
                     free(new_line);
                     break;
                 }
 
                 buffer_append_at_offset(&buf, offset, new_line, strlen(new_line));
-                buf.nlines += 1;
-
                 offset += strlen(new_line);
+
+                buffer_append_at_offset(&buf, offset, "\n", 1);
+                offset += 1;
+                buf.nlines += 1;
 
                 free(new_line);
             }

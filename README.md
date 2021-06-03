@@ -1,13 +1,5 @@
 ### TODO
 
-#### 0.1.0
-
-  - Configure the MPU
-
-  - Create a test application
-
-  - Verify that test application runs on Linux
-
 #### Future features
 
   - Run inside QEMU
