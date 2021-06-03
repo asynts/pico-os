@@ -22,6 +22,7 @@ namespace Kernel::MPU
         };
         u32 raw;
     };
+    static_assert(sizeof(RASR) == 4);
 
     union CTRL {
         struct {
@@ -32,6 +33,7 @@ namespace Kernel::MPU
         };
         u32 raw;
     };
+    static_assert(sizeof(CTRL) == 4);
 
     union RBAR {
         struct {
@@ -41,6 +43,7 @@ namespace Kernel::MPU
         };
         u32 raw;
     };
+    static_assert(sizeof(RBAR) == 4);
 
     inline CTRL ctrl()
     {
@@ -67,5 +70,16 @@ namespace Kernel::MPU
     inline void set_rbar(RBAR rbar)
     {
         mpu_hw->rbar = rbar.raw;
+    }
+
+    inline usize compute_size(usize size)
+    {
+        VERIFY(__builtin_popcount(size) == 1);
+
+        usize power_of_two = __builtin_ctzl(size);
+
+        VERIFY(power_of_two >= 0);
+
+        return power_of_two - 1;
     }
 }

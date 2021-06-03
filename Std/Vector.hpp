@@ -34,19 +34,23 @@ namespace Std
             *this = move(other);
         }
 
-        void append(const T& value)
+        T& append(const T& value)
         {
             ensure_capacity(m_size + 1);
 
-            new (data() + m_size) T { value };
+            T *pointer = new (data() + m_size) T { value };
             ++m_size;
+
+            return *pointer;
         }
-        void append(T&& value)
+        T& append(T&& value)
         {
             ensure_capacity(m_size + 1);
 
-            new (data() + m_size) T { move(value) };
+            T *pointer = new (data() + m_size) T { move(value) };
             ++m_size;
+
+            return *pointer;
         }
 
         void extend(Span<const T> values)

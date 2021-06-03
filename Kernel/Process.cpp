@@ -54,48 +54,51 @@ namespace Kernel
             VERIFY(thread.m_regions.size() == 0);
 
             // Flash
-            thread.m_regions.append({
-                0x10'00'00'00,
-
-                // FIXME: We don't want to give the user access to the kernel image
-                Region::Size::M2,
-
-                Region::AllowInstructionFetch::Yes,
-                Region::Access::ByUserReadOnly,
-
-                // FIXME: No idea what this does
-                Region::Shareable::Yes,
-                Region::Cacheable::Yes,
-                Region::Bufferable::Yes,
-            });
+            auto& flash_region = thread.m_regions.append({});
+            flash_region.rbar.region = 0;
+            flash_region.rbar.valid = 0;
+            flash_region.rbar.addr = 0x10000000 >> 8;
+            flash_region.rasr.enable = 1;
+            flash_region.rasr.size = 20;
+            flash_region.rasr.srd = 0b00000000;
+            flash_region.rasr.attrs_b = 1;
+            flash_region.rasr.attrs_c = 1;
+            flash_region.rasr.attrs_s = 1;
+            flash_region.rasr.attrs_tex = 0b000;
+            flash_region.rasr.attrs_ap = 0b111;
+            flash_region.rasr.attrs_xn = 0;
 
             // RAM
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
             VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
-            thread.m_regions.append({
-                executable.m_writable_base,
-                Region::enum_value_for_size(executable.m_writable_size),
-                Region::AllowInstructionFetch::No,
-                Region::Access::Full,
-
-                // FIXME: No idea what this does
-                Region::Shareable::Yes,
-                Region::Cacheable::Yes,
-                Region::Bufferable::Yes,
-            });
+            auto& ram_region = thread.m_regions.append({});
+            ram_region.rbar.region = 0;
+            ram_region.rbar.valid = 0;
+            ram_region.rbar.addr = executable.m_writable_base >> 8;
+            ram_region.rasr.enable = 1;
+            ram_region.rasr.size = MPU::compute_size(executable.m_writable_size);
+            ram_region.rasr.srd = 0b00000000;
+            ram_region.rasr.attrs_b = 1;
+            ram_region.rasr.attrs_c = 1;
+            ram_region.rasr.attrs_s = 1;
+            ram_region.rasr.attrs_tex = 0b000;
+            ram_region.rasr.attrs_ap = 0b011;
+            ram_region.rasr.attrs_xn = 1;
 
             // ROM
-            thread.m_regions.append({
-                0x00'00'00'00,
-                Region::Size::K16,
-                Region::AllowInstructionFetch::Yes,
-                Region::Access::ByUserReadOnly,
-
-                // FIXME: No idea what this does
-                Region::Shareable::Yes,
-                Region::Cacheable::Yes,
-                Region::Bufferable::Yes,
-            });
+            auto& rom_region = thread.m_regions.append({});
+            rom_region.rbar.region = 0;
+            rom_region.rbar.valid = 0;
+            rom_region.rbar.addr = 0x00000000 >> 8;
+            rom_region.rasr.enable = 1;
+            rom_region.rasr.size = 13;
+            rom_region.rasr.srd = 0b00000000;
+            rom_region.rasr.attrs_b = 1;
+            rom_region.rasr.attrs_c = 1;
+            rom_region.rasr.attrs_s = 1;
+            rom_region.rasr.attrs_tex = 0b000;
+            rom_region.rasr.attrs_ap = 0b111;
+            rom_region.rasr.attrs_xn = 0;
 
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
