@@ -8,8 +8,6 @@
 
 #### Future tweaks (Userland)
 
-  - Error message on assertion failure
-
   - Implement a proper malloc
 
   - `Editor.elf` should take an argument
