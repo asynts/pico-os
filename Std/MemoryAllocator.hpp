@@ -59,8 +59,9 @@ namespace Std
         };
         static_assert(sizeof(Node) % 4 == 0);
 
+        Bytes m_heap;
+
     private:
         Node *m_freelist;
-        Bytes m_heap;
     };
 }

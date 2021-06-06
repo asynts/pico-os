@@ -1,13 +1,12 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
-
-extern "C" u8 __end__[];
-extern "C" u8 __HeapLimit[];
+#include <Kernel/PageAllocator.hpp>
 
 namespace Kernel
 {
     GlobalMemoryAllocator::GlobalMemoryAllocator()
-        : MemoryAllocator({ __end__, __HeapLimit - __end__ - sizeof(MemoryAllocator::Node) })
+        : MemoryAllocator({ reinterpret_cast<u8*>(PageAllocator::the().allocate(14).must()), 1 << 14 })
     {
+        dbgln("[GlobalMemoryAllocator::GlobalMemoryAllocator] Allocated area {}", m_heap);
     }
 }
 

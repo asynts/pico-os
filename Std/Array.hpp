@@ -9,6 +9,9 @@ namespace Std {
     public:
         T __array[Size];
 
+        const T& operator[](usize index) const { return __array[index]; }
+        T& operator[](usize index) { return __array[index]; }
+
         Span<const T> span() const { return { __array, Size }; }
         Span<T> span() { return { __array, Size }; }
     };

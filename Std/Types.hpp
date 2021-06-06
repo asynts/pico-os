@@ -12,9 +12,11 @@ using i64 = signed long long;
 #if defined(TEST) || defined(HOST)
 using usize = long unsigned int;
 using isize = i64;
+using uptr = u64;
 #else
 using usize = u32;
 using isize = i32;
+using uptr = u32;
 #endif
 
 static_assert(sizeof(u8) == 1);
@@ -27,3 +29,4 @@ static_assert(sizeof(i32) == 4);
 static_assert(sizeof(i64) == 8);
 static_assert(sizeof(usize) == sizeof(decltype(sizeof(int))));
 static_assert(sizeof(isize) == sizeof(decltype(sizeof(int))));
+static_assert(sizeof(uptr) == sizeof(void*));

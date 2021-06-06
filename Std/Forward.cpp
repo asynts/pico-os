@@ -20,7 +20,7 @@ namespace Std
 #if defined(TEST)
         std::cerr << std::string_view { value.data(), value.size() };
 #elif defined(KERNEL)
-        auto& handle = Kernel::ConsoleFile::the().create_handle();
+        Kernel::ConsoleFileHandle handle;
         handle.write(value.bytes());
 #endif
     }
@@ -29,7 +29,7 @@ namespace Std
 #if defined(TEST)
         std::cerr << value;
 #elif defined(KERNEL)
-        auto& handle = Kernel::ConsoleFile::the().create_handle();
+        Kernel::ConsoleFileHandle handle;
 
         StringBuilder builder;
         builder.appendf("{}", value);
