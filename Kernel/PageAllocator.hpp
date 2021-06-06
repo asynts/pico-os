@@ -36,15 +36,21 @@ namespace Kernel
             if (!block_opt.is_valid()) {
                 return {};
             }
-            uptr block1 = block_opt.value();
-            Block *block2 = reinterpret_cast<Block*>(block1 + size);
+            uptr block = block_opt.value();
 
-            dbgln("[PageAllocator::allocate] Splitting larger block block1={} block2={}", block1, block2);
+            // We allocated a block which is twice the requested size, return the other half
+            deallocate(power_of_two, block + size);
 
-            block2->m_next = m_blocks[power_of_two];
-            m_blocks[power_of_two] = block2;
+            return block;
+        }
 
-            return block1;
+        void deallocate(usize power_of_two, uptr block)
+        {
+            ASSERT(power_of_two <= max_power);
+
+            auto *block_ptr = reinterpret_cast<Block*>(block);
+            block_ptr->m_next = m_blocks[power_of_two];
+            m_blocks[power_of_two] = block_ptr;
         }
 
     private:

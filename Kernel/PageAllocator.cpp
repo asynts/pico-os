@@ -33,8 +33,7 @@ namespace Kernel
 
                 dbgln("[PageAllocator::PageAllocator] Computed suitable block {}-{}", start, end);
 
-                m_blocks[power] = reinterpret_cast<Block*>(start);
-                m_blocks[power]->m_next = nullptr;
+                deallocate(power, start);
 
                 return;
             }
