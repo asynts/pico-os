@@ -14,9 +14,6 @@
 
   - Free resources when threads and process are destroyed
 
-  - Add a buddy page allocator; the curring "allocate twice as much and align"
-    strategy is a joke
-
   - We were allocating the stack twice; is this still accurate with
     `posix_spawn`?
 

@@ -5,26 +5,11 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/MPU.hpp>
+#include <Kernel/PageAllocator.hpp>
 
 namespace Kernel
 {
     constexpr bool debug_loader = false;
-
-    // FIXME: Reference to pointer
-    static void allocate_for_mpu(u8 **pointer, usize& size)
-    {
-        usize requested_size = size;
-        usize rounded_size = round_to_power_of_two(requested_size);
-        usize allocated_size = 2 * rounded_size;
-
-        *pointer = new u8[allocated_size];
-        *pointer += rounded_size - reinterpret_cast<u32>(*pointer) % rounded_size;
-
-        size = rounded_size;
-
-        VERIFY(u32(*pointer) % size == 0);
-        VERIFY(__builtin_popcount(size) == 1);
-    }
 
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
@@ -42,11 +27,12 @@ namespace Kernel
         VERIFY(writable_segment.p_type == PT_LOAD);
         VERIFY(writable_segment.p_flags == PF_R | PF_W);
 
-        executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
+        VERIFY(readonly_segment.p_memsz == readonly_segment.p_filesz);
         executable.m_readonly_size = readonly_segment.p_memsz;
+        executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
 
-        executable.m_writable_size = writable_segment.p_memsz;
-        allocate_for_mpu((u8**)&executable.m_writable_base, executable.m_writable_size);
+        executable.m_writable_size = round_to_power_of_two(writable_segment.p_memsz);
+        executable.m_writable_base = PageAllocator::the().allocate(power_of_two(executable.m_writable_size)).must();
 
         __builtin_memcpy((u8*)executable.m_writable_base, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 

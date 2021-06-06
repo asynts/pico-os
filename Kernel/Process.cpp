@@ -93,7 +93,7 @@ namespace Kernel
             auto& ram_region = thread.m_regions.append({});
             ram_region.rbar.region = 0;
             ram_region.rbar.valid = 0;
-            ram_region.rbar.addr = executable.m_writable_base >> 5; // FIXME: This doesn't work
+            ram_region.rbar.addr = executable.m_writable_base >> 5;
             ram_region.rasr.enable = 1;
             ram_region.rasr.size = MPU::compute_size(executable.m_writable_size);
             ram_region.rasr.srd = 0b00000000;
