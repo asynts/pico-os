@@ -107,7 +107,11 @@ int main(int argc, char **argv) {
 
     ssize_t retval;
 
+    const char *default_filename = NULL;
+
     if (argc == 2) {
+        default_filename = argv[1];
+
         int fd = open(argv[1], O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         assert(fd >= 0);
 
@@ -120,6 +124,7 @@ int main(int argc, char **argv) {
         // FIXME: Make it possible for the buffer to grow
         buf.size = statbuf.st_size + 0x200;
         buf.data = malloc(buf.size);
+        buf.used = statbuf.st_size;
 
         retval = read(fd, buf.data, statbuf.st_size);
         assert(retval == statbuf.st_size);
@@ -151,11 +156,14 @@ int main(int argc, char **argv) {
             assert(selection_start == -1);
             assert(selection_end == -1);
 
-            assert(*line == ' ');
-            ++line;
+            if (*line == ' ') {
+                ++line;
+
+                default_filename = strdup(line);
+            }
 
             int fd = open(
-                line,
+                default_filename,
                 O_WRONLY | O_CREAT | O_TRUNC,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 

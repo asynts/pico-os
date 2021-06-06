@@ -36,6 +36,7 @@ namespace Kernel
         {
             m_ino = info.st_ino;
             m_mode = info.st_mode;
+            m_size = info.st_size;
         }
 
         VirtualFileHandle& create_handle() override;

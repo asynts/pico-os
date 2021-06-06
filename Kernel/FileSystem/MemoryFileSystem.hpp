@@ -37,6 +37,7 @@ namespace Kernel
         {
             m_ino = MemoryFileSystem::the().next_ino();
             m_mode = ModeFlags::Regular;
+            m_size = 0;
         }
 
         ReadonlyBytes span() const { return m_data.span(); }
@@ -47,11 +48,13 @@ namespace Kernel
         void truncate() override
         {
             m_data.clear();
+            m_size = 0;
         }
 
         void append(ReadonlyBytes bytes)
         {
             m_data.extend(bytes);
+            m_size += bytes.size();
         }
 
     private:
@@ -92,6 +95,7 @@ namespace Kernel
         {
             m_ino = MemoryFileSystem::the().next_ino();
             m_mode = ModeFlags::Directory;
+            m_size = 0xdead;
 
             m_entries.set(".", this);
             m_entries.set("..", this);

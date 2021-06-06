@@ -37,6 +37,7 @@ namespace Kernel
         ModeFlags m_mode;
         u32 m_owning_user;
         u32 m_owning_group;
+        u32 m_size;
 
         virtual void truncate() = 0;
 

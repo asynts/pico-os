@@ -22,6 +22,7 @@ namespace Kernel
     {
         m_ino = info.st_ino;
         m_mode = info.st_mode;
+        m_size = 0xdead;
 
         m_entries.set(".", this);
         m_entries.set("..", this);

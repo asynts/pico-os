@@ -222,7 +222,7 @@ namespace Kernel
 
         statbuf->st_dev = FileSystemId::Invalid;
         statbuf->st_rdev = 0xdead;
-        statbuf->st_size = 0xdead;
+        statbuf->st_size = file.m_size;
         statbuf->st_blksize = 0xdead;
         statbuf->st_blocks = 0xdead;
 

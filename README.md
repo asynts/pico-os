@@ -10,8 +10,6 @@
 
   - Implement a proper malloc
 
-  - `Editor.elf` should take an argument
-
 #### Future tweaks (Kernel)
 
   - Free resources when threads and process are destroyed
