@@ -22,11 +22,6 @@
 
   - Lookup devices via `devno`
 
-#### Future tweaks (Library)
-
-  - `Result<int, int>` should require explicit calls to `from_value`, and
-    `from_error`.  This is important for `KernelResult`
-
 #### Future tweaks (Build)
 
   - Alignment of `.stack`, `.heap` sections is lost in `readelf`
