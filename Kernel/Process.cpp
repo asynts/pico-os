@@ -24,31 +24,48 @@ namespace Kernel
     }
     Process& Process::create(StringView name, ElfWrapper elf, const Vector<String>& arguments, const Vector<String>& variables)
     {
-        // FIXME: Allocate argv/envp on the stack
-
-        i32 argc = arguments.size();
-
-        auto *argv = new Vector<char*>;
-        for (auto& argument : arguments.iter())
-            argv->append((new String { argument })->data());
-        argv->append(nullptr);
-
-        auto *envp = new Vector<char*>;
-        for (auto& variable : variables.iter())
-            envp->append((new String { variable })->data());
-        envp->append(nullptr);
-
         auto process = make<Process>(name);
 
         Thread thread { String::format("Process: {}", name), move(process) };
 
-        return Scheduler::the().create_thread(move(thread), [name, elf, argc, argv, envp] () mutable {
+        return Scheduler::the().create_thread(move(thread), [arguments, variables, name, elf] () mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
             auto& process = Process::active_process();
 
             process.m_executable = load_executable_into_memory(elf);
             auto& executable = process.m_executable.must();
+
+            StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
+
+            auto push_cstring_array = [&stack] (const Vector<String>& array) {
+                Vector<char*> pointers;
+                for (auto& value : array.iter()) {
+                    pointers.append(stack.push_cstring(value.cstring()));
+                }
+                char **pointer = (char**)stack.push_value(nullptr);
+                for (size_t i = 0; i < pointers.size(); ++i) {
+                    pointer = stack.push_value(pointers[pointers.size() - i - 1]);
+                }
+
+                return pointer;
+            };
+
+            int argc = arguments.size();
+            char **argv = push_cstring_array(arguments);
+            char **envp = push_cstring_array(variables);
+
+            dbgln("[Process::create] argv:");
+            for (char **value = argv; *value; ++value) {
+                dbgln("  {}: {}", *value, StringView { *value });
+            }
+
+            dbgln("[Process::create] envp:");
+            for (char **value = envp; *value; ++value) {
+                dbgln("  {}: {}", *value, StringView { *value });
+            }
+
+            executable.m_stack_base = reinterpret_cast<u32>(stack.top());
 
             auto& thread = Scheduler::the().active_thread();
             VERIFY(thread.m_regions.size() == 0);
@@ -107,9 +124,9 @@ namespace Kernel
             dbgln("[Process::create] rom_region.rbar={}", rom_region.rbar.raw);
 
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
-            dbgln("  Got argv={} and envp={}", argv->data(), envp->data());
+            dbgln("  Got argv={} and envp={}", argv, envp);
 
-            hand_over_to_loaded_executable(process.m_executable.must(), thread.m_regions, argc, argv->data(), envp->data());
+            hand_over_to_loaded_executable(process.m_executable.must(), thread.m_regions, argc, argv, envp);
 
             VERIFY_NOT_REACHED();
         }).m_process.must();

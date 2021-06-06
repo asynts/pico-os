@@ -1,15 +1,5 @@
 ### TODO
 
-#### Bugs
-
-  - `argv` is currently put somewhere in the kernel and is thus inaccessible to user code.
-
-    Reproduce with:
-
-    ~~~none
-    > Example.elf 1 2 3
-    ~~~
-
 #### Future features
 
   - Run inside QEMU

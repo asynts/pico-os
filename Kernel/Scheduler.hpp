@@ -42,6 +42,17 @@ namespace Kernel
             return new (data) T { value };
         }
 
+        char* push_cstring(const char *cstring)
+        {
+            reserve(__builtin_strlen(cstring) + 1);
+
+            // FIXME: Is this necessary?
+            char *cstring_on_stack = (char*)align(4);
+
+            __builtin_strcpy(cstring_on_stack, cstring);
+            return cstring_on_stack;
+        }
+
         u8* align(u32 boundary)
         {
             static_assert(sizeof(u8*) == sizeof(u32));

@@ -120,6 +120,8 @@ namespace Std {
         const char* data() const { return m_buffer; }
         usize size() const { return m_buffer_size - 1; }
 
+        const char* cstring() const { return m_buffer; }
+
         Span<const char> span() const { return { data(), size() }; }
 
         StringView view() const { return { data(), size() }; }
