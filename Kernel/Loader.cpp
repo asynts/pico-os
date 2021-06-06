@@ -203,6 +203,8 @@ namespace Kernel
                 :
                 : "r"(stack.top()));
 
+            // FIXME: Delete old stack at this point. Watch out, we need to pass the bottom of the stack!
+
             dbgln("[hand_over_to_loaded_executable] Droping privileges");
 
             // Drop privileges, we continue to use the main stack pointer because we

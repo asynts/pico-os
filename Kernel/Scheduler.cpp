@@ -109,8 +109,11 @@ namespace Kernel
         VERIFY(!thread.m_context.is_valid());
         thread.m_context = context;
 
-        if (!thread.m_die_at_next_opportunity)
+        if (thread.m_die_at_next_opportunity) {
+            // FIXME: Free stack here
+        } else {
             m_threads.enqueue(move(thread));
+        }
 
         auto& next_thread = m_threads.front();
 
