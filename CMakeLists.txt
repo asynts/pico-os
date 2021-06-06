@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 find_package(Tools MODULE)
 
 # FIXME: The SDK doesn't seem to expose this to CMake, ugh...
-add_compile_definitions(PICO_HEAP_SIZE=0x20000)
+add_compile_definitions(PICO_HEAP_SIZE=0x28000)
 
 include(CMake/pico_sdk_import.cmake)
 

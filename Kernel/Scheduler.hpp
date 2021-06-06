@@ -9,6 +9,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/SystemHandler.hpp>
 #include <Kernel/MPU.hpp>
+#include <Kernel/PageAllocator.hpp>
 
 namespace Kernel
 {
@@ -130,7 +131,7 @@ namespace Kernel
             };
 
             usize stack_size = 0x1000;
-            u8 *stack_data = new u8[stack_size];
+            auto *stack_data = reinterpret_cast<u8*>(PageAllocator::the().allocate(power_of_two(stack_size)).must());
             StackWrapper stack { { stack_data, stack_size } };
 
             dbgln("[Scheduler::create_thread] Allocated stack for thread '{}'", thread.m_name);

@@ -13,6 +13,8 @@ namespace Kernel
 
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
+        PageAllocator::the().dump();
+
         LoadedExecutable executable;
         executable.m_host_path = elf.m_host_path;
 

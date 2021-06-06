@@ -53,6 +53,14 @@ namespace Kernel
             m_blocks[power_of_two] = block_ptr;
         }
 
+        void dump()
+        {
+            dbgln("[PageAllocator] blocks:");
+            for (usize power = 0; power < max_power; ++power) {
+                dbgln("  [{}]: {}", power, m_blocks[power]);
+            }
+        }
+
     private:
         friend Singleton<PageAllocator>;
         PageAllocator();

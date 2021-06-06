@@ -4,7 +4,7 @@
 namespace Kernel
 {
     GlobalMemoryAllocator::GlobalMemoryAllocator()
-        : MemoryAllocator({ reinterpret_cast<u8*>(PageAllocator::the().allocate(14).must()), 1 << 14 })
+        : MemoryAllocator({ reinterpret_cast<u8*>(PageAllocator::the().allocate(10).must()), 1 << 14 })
     {
         dbgln("[GlobalMemoryAllocator::GlobalMemoryAllocator] Allocated area {}", m_heap);
     }
