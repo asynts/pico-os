@@ -51,13 +51,15 @@ namespace Kernel
             }
             auto block = block_opt.value();
 
-            deallocate(PageRange{ power - 1, block.m_base + size });
+            deallocate(PageRange{ power, block.m_base + size });
 
             return PageRange { power, block.m_base };
         }
 
         void deallocate(PageRange range)
         {
+            dbgln("[PageAllocator::deallocate] power={} base={}", range.m_power, range.m_base);
+
             ASSERT(range.m_power <= max_power);
 
             auto *block_ptr = reinterpret_cast<Block*>(range.m_base);
