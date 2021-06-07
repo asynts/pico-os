@@ -1,8 +1,9 @@
 ### TODO
 
-#### Next Version
+#### Bugs
 
-  - Free allocated segments when destroying threads
+  - We sometimes crash in `Process::create` when computing the new region.
+    This appears to be a race condition so the Scheduler is involved?
 
 #### Future features
 
@@ -16,10 +17,11 @@
 
 #### Future tweaks (Kernel)
 
-  - Free resources when threads and process are destroyed
+  - Use RAII to manage `PageRange`s
 
-  - We were allocating the stack twice; is this still accurate with
-    `posix_spawn`?
+  - Group `PageRange`s together in `PageAllocator::deallocate`.
+
+  - Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
 
   - Lookup devices via `devno`
 

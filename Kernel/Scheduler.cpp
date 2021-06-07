@@ -110,7 +110,7 @@ namespace Kernel
         thread.m_context = context;
 
         if (thread.m_die_at_next_opportunity) {
-            // FIXME: Free stack here
+            thread.free_owned_ranges();
         } else {
             m_threads.enqueue(move(thread));
         }
@@ -152,6 +152,8 @@ namespace Kernel
 
     void Scheduler::terminate_active_thread()
     {
+        dbgln("[Scheduler::terminate_active_thread]");
+
         active_thread().m_die_at_next_opportunity = true;
         donate_my_remaining_cpu_slice();
     }

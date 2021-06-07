@@ -88,6 +88,17 @@ namespace Kernel
         {
         }
 
+        // FIXME: RAII
+        void free_owned_ranges()
+        {
+            dbgln("[Thread::free_owned_ranges] name={}", m_name);
+
+            for (auto range : m_owned_ranges.iter()) {
+                PageAllocator::the().deallocate(range);
+            }
+            m_owned_ranges.clear();
+        }
+
         Vector<PageRange> m_owned_ranges;
 
         String m_name;

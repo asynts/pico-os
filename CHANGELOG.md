@@ -12,5 +12,4 @@
 
   - Deallocate previous stack when loading executable
 
-  - The `PageAllocator` would split blocks and them put the other half back at the incorrect size,
-    leaking an enourmous amount of memory.
+  - Free allocated regions when destroying threads

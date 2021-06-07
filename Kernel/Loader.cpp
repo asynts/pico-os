@@ -207,9 +207,11 @@ namespace Kernel
 
             // We allocated a stack for this thread in the Scheduler, free it here
             VERIFY(Scheduler::the().active_thread().m_owned_ranges.size() == 1);
-            for (auto range : Scheduler::the().active_thread().m_owned_ranges.iter()) {
-                PageAllocator::the().deallocate(range);
-            }
+            Scheduler::the().active_thread().free_owned_ranges();
+
+            // FIXME: This is a bit ugly, RAII for the PageRanges?
+            // Take ownership of the regions of this executable
+            Scheduler::the().active_thread().m_owned_ranges.append(PageRange{ power_of_two(executable.m_writable_size), executable.m_writable_base });
 
             dbgln("[hand_over_to_loaded_executable] Droping privileges");
 
