@@ -3,8 +3,14 @@
 
 namespace Kernel
 {
+    static Bytes allocate_heap()
+    {
+        auto range = PageAllocator::the().allocate(power_of_two(0x2000)).must();
+        return range.bytes();
+    }
+
     GlobalMemoryAllocator::GlobalMemoryAllocator()
-        : MemoryAllocator({ reinterpret_cast<u8*>(PageAllocator::the().allocate(10).must()), 1 << 14 })
+        : MemoryAllocator(allocate_heap())
     {
         dbgln("[GlobalMemoryAllocator::GlobalMemoryAllocator] Allocated area {}", m_heap);
     }

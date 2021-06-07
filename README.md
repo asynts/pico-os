@@ -2,8 +2,6 @@
 
 #### Next Version
 
-  - Free previous stacks when handing over to loaded executable
-
   - Free allocated segments when destroying threads
 
 #### Future features

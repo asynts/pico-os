@@ -88,6 +88,8 @@ namespace Kernel
         {
         }
 
+        Vector<PageRange> m_owned_ranges;
+
         String m_name;
         Optional<NonnullOwnPtr<Process>> m_process;
         Optional<FullRegisterContext*> m_context;
@@ -130,9 +132,11 @@ namespace Kernel
                 FIXME();
             };
 
-            usize stack_size = 0x1000;
-            auto *stack_data = reinterpret_cast<u8*>(PageAllocator::the().allocate(power_of_two(stack_size)).must());
-            StackWrapper stack { { stack_data, stack_size } };
+            VERIFY(thread.m_owned_ranges.size() == 0);
+
+            auto stack_range = PageAllocator::the().allocate(power_of_two(0x800)).must();
+            StackWrapper stack { { reinterpret_cast<u8*>(stack_range.m_base), stack_range.size() } };
+            thread.m_owned_ranges.append(stack_range);
 
             dbgln("[Scheduler::create_thread] Allocated stack for thread '{}'", thread.m_name);
 

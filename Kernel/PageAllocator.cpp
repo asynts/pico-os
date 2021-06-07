@@ -33,7 +33,7 @@ namespace Kernel
 
                 dbgln("[PageAllocator::PageAllocator] Computed suitable block {}-{}", start, end);
 
-                deallocate(power, start);
+                deallocate(PageRange{ power, start });
 
                 return;
             }

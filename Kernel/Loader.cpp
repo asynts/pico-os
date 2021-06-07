@@ -34,7 +34,9 @@ namespace Kernel
         executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
 
         executable.m_writable_size = round_to_power_of_two(writable_segment.p_memsz);
-        executable.m_writable_base = PageAllocator::the().allocate(power_of_two(executable.m_writable_size)).must();
+        auto writable_range = PageAllocator::the().allocate(power_of_two(executable.m_writable_size)).must();
+        executable.m_writable_base = writable_range.m_base;
+        VERIFY(writable_range.size() == executable.m_writable_size);
 
         __builtin_memcpy((u8*)executable.m_writable_base, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
@@ -203,7 +205,11 @@ namespace Kernel
                 :
                 : "r"(stack.top()));
 
-            // FIXME: Delete old stack at this point. Watch out, we need to pass the bottom of the stack!
+            // We allocated a stack for this thread in the Scheduler, free it here
+            VERIFY(Scheduler::the().active_thread().m_owned_ranges.size() == 1);
+            for (auto range : Scheduler::the().active_thread().m_owned_ranges.iter()) {
+                PageAllocator::the().deallocate(range);
+            }
 
             dbgln("[hand_over_to_loaded_executable] Droping privileges");
 
