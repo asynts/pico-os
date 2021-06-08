@@ -27,17 +27,21 @@ namespace Kernel
 
         VirtualFile()
         {
+            m_filesystem = FileSystemId::Invalid;
             m_ino = 0;
             m_mode = ModeFlags::Invalid;
             m_owning_user = 0;
             m_owning_group = 0;
+            m_device_id = 0xdead;
         }
 
+        FileSystemId m_filesystem;
         u32 m_ino;
         ModeFlags m_mode;
         u32 m_owning_user;
         u32 m_owning_group;
         u32 m_size;
+        u32 m_device_id;
 
         virtual void truncate() = 0;
 

@@ -35,6 +35,7 @@ namespace Kernel
     public:
         MemoryFile()
         {
+            m_filesystem = FileSystemId::Ram;
             m_ino = MemoryFileSystem::the().next_ino();
             m_mode = ModeFlags::Regular;
             m_size = 0;
@@ -93,6 +94,7 @@ namespace Kernel
     public:
         MemoryDirectory()
         {
+            m_filesystem = FileSystemId::Ram;
             m_ino = MemoryFileSystem::the().next_ino();
             m_mode = ModeFlags::Directory;
             m_size = 0xdead;

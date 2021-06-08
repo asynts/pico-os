@@ -14,7 +14,7 @@ namespace Kernel {
         KernelResult<usize> read(Bytes bytes) override;
         KernelResult<usize> write(ReadonlyBytes bytes) override;
 
-        VirtualFile& file() override { VERIFY_NOT_REACHED(); }
+        VirtualFile& file() override;
     };
 
     class ConsoleFile final

@@ -34,6 +34,7 @@ namespace Kernel
         explicit FlashFile(FileInfo& info)
             : m_data(info.m_data, info.st_size)
         {
+            m_filesystem = FileSystemId::Flash;
             m_ino = info.st_ino;
             m_mode = info.st_mode;
             m_size = info.st_size;

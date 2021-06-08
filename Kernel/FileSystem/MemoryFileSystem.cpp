@@ -1,6 +1,7 @@
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
+#include <Kernel/FileSystem/DeviceFileSystem.hpp>
 
 namespace Kernel
 {
@@ -25,6 +26,9 @@ namespace Kernel
 
     VirtualFileHandle& MemoryFile::create_handle()
     {
+        if ((m_mode & ModeFlags::Format) == ModeFlags::Device)
+            return DeviceFileSystem::the().create_device_handle(m_device_id);
+
         return *new MemoryFileHandle { *this };
     }
 

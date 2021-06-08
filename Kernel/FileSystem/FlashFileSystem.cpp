@@ -1,4 +1,5 @@
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
+#include <Kernel/FileSystem/DeviceFileSystem.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 
 namespace Kernel
@@ -15,11 +16,15 @@ namespace Kernel
 
     VirtualFileHandle& FlashFile::create_handle()
     {
+        if ((m_mode & ModeFlags::Format) == ModeFlags::Device)
+            return DeviceFileSystem::the().create_device_handle(m_device_id);
+
         return *new FlashFileHandle { *this };
     }
 
     FlashDirectory::FlashDirectory(FileInfo& info)
     {
+        m_filesystem = FileSystemId::Flash;
         m_ino = info.st_ino;
         m_mode = info.st_mode;
         m_size = 0xdead;

@@ -17,6 +17,8 @@ namespace Kernel
         uart_getc(uart0);
     }
 
+    VirtualFile& ConsoleFileHandle::file() { return ConsoleFile::the(); }
+
     KernelResult<usize> ConsoleFileHandle::read(Bytes bytes)
     {
         usize nread;

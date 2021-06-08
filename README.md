@@ -10,6 +10,9 @@
 
 #### Bugs
 
+  - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
+    returns `ConsoleFile` instead of the actual file.
+
   - We sometimes crash in `Process::create` when computing the new region.
     This appears to be a race condition so the Scheduler is involved?
 
@@ -30,8 +33,6 @@
   - Group `PageRange`s together in `PageAllocator::deallocate`.
 
   - Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
-
-  - Lookup devices via `devno`
 
   - Setup MPU for supervisor mode
 

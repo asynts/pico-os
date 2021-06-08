@@ -218,10 +218,12 @@ namespace Kernel
         dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
 
         auto& handle = get_file_handle(fd);
+
+        // FIXME: For device files this will be incorrect
         auto& file = handle.file();
 
-        statbuf->st_dev = FileSystemId::Invalid;
-        statbuf->st_rdev = 0xdead;
+        statbuf->st_dev = file.m_filesystem;
+        statbuf->st_rdev = file.m_device_id;
         statbuf->st_size = file.m_size;
         statbuf->st_blksize = 0xdead;
         statbuf->st_blocks = 0xdead;
