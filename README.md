@@ -1,5 +1,13 @@
 ### TODO
 
+#### Next Version
+
+  - General cleanup
+
+  - Accept UART via interrupt
+
+  - Blocking threads (if required for interrupts)
+
 #### Bugs
 
   - We sometimes crash in `Process::create` when computing the new region.
