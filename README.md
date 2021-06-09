@@ -16,6 +16,10 @@
   - We sometimes crash in `Process::create` when computing the new region.
     This appears to be a race condition so the Scheduler is involved?
 
+  - I think, `Singleton<T>`s can be copied and moved?
+
+  - `Optional<T>` should clear source when moving into other object.
+
 #### Future features
 
   - Run inside QEMU

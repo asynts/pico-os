@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/Vector.hpp>
+#include <Std/StringBuilder.hpp>
 
 namespace Std
 {
@@ -92,6 +93,9 @@ namespace Std
         }
 
         usize size() const { return m_size; }
+
+        usize capacity() const { return Size; }
+        usize avaliable() const { return capacity() - size(); }
 
         void clear()
         {
