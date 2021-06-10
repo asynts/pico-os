@@ -5,6 +5,7 @@
 #include <Std/CircularQueue.hpp>
 
 #include <Kernel/Forward.hpp>
+#include <Kernel/Result.hpp>
 
 namespace Kernel::Interrupt
 {
@@ -12,14 +13,15 @@ namespace Kernel::Interrupt
     public:
         void trigger();
 
-        Optional<usize> read(Bytes);
-        Optional<usize> write(ReadonlyBytes);
+        KernelResult<usize> read(Bytes);
+        KernelResult<usize> write(ReadonlyBytes);
 
     private:
         CircularQueue<char, 64> m_input_queue;
-        CircularQueue<char, 64> m_output_queue;
 
         friend Singleton<UART>;
         UART();
+
+        static void interrupt();
     };
 }

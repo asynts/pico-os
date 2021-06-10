@@ -10,6 +10,7 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
+#include <Kernel/Interrupt/UART.hpp>
 
 #include <hardware/structs/mpu.h>
 
@@ -24,6 +25,8 @@ void create_shell_process()
 
 int main()
 {
+    Kernel::Interrupt::UART::the();
+
     Kernel::ConsoleFile::the();
 
     dbgln("\e[0;1mBOOT\e[0m");

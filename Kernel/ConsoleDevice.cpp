@@ -1,38 +1,33 @@
 #include <Kernel/ConsoleDevice.hpp>
-
-#include <hardware/uart.h>
-#include <hardware/gpio.h>
+#include <Kernel/Interrupt/UART.hpp>
 
 namespace Kernel
 {
     ConsoleFile::ConsoleFile()
     {
-        uart_init(uart0, 115200);
-
-        gpio_set_function(PICO_DEFAULT_UART_TX_PIN, GPIO_FUNC_UART);
-        gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
-
-        // FIXME: There seems thre is an initial "junk" byte read, I've seen
-        //        0xff and 0xfc
-        uart_getc(uart0);
+        Interrupt::UART::the();
     }
 
     VirtualFile& ConsoleFileHandle::file() { return ConsoleFile::the(); }
 
     KernelResult<usize> ConsoleFileHandle::read(Bytes bytes)
     {
-        usize nread;
-        for (nread = 0; nread < bytes.size(); ++nread)
-            bytes[nread] = uart_getc(uart0);
+        // FIXME: If we can't read input here, block the thread and do something else
+        for (;;) {
+            usize nread = Interrupt::UART::the().read(bytes).must();
 
-        return nread;
+            if (nread > 0)
+                return nread;
+        }
     }
 
     KernelResult<usize> ConsoleFileHandle::write(ReadonlyBytes bytes)
     {
-        usize nwritten;
-        for (nwritten = 0; nwritten < bytes.size(); ++nwritten)
-            uart_putc_raw(uart0, bytes[nwritten]);
+        // FIXME: If we can't write here, it MIGHT be sensible to block the thread and do something else
+        usize nwritten = 0;
+        while (bytes.size() > nwritten) {
+            nwritten += Interrupt::UART::the().write(bytes.slice(nwritten)).must();
+        }
 
         return nwritten;
     }
