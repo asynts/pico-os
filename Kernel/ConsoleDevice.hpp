@@ -22,7 +22,7 @@ namespace Kernel {
         , public VirtualFile
     {
     public:
-        VirtualFileHandle& create_handle() override
+        VirtualFileHandle& create_handle_impl() override
         {
             return *new ConsoleFileHandle;
         }

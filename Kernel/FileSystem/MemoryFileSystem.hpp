@@ -44,7 +44,7 @@ namespace Kernel
         ReadonlyBytes span() const { return m_data.span(); }
         Bytes span() { return m_data.span(); }
 
-        VirtualFileHandle& create_handle() override;
+        VirtualFileHandle& create_handle_impl() override;
 
         void truncate() override
         {
@@ -103,7 +103,7 @@ namespace Kernel
             m_entries.set("..", this);
         }
 
-        VirtualFileHandle& create_handle() override;
+        VirtualFileHandle& create_handle_impl() override;
     };
 
     class MemoryDirectoryHandle final : public VirtualFileHandle {

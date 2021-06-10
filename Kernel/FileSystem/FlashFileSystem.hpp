@@ -40,7 +40,7 @@ namespace Kernel
             m_size = info.st_size;
         }
 
-        VirtualFileHandle& create_handle() override;
+        VirtualFileHandle& create_handle_impl() override;
 
         void truncate() override
         {
@@ -80,7 +80,7 @@ namespace Kernel
     public:
         explicit FlashDirectory(FileInfo& info);
 
-        VirtualFileHandle& create_handle() override;
+        VirtualFileHandle& create_handle_impl() override;
     };
 
     // FIXME: This is redundant with MemoryDirectoryHandle

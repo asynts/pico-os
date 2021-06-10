@@ -24,15 +24,12 @@ namespace Kernel
         m_root->m_entries.set("bin", &bin_directory);
     }
 
-    VirtualFileHandle& MemoryFile::create_handle()
+    VirtualFileHandle& MemoryFile::create_handle_impl()
     {
-        if ((m_mode & ModeFlags::Format) == ModeFlags::Device)
-            return DeviceFileSystem::the().create_device_handle(m_device_id);
-
         return *new MemoryFileHandle { *this };
     }
 
-    VirtualFileHandle& MemoryDirectory::create_handle()
+    VirtualFileHandle& MemoryDirectory::create_handle_impl()
     {
         return *new MemoryDirectoryHandle { *this };
     }

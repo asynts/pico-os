@@ -45,7 +45,8 @@ namespace Kernel
 
         virtual void truncate() = 0;
 
-        virtual VirtualFileHandle& create_handle() = 0;
+        VirtualFileHandle& create_handle();
+        virtual VirtualFileHandle& create_handle_impl() = 0;
     };
 
     class VirtualDirectory : public VirtualFile {

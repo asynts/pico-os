@@ -14,11 +14,8 @@ namespace Kernel
         VERIFY(m_root->m_ino == 2);
     }
 
-    VirtualFileHandle& FlashFile::create_handle()
+    VirtualFileHandle& FlashFile::create_handle_impl()
     {
-        if ((m_mode & ModeFlags::Format) == ModeFlags::Device)
-            return DeviceFileSystem::the().create_device_handle(m_device_id);
-
         return *new FlashFileHandle { *this };
     }
 
@@ -48,7 +45,7 @@ namespace Kernel
         }
     }
 
-    VirtualFileHandle& FlashDirectory::create_handle()
+    VirtualFileHandle& FlashDirectory::create_handle_impl()
     {
         return *new FlashDirectoryHandle { *this };
     }
