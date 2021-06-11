@@ -2,11 +2,7 @@
 
 #### Next Version
 
-  - General cleanup
-
-  - Accept UART via interrupt
-
-  - Blocking threads (if required for interrupts)
+  - Execute system calls outside of interrupt handlers and block threads from scheduling
 
 #### Bugs
 
