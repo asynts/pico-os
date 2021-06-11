@@ -115,16 +115,25 @@ namespace Kernel
             m_threads.enqueue(move(thread));
         }
 
-        auto& next_thread = m_threads.front();
+        Thread *next_thread;
+        for (;;) {
+            next_thread = &m_threads.front();
 
-        context = next_thread.m_context.must();
-        next_thread.m_context.clear();
+            if (next_thread->m_blocked) {
+                m_threads.enqueue(m_threads.dequeue());
+            } else {
+                break;
+            }
+        }
 
-        setup_mpu(next_thread.m_regions);
+        context = next_thread->m_context.must();
+        next_thread->m_context.clear();
+
+        setup_mpu(next_thread->m_regions);
 
         // Note. Writing to CONTROL.SPSEL is ignored by the processor in this context,
         // because we are running in handler mode
-        if (next_thread.m_privileged) {
+        if (next_thread->m_privileged) {
             asm volatile(
                 "msr control, %0;"
                 "isb;"
@@ -144,7 +153,7 @@ namespace Kernel
              "isb;"
             : "=r"(control), "=r"(ipsr));
 
-        VERIFY((control & 1) == !next_thread.m_privileged);
+        VERIFY((control & 1) == !next_thread->m_privileged);
         VERIFY(ipsr != 0);
 
         return context;

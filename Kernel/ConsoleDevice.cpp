@@ -12,7 +12,6 @@ namespace Kernel
 
     KernelResult<usize> ConsoleFileHandle::read(Bytes bytes)
     {
-        // FIXME: If we can't read input here, block the thread and do something else
         for (;;) {
             usize nread = Interrupt::UART::the().read(bytes).must();
 
@@ -23,7 +22,6 @@ namespace Kernel
 
     KernelResult<usize> ConsoleFileHandle::write(ReadonlyBytes bytes)
     {
-        // FIXME: If we can't write here, it MIGHT be sensible to block the thread and do something else
         usize nwritten = 0;
         while (bytes.size() > nwritten) {
             nwritten += Interrupt::UART::the().write(bytes.slice(nwritten)).must();

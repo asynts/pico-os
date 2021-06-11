@@ -107,6 +107,7 @@ namespace Kernel
         Vector<Region> m_regions;
         bool m_privileged = false;
         bool m_die_at_next_opportunity = false;
+        bool m_blocked = false;
     };
 
     class SchedulerGuard;
