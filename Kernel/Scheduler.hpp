@@ -95,6 +95,8 @@ namespace Kernel
             return m_threads.front();
         }
 
+        void schedule_next_without_saving_context();
+
         void terminate_active_thread();
         void donate_my_remaining_cpu_slice();
 

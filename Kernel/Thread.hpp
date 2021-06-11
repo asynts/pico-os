@@ -2,6 +2,8 @@
 
 #include <Std/OwnPtr.hpp>
 #include <Std/Optional.hpp>
+#include <Std/Vector.hpp>
+#include <Std/String.hpp>
 
 #include <Kernel/SystemHandler.hpp>
 

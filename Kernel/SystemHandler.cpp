@@ -19,12 +19,13 @@ namespace Kernel
     void syscall_enter(FullRegisterContext *context)
     {
         auto& thread = Scheduler::the().active_thread();
+
+        // We postpone the processing to unmask interrupts, therefor, we need to block
+        // the thread until the system call completes
         thread.m_blocked = true;
 
-        // We postpone the processing to quickly allow interrupts again
-
         if (context->r0.syscall() == _SC_read) {
-            thread.m_running_system_calls.enqueue({
+            thread.m_running_system_call = SystemCallInfo {
                 .m_type = _SC_read,
                 .m_thread = &thread,
                 .m_data = {
@@ -33,7 +34,18 @@ namespace Kernel
                         .m_buffer = { context->r2.pointer<u8>(), context->r3.value<usize>() },
                     },
                 },
-            });
+            };
+        } else if (context->r0.syscall() == _SC_write) {
+            thread.m_running_system_call = SystemCallInfo {
+                .m_type = _SC_write,
+                .m_thread = &thread,
+                .m_data = {
+                    .m_write = {
+                        .m_fd = context->r1.fd(),
+                        .m_buffer = { context->r2.pointer<const u8>(), context->r3.value<usize>() },
+                    },
+                },
+            };
         } else {
             FIXME();
         }
@@ -44,6 +56,7 @@ namespace Kernel
     extern "C"
     void syscall_return_trampoline(FullRegisterContext*)
     {
-        FIXME();
+        Scheduler::the().schedule_next_without_saving_context();
+        VERIFY_NOT_REACHED();
     }
 }

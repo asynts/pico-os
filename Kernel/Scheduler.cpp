@@ -72,6 +72,11 @@ namespace Kernel
         scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
     }
 
+    void Scheduler::schedule_next_without_saving_context()
+    {
+        FIXME();
+    }
+
     void Scheduler::loop()
     {
         Thread thread { __PRETTY_FUNCTION__ };
