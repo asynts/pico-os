@@ -19,11 +19,21 @@ namespace Kernel
     inline bool is_using_main_stack_pointer()
     {
         u32 control;
-        asm ("mrs, %0, control;"
+        asm ("mrs %0, control;"
              "isb;"
             : "=r"(control));
 
         return (control & 2) == 0;
+    }
+
+    inline bool is_executing_privileged()
+    {
+        u32 control;
+        asm ("mrs %0, control;"
+             "isb;"
+            : "=r"(control));
+
+        return (control & 1) == 0;
     }
 
     // FIXME: Some of this code is redundant with the scheduler

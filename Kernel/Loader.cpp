@@ -8,7 +8,7 @@
 
 namespace Kernel
 {
-    constexpr bool debug_loader = false;
+    constexpr bool debug_loader = true;
 
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
@@ -176,6 +176,7 @@ namespace Kernel
     void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<MPU::Region> &regions, i32 argc, char **argv, char **envp)
     {
         VERIFY(is_executing_in_thread_mode());
+        VERIFY(is_executing_privileged());
 
         setup_mpu(regions);
 
