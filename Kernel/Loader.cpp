@@ -175,6 +175,23 @@ namespace Kernel
     // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
     void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<MPU::Region> &regions, i32 argc, char **argv, char **envp)
     {
-        FIXME();
+        VERIFY(is_executing_in_thread_mode());
+
+        setup_mpu(regions);
+
+        // FIXME: Disable interrupts?
+
+        asm volatile("msr psp, %0;"
+                     "isb;"
+                     "msr control, %1;"
+                     "isb;"
+                     "mov sb, %2;"
+                     "bx %3;"
+            :
+            : "r"(executable.m_stack_base + executable.m_stack_size),
+              "r"(0b11),
+              "r"(executable.m_writable_base),
+              "r"(executable.m_entry)
+            : "sb");
     }
 }
