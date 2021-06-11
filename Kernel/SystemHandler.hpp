@@ -2,6 +2,8 @@
 
 #include <Std/Forward.hpp>
 
+#include <Kernel/Result.hpp>
+
 namespace Kernel
 {
     struct TypeErasedValue {
@@ -17,6 +19,18 @@ namespace Kernel
         i32 pid() { return value<i32>(); }
 
         u32 m_storage;
+    };
+
+    struct SystemCallInfo {
+        u32 m_type;
+        Thread *m_thread;
+        KernelResult<u32> m_return_value;
+        union {
+            struct {
+                int m_fd;
+                Bytes m_buffer;
+            } m_read;
+        } m_data;
     };
 
     struct ExtendedSystemCallArguments {

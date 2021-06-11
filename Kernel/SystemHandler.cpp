@@ -10,17 +10,6 @@
 
 namespace Kernel
 {
-    struct SystemCall {
-        u32 m_type;
-        Thread *m_thread;
-        union {
-            struct {
-                int m_fd;
-                Bytes m_buffer;
-            } m_read;
-        } m_data;
-    };
-
     // Implemented in Assembly
     extern "C"
     void syscall_handler(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3);

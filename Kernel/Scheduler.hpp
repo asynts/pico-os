@@ -10,6 +10,7 @@
 #include <Kernel/SystemHandler.hpp>
 #include <Kernel/MPU.hpp>
 #include <Kernel/PageAllocator.hpp>
+#include <Kernel/Thread.hpp>
 
 namespace Kernel
 {
@@ -77,59 +78,6 @@ namespace Kernel
     struct Region {
         MPU::RBAR rbar;
         MPU::RASR rasr;
-    };
-
-    struct ThreadUnblockInfo {
-        enum class Type {
-            Syscall,
-        } m_type;
-
-        union Data {
-            struct SystemCall {
-                u32 m_retval;
-            } m_syscall;
-        } m_data;
-    };
-
-    class Thread {
-    public:
-        Thread(StringView name, Optional<NonnullOwnPtr<Process>> process = {}, Optional<FullRegisterContext*> context = {})
-            : m_name(name)
-            , m_process(move(process))
-            , m_context(context)
-        {
-        }
-
-        // FIXME: RAII
-        void free_owned_ranges()
-        {
-            dbgln("[Thread::free_owned_ranges] name={}", m_name);
-
-            for (auto range : m_owned_ranges.iter()) {
-                PageAllocator::the().deallocate(range);
-            }
-            m_owned_ranges.clear();
-        }
-
-        bool m_blocked = false;
-        Optional<ThreadUnblockInfo> m_unblock_info;
-
-        void unblock(ThreadUnblockInfo info)
-        {
-            VERIFY(m_blocked);
-
-            m_unblock_info = info;
-            m_blocked = false;
-        }
-
-        Vector<PageRange> m_owned_ranges;
-
-        String m_name;
-        Optional<NonnullOwnPtr<Process>> m_process;
-        Optional<FullRegisterContext*> m_context;
-        Vector<Region> m_regions;
-        bool m_privileged = false;
-        bool m_die_at_next_opportunity = false;
     };
 
     class SchedulerGuard;

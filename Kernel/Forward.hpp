@@ -5,4 +5,6 @@
 namespace Kernel
 {
     using namespace Std;
+
+    class Thread;
 }
