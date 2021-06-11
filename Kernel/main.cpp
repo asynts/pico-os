@@ -10,6 +10,7 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
+#include <Kernel/Worker.hpp>
 #include <Kernel/Interrupt/UART.hpp>
 
 #include <hardware/structs/mpu.h>
@@ -47,6 +48,8 @@ int main()
     dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
     create_shell_process();
+
+    Kernel::Worker::the();
 
     Kernel::Scheduler::the().loop();
 
