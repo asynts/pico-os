@@ -4,6 +4,7 @@
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/Worker.hpp>
 
 namespace Kernel
 {
@@ -138,7 +139,26 @@ namespace Kernel
             dbgln("[Process::sys$read] fd={} buffer={} count={}", fd, buffer, count);
 
         auto& handle = get_file_handle(fd);
-        return handle.read({ buffer, count }).must();
+
+        // FIXME: Join this into one function?
+        Scheduler::the().active_thread().m_blocked = true;
+        Worker::the().add_task({
+            .m_type = Task::Type::ThreadRead,
+            .m_data = {
+                .m_thread_read = {
+                    .m_handle = handle,
+                    .m_buffer = { buffer, count },
+                    .m_thread = &Scheduler::the().active_thread(),
+                },
+            },
+        });
+
+        execute_in_thread_mode([] {
+            donate_my_remaining_cpu_slice();
+        });
+
+        // We need to donate remaining CPU time here but without returning
+        FIXME();
     }
 
     i32 Process::sys$write(i32 fd, const u8 *buffer, usize count)
