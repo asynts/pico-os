@@ -8,7 +8,6 @@
 
 #include <Kernel/Process.hpp>
 #include <Kernel/SystemHandler.hpp>
-#include <Kernel/MPU.hpp>
 #include <Kernel/PageAllocator.hpp>
 #include <Kernel/Thread.hpp>
 
@@ -72,12 +71,6 @@ namespace Kernel
     private:
         Bytes m_bytes;
         u8 *m_top;
-    };
-
-    // FIXME: When doing the whole page allocator thing, move this into a more sensible location
-    struct Region {
-        MPU::RBAR rbar;
-        MPU::RASR rasr;
     };
 
     class SchedulerGuard;

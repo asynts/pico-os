@@ -70,11 +70,6 @@ isr_pendsv:
 .global isr_svcall
 .thumb_func
 isr_svcall:
-    bx syscall_handler
-
-.global syscall_handler
-.thumb_func
-syscall_handler:
     mrs r0, psp
     isb
 

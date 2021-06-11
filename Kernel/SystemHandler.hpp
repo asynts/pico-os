@@ -2,6 +2,7 @@
 
 #include <Std/Forward.hpp>
 
+#include <Kernel/Forward.hpp>
 #include <Kernel/Result.hpp>
 
 namespace Kernel
@@ -24,12 +25,16 @@ namespace Kernel
     struct SystemCallInfo {
         u32 m_type;
         Thread *m_thread;
-        KernelResult<u32> m_return_value;
+        Optional<u32> m_return_value;
         union {
             struct {
-                int m_fd;
+                i32 m_fd;
                 Bytes m_buffer;
             } m_read;
+            struct {
+                i32 m_fd;
+                ReadonlyBytes m_buffer;
+            } m_write;
         } m_data;
     };
 

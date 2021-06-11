@@ -47,6 +47,12 @@ namespace Kernel::MPU
     };
     static_assert(sizeof(RBAR) == 4);
 
+    // FIXME: Move this into a more sensible location
+    struct Region {
+        MPU::RBAR rbar;
+        MPU::RASR rasr;
+    };
+
     inline CTRL ctrl()
     {
         return static_cast<CTRL>(mpu_hw->ctrl);

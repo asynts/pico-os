@@ -4,7 +4,6 @@
 #include <Kernel/Scheduler.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/HandlerMode.hpp>
-#include <Kernel/MPU.hpp>
 #include <Kernel/PageAllocator.hpp>
 
 namespace Kernel
@@ -119,7 +118,7 @@ namespace Kernel
         return copy;
     }
 
-    void setup_mpu(Vector<Region>& regions)
+    void setup_mpu(Vector<MPU::Region>& regions)
     {
         // FIXME: We should never have uninitialized regions
         if (regions.size() == 0) {
@@ -174,70 +173,8 @@ namespace Kernel
     }
 
     // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
-    void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<Region> &regions, i32 argc, char **argv, char **envp)
+    void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<MPU::Region> &regions, i32 argc, char **argv, char **envp)
     {
-        // FIXME: What happens to the current execution context when we hand over?
-
-        // Avoid a ton of edge cases by executing in handler mode
-        execute_in_handler_mode([&] {
-            dbgln("[hand_over_to_loaded_executable] Calling 'setup_mpu'");
-            setup_mpu(regions);
-            dbgln("[hand_over_to_loaded_executable] Returned from 'setup_mpu'");
-
-            StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
-            stack.align(8);
-
-            constexpr u32 xpsr_thumb_mode = 1 << 24;
-
-            auto *context = stack.push_value(ExceptionRegisterContext{});
-            context->pc.m_storage = executable.m_entry;
-            context->xpsr.m_storage = xpsr_thumb_mode;
-            context->r0.m_storage = bit_cast<u32>(argc);
-            context->r1.m_storage = bit_cast<u32>(argv);
-            context->r2.m_storage = bit_cast<u32>(envp);
-
-            dbgln("[hand_over_to_loaded_executable] Setting up process stack pointer");
-
-            // Setup stack pointer
-            asm volatile(
-                "msr psp, %0;"
-                "isb;"
-                :
-                : "r"(stack.top()));
-
-            // We allocated a stack for this thread in the Scheduler, free it here
-            VERIFY(Scheduler::the().active_thread().m_owned_ranges.size() == 1);
-            Scheduler::the().active_thread().free_owned_ranges();
-
-            // FIXME: This is a bit ugly, RAII for the PageRanges?
-            // Take ownership of the regions of this executable
-            Scheduler::the().active_thread().m_owned_ranges.append(PageRange{ power_of_two(executable.m_writable_size), executable.m_writable_base });
-
-            dbgln("[hand_over_to_loaded_executable] Droping privileges");
-
-            // Drop privileges, we continue to use the main stack pointer because we
-            // are in handler mode
-            asm volatile(
-                "msr control, %0;"
-                "isb;"
-                :
-                : "r"(0b11));
-
-            // This is safe, because we are executing in handler mode
-            Scheduler::the().active_thread().m_context.clear();
-            Scheduler::the().active_thread().m_privileged = false;
-
-            dbgln("[hand_over_to_loaded_executable] Handing over");
-
-            // Hand over to executable
-            asm volatile(
-                "mov sb, %0;"
-                "bx %1;"
-                :
-                : "r"(executable.m_writable_base), "r"(0xfffffffd)
-                : "sb");
-
-            VERIFY_NOT_REACHED();
-        });
+        FIXME();
     }
 }

@@ -6,6 +6,7 @@
 #include <Std/String.hpp>
 
 #include <Kernel/SystemHandler.hpp>
+#include <Kernel/MPU.hpp>
 
 namespace Kernel
 {
@@ -37,7 +38,7 @@ namespace Kernel
         String m_name;
         Optional<NonnullOwnPtr<Process>> m_process;
         Optional<FullRegisterContext*> m_context;
-        Vector<Region> m_regions;
+        Vector<MPU::Region> m_regions;
         bool m_privileged = false;
         bool m_die_at_next_opportunity = false;
     };

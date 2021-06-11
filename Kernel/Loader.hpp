@@ -3,13 +3,13 @@
 #include <Std/Forward.hpp>
 #include <Std/String.hpp>
 
+#include <Kernel/MPU.hpp>
+
 #include <elf.h>
 
 namespace Kernel
 {
     using namespace Std;
-
-    class Region;
 
     class ElfWrapper {
     public:
@@ -70,7 +70,7 @@ namespace Kernel
 
     LoadedExecutable load_executable_into_memory(ElfWrapper);
 
-    void setup_mpu(Vector<Region>&);
+    void setup_mpu(Vector<MPU::Region>&);
 
-    void hand_over_to_loaded_executable(const LoadedExecutable&, Vector<Region>&, i32 argc, char **argv, char **envp);
+    void hand_over_to_loaded_executable(const LoadedExecutable&, Vector<MPU::Region>&, i32 argc, char **argv, char **envp);
 }

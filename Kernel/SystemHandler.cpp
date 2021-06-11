@@ -10,9 +10,11 @@
 
 namespace Kernel
 {
+    // FIXME: Rename 'isr_svcall' to 'syscall_handler'
+
     // Implemented in Assembly
     extern "C"
-    void syscall_handler(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3);
+    void isr_svcall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3);
 
     // Called from Assembly after saving context in system call handler
     extern "C"
