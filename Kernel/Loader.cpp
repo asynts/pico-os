@@ -183,6 +183,7 @@ namespace Kernel
         Scheduler::the().active()->m_privileged = false;
 
         // FIXME: Free old stack?!
+        // FIXME: Make sure to drop the corresponding region as well
 
         // FIXME: Keep track of new regions?!
 

@@ -118,6 +118,8 @@ namespace Std {
 
             return *this;
         }
+        const T* operator->() const { return &must(); }
+        T* operator->() { return &must(); }
 
     private:
         alignas(alignof(T))

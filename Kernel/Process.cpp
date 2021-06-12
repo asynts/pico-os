@@ -73,26 +73,7 @@ namespace Kernel
             }
 
             auto& thread = *Scheduler::the().active();
-            VERIFY(thread.m_regions.size() == 0);
 
-            // Flash
-            auto& flash_region = thread.m_regions.append({});
-            flash_region.rbar.region = 0;
-            flash_region.rbar.valid = 0;
-            flash_region.rbar.addr = 0x10000000 >> 5; // FIXME: This doesn't work
-            flash_region.rasr.enable = 1;
-            flash_region.rasr.size = 20;
-            flash_region.rasr.srd = 0b00000000;
-            flash_region.rasr.attrs_b = 1;
-            flash_region.rasr.attrs_c = 1;
-            flash_region.rasr.attrs_s = 1;
-            flash_region.rasr.attrs_tex = 0b000;
-            flash_region.rasr.attrs_ap = 0b111;
-            flash_region.rasr.attrs_xn = 0;
-
-            dbgln("[Process::create] flash_region.rbar={}", flash_region.rbar.raw);
-
-            // RAM
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
             VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
             auto& ram_region = thread.m_regions.append({});
@@ -111,7 +92,6 @@ namespace Kernel
 
             dbgln("[Process::create] ram_region.rbar={}", ram_region.rbar.raw);
 
-            // ROM
             auto& rom_region = thread.m_regions.append({});
             rom_region.rbar.region = 0;
             rom_region.rbar.valid = 0;

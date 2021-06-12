@@ -27,54 +27,26 @@ namespace Kernel
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;
 
-        explicit Thread(String name)
-            : m_name(move(name))
-        {
-            // Flash region
-            m_regions.append({
-                .rbar = {
-                    .region = 0,
-                    .valid = 0,
-                    .addr = 0x10000000 >> 5,
-                },
-                .rasr = {
-                    .enable = 1,
-                    .size = 20,
-                    .srd = 0b00000000,
-                    .attrs_b = 1,
-                    .attrs_c = 1,
-                    .attrs_s = 1,
-                    .attrs_tex = 0b000,
-                    .attrs_ap = 0b111,
-                    .attrs_xn = 0,
-                },
-            });
-        }
+        explicit Thread(String name);
 
         template<typename Callback>
         void setup_context(Callback&& callback)
         {
             auto& stack = m_owned_page_ranges.append(PageAllocator::the().allocate_owned(PageAllocator::stack_power).must());
 
-            // Stack region
-            m_regions.append({
-                .rbar = {
-                    .region = 0,
-                    .valid = 0,
-                    .addr = u32(stack.data()) >> 5,
-                },
-                .rasr = {
-                    .enable = 1,
-                    .size = MPU::compute_size(stack.size()),
-                    .srd = 0b00000000,
-                    .attrs_b = 1,
-                    .attrs_c = 1,
-                    .attrs_s = 1,
-                    .attrs_tex = 0b000,
-                    .attrs_ap = 0b011,
-                    .attrs_xn = 1,
-                },
-            })
+            auto& stack_region = m_regions.append({});
+            stack_region.rbar.region = 0;
+            stack_region.rbar.valid = 0;
+            stack_region.rbar.addr = u32(stack.data()) >> 5;
+            stack_region.rasr.enable = 1;
+            stack_region.rasr.size = MPU::compute_size(stack.size());
+            stack_region.rasr.srd = 0b00000000;
+            stack_region.rasr.attrs_b = 1;
+            stack_region.rasr.attrs_c = 1;
+            stack_region.rasr.attrs_s = 1;
+            stack_region.rasr.attrs_tex = 0b000;
+            stack_region.rasr.attrs_ap = 0b011;
+            stack_region.rasr.attrs_xn = 1;
 
             StackWrapper stack_wrapper { stack.bytes() };
 

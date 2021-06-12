@@ -1,4 +1,5 @@
 #include <Kernel/Threads/Scheduler.hpp>
+#include <Kernel/Loader.hpp>
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
@@ -77,6 +78,8 @@ namespace Kernel
         }
 
         m_active_thread = next;
+
+        setup_mpu(m_active_thread->m_regions);
 
         return next;
     }

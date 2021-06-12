@@ -36,8 +36,13 @@ namespace Kernel
         }
         ~OwnedPageRange();
 
-        ReadonlyBytes bytes() const { return m_range.value().bytes(); }
-        Bytes bytes() { return m_range.value().bytes(); }
+        usize size() const { return m_range->size(); }
+
+        const u8* data() const { return m_range->data(); }
+        u8* data() { return m_range->data(); }
+
+        ReadonlyBytes bytes() const { return m_range->bytes(); }
+        Bytes bytes() { return m_range->bytes(); }
 
     private:
         Optional<PageRange> m_range;
