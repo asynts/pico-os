@@ -80,6 +80,14 @@ namespace Std
             return *reinterpret_cast<T*>(m_data + offset * sizeof(T));
         }
 
+        T& operator[](usize index)
+        {
+            ASSERT(m_size > index);
+
+            usize offset = (m_offset - m_size + index + Size) % Size;
+            return *reinterpret_cast<T*>(m_data + offset * sizeof(T));
+        }
+
         T dequeue()
         {
             auto& target = front();

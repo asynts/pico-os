@@ -10,13 +10,12 @@ namespace Kernel
         FullRegisterContext* scheduler_next(FullRegisterContext *context)
         {
             Thread *current = Scheduler::the().active();
-
-            if (current != nullptr) {
-                VERIFY(!current->m_stashed_context.is_valid());
-                current->m_stashed_context = context;
-            }
+            dbgln("[scheduler_next] Saving context for '{}' ({})", current->m_name, current);
+            VERIFY(!current->m_stashed_context.is_valid());
+            current->m_stashed_context = context;
 
             Thread *next = Scheduler::the().schedule();
+            dbgln("[scheduler_next] Restoring context for '{}' ({})", next->m_name, next);
             context = next->m_stashed_context.must();
             next->m_stashed_context.clear();
 
@@ -50,13 +49,39 @@ namespace Kernel
 
     Thread* Scheduler::schedule()
     {
-        // FIXME: Remember to drop threads if 'm_die_at_next_opportunity' is set
+        if (!m_active_thread->m_die_at_next_opportunity) {
+            m_queued_threads.enqueue(m_active_thread);
+            m_active_thread = nullptr;
+        }
 
-        // FIXME: We only want to choose the default thread if we have no other choice
+        // FIXME: This algorithm is a bit fishy
 
-        // FIXME: Deal with blocked threads
+        bool all_threads_blocking = true;
+        for (size_t i = 0; i < m_queued_threads.size(); ++i) {
+            if (!m_queued_threads[i]->m_blocked) {
+                all_threads_blocking = false;
+                break;
+            }
+        }
 
-        FIXME();
+        Thread *next;
+
+        if (all_threads_blocking) {
+            next = &m_default_thread;
+        } else {
+            for (;;) {
+                next = m_queued_threads.dequeue();
+
+                if (next->m_blocked) {
+                    m_queued_threads.enqueue(next);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        m_active_thread = next;
+        return next;
     }
 
     void Scheduler::loop()

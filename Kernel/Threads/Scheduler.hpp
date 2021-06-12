@@ -19,6 +19,11 @@ namespace Kernel
 
         Thread* schedule();
 
+        void add_thread(Thread& thread)
+        {
+            m_queued_threads.enqueue(&thread);
+        }
+
         void loop();
 
         bool m_enabled = false;

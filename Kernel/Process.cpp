@@ -28,8 +28,8 @@ namespace Kernel
     {
         // FIXME: Memory leak
         auto *process = new Process { name };
+        auto& thread = *new Thread { String::format("Process: {}", name) };
 
-        Thread thread { String::format("Process: {}", name) };
         thread.m_process = process;
 
         // FIXME: Is this still required?
@@ -138,6 +138,7 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         });
 
+        Scheduler::the().add_thread(thread);
 
         return *process;
     }
