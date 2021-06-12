@@ -51,8 +51,18 @@ pop_callee_saved_registers:
 .global isr_pendsv
 .thumb_func
 isr_pendsv:
+    // The first time PendSV runs, the corresponding thread will still use the main
+    // stack pointer. However, 'scheduler_next' will never return the main stack pointer.
+    mrs r1, control
+    movs r2, #2
+    ands r2, r1, r2
+    beq 1f
+
     mrs r0, psp
-    isb
+    b 2f
+1:
+    mrs r0, msp
+2:
 
     bl push_callee_saved_registers
 

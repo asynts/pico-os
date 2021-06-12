@@ -61,6 +61,9 @@ namespace Kernel
 
     void Scheduler::loop()
     {
+        // FIXME: This is a hack, we should create a thread and manually switch to it instead.
+        //        As result, we have to deal with an additional edge case in Assembly.
+
         Thread dummy_thread { "Dummy" };
         dummy_thread.m_die_at_next_opportunity = true;
         m_active_thread = &dummy_thread;

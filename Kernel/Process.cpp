@@ -9,7 +9,7 @@
 
 namespace Kernel
 {
-    Process& Process::active_process()
+    Process& Process::active()
     {
         auto& thread = *Scheduler::the().active();
         return *thread.m_process.must();
@@ -26,17 +26,19 @@ namespace Kernel
     }
     Process& Process::create(StringView name, ElfWrapper elf, const Vector<String>& arguments, const Vector<String>& variables)
     {
-        auto process = make<Process>(name);
+        // FIXME: Memory leak
+        auto *process = new Process { name };
 
-        FIXME();
+        Thread thread { String::format("Process: {}", name) };
+        thread.m_process = process;
 
-        /*
-        Thread thread { String::format("Process: {}", name), move(process) };
+        // FIXME: Is this still required?
+        thread.m_privileged = true;
 
-        return Scheduler::the().create_thread(move(thread), [arguments, variables, name, elf] () mutable {
+        thread.setup_context([arguments, variables, name, elf]() mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
-            auto& process = Process::active_process();
+            auto& process = Process::active();
 
             process.m_executable = load_executable_into_memory(elf);
             auto& executable = process.m_executable.must();
@@ -72,7 +74,7 @@ namespace Kernel
 
             executable.m_stack_base = reinterpret_cast<u32>(stack.top());
 
-            auto& thread = Scheduler::the().active();
+            auto& thread = *Scheduler::the().active();
             VERIFY(thread.m_regions.size() == 0);
 
             // Flash
@@ -134,8 +136,10 @@ namespace Kernel
             hand_over_to_loaded_executable(process.m_executable.must(), thread.m_regions, argc, argv, envp);
 
             VERIFY_NOT_REACHED();
-        }).m_process.must();
-        */
+        });
+
+
+        return *process;
     }
 
     i32 Process::sys$read(i32 fd, u8 *buffer, usize count)

@@ -30,7 +30,7 @@ namespace Kernel
             VERIFY(stderr_fileno == 2);
         }
 
-        static Process& active_process();
+        static Process& active();
 
         static Process& create(StringView name, ElfWrapper);
         static Process& create(StringView name, ElfWrapper, const Vector<String>& arguments, const Vector<String>& variables);
