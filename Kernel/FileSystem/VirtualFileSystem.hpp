@@ -8,8 +8,6 @@
 
 namespace Kernel
 {
-    using namespace Std;
-
     class VirtualFile;
     class VirtualFileHandle;
     class VirtualFileSystem;

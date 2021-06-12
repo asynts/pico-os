@@ -3,10 +3,10 @@
 #include <Std/Singleton.hpp>
 #include <Std/MemoryAllocator.hpp>
 
+#include <Kernel/Forward.hpp>
+
 namespace Kernel
 {
-    using namespace Std;
-
     class GlobalMemoryAllocator
         : public Singleton<GlobalMemoryAllocator>
         , public MemoryAllocator

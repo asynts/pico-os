@@ -6,8 +6,6 @@
 #include <Kernel/FileSystem/VirtualFileSystem.hpp>
 
 namespace Kernel {
-    using namespace Std;
-
     class ConsoleFileHandle final : public VirtualFileHandle
     {
     public:

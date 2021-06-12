@@ -8,8 +8,6 @@
 
 namespace Kernel
 {
-    using namespace Std;
-
     class FlashFileSystem;
     class FlashFile;
     class FlashDirectory;

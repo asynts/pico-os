@@ -7,8 +7,6 @@
 
 namespace Kernel
 {
-    using namespace Std;
-
     class MemoryFileSystem;
     class MemoryFile;
     class MemoryDirectory;

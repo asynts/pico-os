@@ -8,8 +8,6 @@
 
 namespace Kernel
 {
-    using namespace Std;
-
     class Process {
     public:
         explicit Process(String name, Optional<LoadedExecutable> executable = {})
