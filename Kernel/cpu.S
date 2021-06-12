@@ -3,8 +3,7 @@
 .thumb
 
 .global scheduler_next
-.global syscall_enter
-.global syscall_return_trampoline
+.global syscall
 
 // u8* push_callee_saved_registers(u8 *stack)
 .thumb_func
@@ -85,15 +84,13 @@ isr_svcall:
 
     bl push_callee_saved_registers
 
-    push {r1} // slot for return value
-    push {r1} // saved psp
+    // FullRegisterContext* syscall(FullRegisterContext*)
+    blx syscall
 
-    // void syscall_enter(FullRegisterContext*)
-    blx syscall_enter
+    bl pop_callee_saved_registers
 
-    // void syscall_return_trampoline(FullRegisterContext*)
-    ldr r1, =syscall_return_trampoline
-    str r1, [sp, #0x18]
+    msr psp, r0
+    isb
 
-    ldr r1, =0xfffffff9
-    bx r1
+    ldr r0, =0xfffffffd
+    bx r0

@@ -21,6 +21,9 @@ namespace Kernel
         Optional<FullRegisterContext*> m_stashed_context;
         Optional<Process*> m_process;
 
+        // FIXME: I don't like this so much
+        Optional<SystemCallInfo> m_running_system_call;
+
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;
 
@@ -48,6 +51,19 @@ namespace Kernel
             void (*callback_container_wrapper)(void*) = type_erased_member_function_wrapper<CallbackContainer, &CallbackContainer::operator()>;
 
             setup_context_impl(stack_wrapper, callback_container_wrapper, callback_container_on_stack);
+        }
+
+        void stash_context(FullRegisterContext& context)
+        {
+            VERIFY(!m_stashed_context.is_valid());
+            m_stashed_context = &context;
+        }
+
+        FullRegisterContext& unstash_context()
+        {
+            auto& context = *m_stashed_context.must();
+            m_stashed_context.clear();
+            return context;
         }
 
     private:

@@ -11,13 +11,11 @@ namespace Kernel
         {
             Thread *current = Scheduler::the().active();
             dbgln("[scheduler_next] Saving context for '{}' ({})", current->m_name, current);
-            VERIFY(!current->m_stashed_context.is_valid());
-            current->m_stashed_context = context;
+            current->stash_context(*context);
 
             Thread *next = Scheduler::the().schedule();
             dbgln("[scheduler_next] Restoring context for '{}' ({})", next->m_name, next);
-            context = next->m_stashed_context.must();
-            next->m_stashed_context.clear();
+            context = &next->unstash_context();
 
             return context;
         }
