@@ -51,6 +51,8 @@ namespace Kernel
         Thread *next = Scheduler::the().schedule();
         context = &next->unstash_context();
 
+        setup_mpu(next->m_regions);
+
         dbgln("[syscall] leaving");
 
         return context;
