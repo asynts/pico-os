@@ -5,6 +5,12 @@ extern "C" u8 __HeapLimit[];
 
 namespace Kernel
 {
+    OwnedPageRange::~OwnedPageRange()
+    {
+        if (m_range.is_valid())
+            PageAllocator::the().deallocate(m_range.value());
+    }
+
     PageAllocator::PageAllocator()
     {
         for (auto& block : m_blocks.span().iter()) {

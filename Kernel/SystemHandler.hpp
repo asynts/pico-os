@@ -7,6 +7,8 @@
 
 namespace Kernel
 {
+    // FIXME: Most of this stuff should go to different places
+
     struct TypeErasedValue {
         template<typename T>
         T value() { return bit_cast<T>(m_storage); }

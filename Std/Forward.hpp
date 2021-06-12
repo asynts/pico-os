@@ -90,9 +90,15 @@ inline usize round_to_power_of_two(usize value)
     return 1 << (32 - __builtin_clz(value));
 }
 
-inline usize power_of_two(usize value)
+constexpr usize power_of_two(usize value)
 {
     return __builtin_ctzl(value);
+}
+
+template<typename T, void (T::*Method)()>
+static void type_erased_member_function_wrapper(void *object)
+{
+    (reinterpret_cast<T*>(object)->*Method)();
 }
 
 namespace Std {

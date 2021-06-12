@@ -22,9 +22,31 @@ namespace Kernel
         Bytes bytes() { return { data(), size() }; }
     };
 
+    class OwnedPageRange {
+    public:
+        explicit OwnedPageRange(PageRange range)
+            : m_range(range)
+        {
+        }
+        OwnedPageRange(const OwnedPageRange&) = delete;
+        OwnedPageRange(OwnedPageRange&& other)
+        {
+            m_range = other.m_range;
+            other.m_range.clear();
+        }
+        ~OwnedPageRange();
+
+        ReadonlyBytes bytes() const { return m_range.value().bytes(); }
+        Bytes bytes() { return m_range.value().bytes(); }
+
+    private:
+        Optional<PageRange> m_range;
+    };
+
     class PageAllocator : public Singleton<PageAllocator> {
     public:
         static constexpr usize max_power = 18;
+        static constexpr usize stack_power = power_of_two(0x800);
 
         Optional<PageRange> allocate(usize power)
         {
@@ -54,6 +76,17 @@ namespace Kernel
             deallocate(PageRange{ power, block.m_base + size });
 
             return PageRange { power, block.m_base };
+        }
+
+        // FIXME: Remove the other method
+        Optional<OwnedPageRange> allocate_owned(usize power)
+        {
+            auto range_opt = allocate(power);
+
+            if (range_opt.is_valid())
+                return OwnedPageRange { range_opt.value() };
+            else
+                return {};
         }
 
         void deallocate(PageRange range)
