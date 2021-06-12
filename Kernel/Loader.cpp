@@ -8,8 +8,6 @@
 
 namespace Kernel
 {
-    constexpr bool debug_loader = true;
-
     LoadedExecutable load_executable_into_memory(ElfWrapper elf)
     {
         PageAllocator::the().dump();

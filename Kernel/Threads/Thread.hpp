@@ -11,6 +11,8 @@
 
 namespace Kernel
 {
+    constexpr bool debug_thread = false;
+
     class Thread {
     public:
         String m_name;
@@ -66,8 +68,10 @@ namespace Kernel
 
         void stash_context(FullRegisterContext& context)
         {
-            dbgln("[Thread::stash_context] m_name='{}' this={}", m_name, this);
-            dbgln("{}", context);
+            if (debug_thread) {
+                dbgln("[Thread::stash_context] m_name='{}' this={}", m_name, this);
+                dbgln("{}", context);
+            }
 
             VERIFY(!m_stashed_context.is_valid());
             m_stashed_context = &context;
@@ -75,12 +79,14 @@ namespace Kernel
 
         FullRegisterContext& unstash_context()
         {
-            dbgln("[Thread::unstash_context] m_name='{}' this={}", m_name, this);
+            if (debug_thread)
+                dbgln("[Thread::unstash_context] m_name='{}' this={}", m_name, this);
 
             auto& context = *m_stashed_context.must();
             m_stashed_context.clear();
 
-            dbgln("{}", context);
+            if (debug_thread)
+                dbgln("{}", context);
 
             return context;
         }

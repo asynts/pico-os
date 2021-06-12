@@ -5,9 +5,11 @@
 #include <Std/Optional.hpp>
 #include <Std/Format.hpp>
 
+#include <Kernel/Forward.hpp>
+
 namespace Kernel
 {
-    using namespace Std;
+    constexpr bool debug_page_allocator = false;
 
     struct PageRange {
         usize m_power;
@@ -57,14 +59,16 @@ namespace Kernel
         {
             usize size = 1 << power;
 
-            dbgln("[PageAllocator::allocate] power={}", power);
+            if (debug_page_allocator)
+                dbgln("[PageAllocator::allocate] power={}", power);
 
             ASSERT(power <= max_power);
 
             if (m_blocks[power] != nullptr) {
                 uptr base = reinterpret_cast<uptr>(m_blocks[power]);
 
-                dbgln("[PageAllocator::allocate] Found suitable block {}", base);
+                if (debug_page_allocator)
+                    dbgln("[PageAllocator::allocate] Found suitable block {}", base);
 
                 m_blocks[power] = m_blocks[power]->m_next;
                 return PageRange { power, base };
@@ -96,7 +100,8 @@ namespace Kernel
 
         void deallocate(PageRange range)
         {
-            dbgln("[PageAllocator::deallocate] power={} base={}", range.m_power, range.m_base);
+            if (debug_page_allocator)
+                dbgln("[PageAllocator::deallocate] power={} base={}", range.m_power, range.m_base);
 
             ASSERT(range.m_power <= max_power);
 
@@ -107,9 +112,11 @@ namespace Kernel
 
         void dump()
         {
-            dbgln("[PageAllocator] blocks:");
-            for (usize power = 0; power < max_power; ++power) {
-                dbgln("  [{}]: {}", power, m_blocks[power]);
+            if (debug_page_allocator) {
+                dbgln("[PageAllocator] blocks:");
+                for (usize power = 0; power < max_power; ++power) {
+                    dbgln("  [{}]: {}", power, m_blocks[power]);
+                }
             }
         }
 

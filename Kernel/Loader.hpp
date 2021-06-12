@@ -10,7 +10,7 @@
 
 namespace Kernel
 {
-    using namespace Std;
+    constexpr bool debug_loader = false;
 
     class ElfWrapper {
     public:
