@@ -4,6 +4,7 @@
 #include <Std/String.hpp>
 
 #include <Kernel/MPU.hpp>
+#include <Kernel/StackWrapper.hpp>
 
 #include <elf.h>
 
@@ -72,5 +73,5 @@ namespace Kernel
 
     void setup_mpu(Vector<MPU::Region>&);
 
-    void hand_over_to_loaded_executable(const LoadedExecutable&, Vector<MPU::Region>&, i32 argc, char **argv, char **envp);
+    void hand_over_to_loaded_executable(const LoadedExecutable&, StackWrapper, Vector<MPU::Region>&, i32 argc, char **argv, char **envp);
 }

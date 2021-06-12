@@ -2,6 +2,8 @@
 
 #include <Std/Span.hpp>
 
+#include <Kernel/Forward.hpp>
+
 namespace Kernel
 {
     struct StackWrapper {

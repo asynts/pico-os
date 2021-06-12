@@ -10,11 +10,9 @@ namespace Kernel
         FullRegisterContext* scheduler_next(FullRegisterContext *context)
         {
             Thread *current = Scheduler::the().active();
-            dbgln("[scheduler_next] Saving context for '{}' ({})", current->m_name, current);
             current->stash_context(*context);
 
             Thread *next = Scheduler::the().schedule();
-            dbgln("[scheduler_next] Restoring context for '{}' ({})", next->m_name, next);
             context = &next->unstash_context();
 
             return context;
@@ -79,6 +77,7 @@ namespace Kernel
         }
 
         m_active_thread = next;
+
         return next;
     }
 

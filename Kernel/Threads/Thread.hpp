@@ -55,14 +55,22 @@ namespace Kernel
 
         void stash_context(FullRegisterContext& context)
         {
+            dbgln("[Thread::stash_context] m_name='{}' this={}", m_name, this);
+            dbgln("{}", context);
+
             VERIFY(!m_stashed_context.is_valid());
             m_stashed_context = &context;
         }
 
         FullRegisterContext& unstash_context()
         {
+            dbgln("[Thread::unstash_context] m_name='{}' this={}", m_name, this);
+
             auto& context = *m_stashed_context.must();
             m_stashed_context.clear();
+
+            dbgln("{}", context);
+
             return context;
         }
 

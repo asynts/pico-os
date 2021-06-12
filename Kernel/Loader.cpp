@@ -4,6 +4,7 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/PageAllocator.hpp>
+#include <Kernel/Threads/Scheduler.hpp>
 
 namespace Kernel
 {
@@ -172,23 +173,26 @@ namespace Kernel
     }
 
     // FIXME: We are taking the wrong parameters here, take a thread? Cooperate with the scheduler?
-    void hand_over_to_loaded_executable(const LoadedExecutable& executable, Vector<MPU::Region> &regions, i32 argc, char **argv, char **envp)
+    void hand_over_to_loaded_executable(const LoadedExecutable& executable, StackWrapper stack, Vector<MPU::Region> &regions, i32 argc, char **argv, char **envp)
     {
         VERIFY(is_executing_in_thread_mode());
         VERIFY(is_executing_privileged());
 
         setup_mpu(regions);
 
-        // FIXME: Disable interrupts?
+        Scheduler::the().active()->m_privileged = false;
+
+        // FIXME: Free old stack?!
+
+        // FIXME: Keep track of new regions?!
 
         asm volatile("msr psp, %0;"
-                     "isb;"
                      "msr control, %1;"
                      "isb;"
                      "mov sb, %2;"
                      "bx %3;"
             :
-            : "r"(executable.m_stack_base + executable.m_stack_size),
+            : "r"(stack.top()), // FIXME: This is wrong!
               "r"(0b11),
               "r"(executable.m_writable_base),
               "r"(executable.m_entry)

@@ -13,6 +13,8 @@ namespace Kernel
     extern "C"
     FullRegisterContext* syscall(FullRegisterContext *context)
     {
+        dbgln("[syscall] entered");
+
         auto& thread = *Scheduler::the().active();
 
         thread.m_blocked = true;
@@ -48,6 +50,8 @@ namespace Kernel
 
         Thread *next = Scheduler::the().schedule();
         context = &next->unstash_context();
+
+        dbgln("[syscall] leaving");
 
         return context;
     }

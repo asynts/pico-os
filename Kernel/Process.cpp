@@ -72,8 +72,6 @@ namespace Kernel
                 dbgln("  {}: {}", *value, StringView { *value });
             }
 
-            executable.m_stack_base = reinterpret_cast<u32>(stack.top());
-
             auto& thread = *Scheduler::the().active();
             VERIFY(thread.m_regions.size() == 0);
 
@@ -133,7 +131,7 @@ namespace Kernel
             dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv, envp);
 
-            hand_over_to_loaded_executable(process.m_executable.must(), thread.m_regions, argc, argv, envp);
+            hand_over_to_loaded_executable(process.m_executable.must(), stack, thread.m_regions, argc, argv, envp);
 
             VERIFY_NOT_REACHED();
         });
