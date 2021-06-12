@@ -1,5 +1,7 @@
+#include <Std/OwnPtr.hpp>
+
 #include <Kernel/Process.hpp>
-#include <Kernel/Scheduler.hpp>
+#include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Loader.hpp>
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
@@ -9,8 +11,8 @@ namespace Kernel
 {
     Process& Process::active_process()
     {
-        auto& thread = Scheduler::the().active_thread();
-        return thread.m_process.must();
+        auto& thread = *Scheduler::the().active();
+        return *thread.m_process.must();
     }
 
     Process& Process::create(StringView name, ElfWrapper elf)
@@ -26,6 +28,9 @@ namespace Kernel
     {
         auto process = make<Process>(name);
 
+        FIXME();
+
+        /*
         Thread thread { String::format("Process: {}", name), move(process) };
 
         return Scheduler::the().create_thread(move(thread), [arguments, variables, name, elf] () mutable {
@@ -67,7 +72,7 @@ namespace Kernel
 
             executable.m_stack_base = reinterpret_cast<u32>(stack.top());
 
-            auto& thread = Scheduler::the().active_thread();
+            auto& thread = Scheduler::the().active();
             VERIFY(thread.m_regions.size() == 0);
 
             // Flash
@@ -130,6 +135,7 @@ namespace Kernel
 
             VERIFY_NOT_REACHED();
         }).m_process.must();
+        */
     }
 
     i32 Process::sys$read(i32 fd, u8 *buffer, usize count)
@@ -237,7 +243,9 @@ namespace Kernel
             return terminated_child_process.m_process_id;
         }
 
-        Scheduler::the().donate_my_remaining_cpu_slice();
+        FIXME();
+        // Scheduler::the().donate_my_remaining_cpu_slice();
+
         return -EINTR;
     }
 
@@ -249,7 +257,8 @@ namespace Kernel
             ASSERT(m_parent->m_terminated_children.size() > 0);
         }
 
-        Scheduler::the().terminate_active_thread();
+        FIXME();
+        // Scheduler::the().terminate_active_thread();
 
         // Since we are in handler mode, we can't instantly terminate but instead
         // have to leave handler mode for PendSV to fire.

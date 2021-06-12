@@ -8,9 +8,10 @@
 #include <Kernel/FileSystem/DeviceFileSystem.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
-#include <Kernel/Scheduler.hpp>
+#include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/Interrupt/UART.hpp>
+
 
 #include <hardware/structs/mpu.h>
 

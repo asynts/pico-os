@@ -7,7 +7,7 @@
 # include <iostream>
 #elif defined(KERNEL)
 # include <Kernel/ConsoleDevice.hpp>
-# include <Kernel/Scheduler.hpp>
+# include <Kernel/Threads/Scheduler.hpp>
 #else
 # error "Only TEST and KERNEL are supported"
 #endif

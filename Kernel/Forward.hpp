@@ -7,4 +7,5 @@ namespace Kernel
     using namespace Std;
 
     class Thread;
+    class Process;
 }

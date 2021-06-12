@@ -15,8 +15,11 @@ namespace Kernel
     public:
         String m_name;
         bool m_privileged = false;
+        bool m_die_at_next_opportunity = false;
+        bool m_blocked = false;
 
         Optional<FullRegisterContext*> m_stashed_context;
+        Optional<Process*> m_process;
 
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;

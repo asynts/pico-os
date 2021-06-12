@@ -6,7 +6,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/Interface/Types.hpp>
-#include <Kernel/Scheduler.hpp>
+#include <Kernel/Threads/Scheduler.hpp>
 
 namespace Kernel
 {
@@ -20,12 +20,16 @@ namespace Kernel
     extern "C"
     void syscall_enter(FullRegisterContext *context)
     {
-        auto& thread = Scheduler::the().active_thread();
+        auto& thread = *Scheduler::the().active();
+
+        // FIXME: We have to be careful with the scheduler now
 
         // We postpone the processing to unmask interrupts, therefor, we need to block
         // the thread until the system call completes
         thread.m_blocked = true;
 
+        FIXME();
+        /*
         if (context->r0.syscall() == _SC_read) {
             thread.m_running_system_call = SystemCallInfo {
                 .m_type = _SC_read,
@@ -51,6 +55,7 @@ namespace Kernel
         } else {
             FIXME();
         }
+        */
     }
 
     // Called from Assembly when returning from system call handler. The (previously) active thread is
@@ -58,7 +63,6 @@ namespace Kernel
     extern "C"
     void syscall_return_trampoline(FullRegisterContext*)
     {
-        Scheduler::the().schedule_next_without_saving_context();
-        VERIFY_NOT_REACHED();
+        FIXME();
     }
 }
