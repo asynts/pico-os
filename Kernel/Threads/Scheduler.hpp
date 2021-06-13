@@ -25,6 +25,7 @@ namespace Kernel
         }
 
         void loop();
+        void trigger();
 
         bool m_enabled = false;
 

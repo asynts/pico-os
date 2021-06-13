@@ -97,6 +97,13 @@ namespace Kernel
         return next;
     }
 
+    void Scheduler::trigger()
+    {
+        VERIFY(m_enabled);
+        scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
+        VERIFY_NOT_REACHED();
+    }
+
     void Scheduler::loop()
     {
         Thread dummy_thread { "Dummy" };
@@ -104,16 +111,23 @@ namespace Kernel
         dummy_thread.setup_context([] {
             Scheduler::the().active()->m_die_at_next_opportunity = true;
             Scheduler::the().m_enabled = true;
+            Scheduler::the().trigger();
+
+            VERIFY_NOT_REACHED();
         });
 
         m_active_thread = &dummy_thread;
 
-        // FIXME: Privileges
+        FullRegisterContext& context = dummy_thread.unstash_context();
 
-        // FIXME: Stack select
-
-        FullRegisterContext *context = &dummy_thread.unstash_context();
-        context_switch_from_thread_mode(context);
+        u32 control = 0b10;
+        asm volatile("msr control, %0;"
+                     "isb;"
+                     "mov r0, %1;"
+                     "blx context_switch_from_thread_mode;"
+            :
+            : "r"(control), "r"(&context)
+            : "r0");
 
         VERIFY_NOT_REACHED();
     }
