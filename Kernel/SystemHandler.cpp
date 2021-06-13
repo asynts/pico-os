@@ -13,11 +13,11 @@ namespace Kernel
     extern "C"
     FullRegisterContext* syscall(FullRegisterContext *context)
     {
-        dbgln("[syscall]");
+        dbgln("[syscall] syscall={}", context->r0.syscall());
 
         auto& thread = *Scheduler::the().active();
 
-        thread.m_blocked = true;
+        thread.block();
 
         if (context->r0.syscall() == _SC_read) {
             thread.m_running_system_call = SystemCallInfo {

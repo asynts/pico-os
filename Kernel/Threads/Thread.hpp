@@ -11,7 +11,7 @@
 
 namespace Kernel
 {
-    constexpr bool debug_thread = true;
+    constexpr bool debug_thread = false;
 
     class Thread {
     public:
@@ -93,6 +93,8 @@ namespace Kernel
 
             return context;
         }
+
+        void block();
 
     private:
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);

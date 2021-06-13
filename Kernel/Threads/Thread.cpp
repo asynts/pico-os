@@ -1,4 +1,5 @@
 #include <Kernel/Threads/Thread.hpp>
+#include <Kernel/Threads/Scheduler.hpp>
 
 namespace Kernel
 {
@@ -48,5 +49,15 @@ namespace Kernel
 
         VERIFY(!m_stashed_context.is_valid());
         m_stashed_context = stack_wrapper.push_value(context);
+    }
+
+    void Thread::block()
+    {
+        dbgln("[Thread::block] '{}' ({})", m_name, this);
+        m_blocked = true;
+
+        // FIXME: Clearly define ownership and rearange stuff such that we don't have to
+        //        do crosscutting stuff here
+        Scheduler::the().m_blocked_threads.append(this);
     }
 }

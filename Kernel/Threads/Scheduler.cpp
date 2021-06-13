@@ -11,7 +11,8 @@ namespace Kernel
     {
         FullRegisterContext* scheduler_next(FullRegisterContext *context)
         {
-            dbgln("[scheduler_next]");
+            if (debug_scheduler)
+                dbgln("[scheduler_next]");
 
             Thread *current = Scheduler::the().active();
             current->stash_context(*context);
@@ -86,7 +87,8 @@ namespace Kernel
             }
         }
 
-        dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
+        if (debug_scheduler)
+            dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
 
         m_active_thread = next;
 

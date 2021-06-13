@@ -16,6 +16,8 @@
 
   - `Optional<T>` should clear source when moving into other object.
 
+  - Threads should be able to return, or at least self-terminate?
+
 #### Future features
 
   - Run inside QEMU

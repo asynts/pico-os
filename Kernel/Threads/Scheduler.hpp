@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Std/Singleton.hpp>
+#include <Std/Vector.hpp>
 #include <Std/CircularQueue.hpp>
 
 #include <Kernel/Forward.hpp>
@@ -10,6 +11,8 @@
 
 namespace Kernel
 {
+    constexpr bool debug_scheduler = false;
+
     class Scheduler : public Singleton<Scheduler> {
     public:
         Thread* active()
@@ -28,6 +31,8 @@ namespace Kernel
         void trigger();
 
         bool m_enabled = false;
+
+        Vector<Thread*> m_blocked_threads;
 
     private:
         Thread m_default_thread;
