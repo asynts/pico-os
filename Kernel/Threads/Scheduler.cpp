@@ -108,6 +108,10 @@ namespace Kernel
 
         m_active_thread = &dummy_thread;
 
+        // FIXME: Privileges
+
+        // FIXME: Stack select
+
         FullRegisterContext *context = &dummy_thread.unstash_context();
         context_switch_from_thread_mode(context);
 
