@@ -52,8 +52,11 @@ namespace Kernel
 
             StackWrapper stack_wrapper { stack.bytes() };
 
-            auto callback_container = [callback_ = move(callback)]() mutable {
+            auto callback_container = [this, callback_ = move(callback)]() mutable {
                 callback_();
+
+                dbgln("[Thread::setup_context::lambda] Thread '{}' ({}) returned?!", this->m_name, this);
+
                 FIXME();
             };
             using CallbackContainer = decltype(callback_container);

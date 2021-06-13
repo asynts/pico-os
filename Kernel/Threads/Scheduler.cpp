@@ -27,6 +27,8 @@ namespace Kernel
             if (Scheduler::the().m_enabled)
                 scb_hw->icsr = M0PLUS_ICSR_PENDSVSET_BITS;
         }
+
+        void context_switch_from_thread_mode(FullRegisterContext*);
     }
 
     Scheduler::Scheduler()
@@ -97,19 +99,18 @@ namespace Kernel
 
     void Scheduler::loop()
     {
-        // FIXME: This is a hack, we should create a thread and manually switch to it instead.
-        //        As result, we have to deal with an additional edge case in Assembly.
-
         Thread dummy_thread { "Dummy" };
-        dummy_thread.m_die_at_next_opportunity = true;
+
+        dummy_thread.setup_context([] {
+            Scheduler::the().active()->m_die_at_next_opportunity = true;
+            Scheduler::the().m_enabled = true;
+        });
+
         m_active_thread = &dummy_thread;
 
-        m_enabled = true;
+        FullRegisterContext *context = &dummy_thread.unstash_context();
+        context_switch_from_thread_mode(context);
 
-        // The next SysTick interrupt will terminate this context
-
-        for (;;) {
-            asm volatile("wfi");
-        }
+        VERIFY_NOT_REACHED();
     }
 }

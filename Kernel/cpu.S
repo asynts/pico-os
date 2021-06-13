@@ -96,3 +96,31 @@ isr_svcall:
 
     ldr r0, =0xfffffffd
     bx r0
+
+// void context_switch_from_thread_mode(FullRegisterContext*)
+.global context_switch_from_thread_mode
+.thumb_func
+context_switch_from_thread_mode:
+    bl pop_callee_saved_registers
+
+    mov sp, r0
+
+    // FIXME: This is quite a mess, try to simplify?
+
+    ldr r0, [sp, #0x10]
+    mov ip, r0
+
+    ldr r0, [sp, #0x14]
+    mov lr, r0
+
+    ldr r0, [sp, #0x1c]
+    msr apsr_nzcvq, r0
+    isb
+
+    // FIXME: Do pop/str modify APSR?
+
+    pop {r0, r1, r2, r3}
+    str r0, [sp, #0]
+    str r1, [sp, #4]
+    pop {r0, r1}
+    pop {pc}
