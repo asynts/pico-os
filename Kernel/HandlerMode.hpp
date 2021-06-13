@@ -16,6 +16,11 @@ namespace Kernel
         return ipsr == 0;
     }
 
+    inline bool is_executing_in_handler_mode()
+    {
+        return !is_executing_in_thread_mode();
+    }
+
     inline bool is_using_main_stack_pointer()
     {
         u32 control;

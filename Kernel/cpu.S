@@ -50,6 +50,8 @@ pop_callee_saved_registers:
 .global isr_pendsv
 .thumb_func
 isr_pendsv:
+    // FIXME: We can not check the stack flag in control, because we are in the interrupt handler!
+
     // The first time PendSV runs, the corresponding thread will still use the main
     // stack pointer. However, 'scheduler_next' will never return the main stack pointer.
     mrs r1, control
@@ -85,7 +87,7 @@ isr_svcall:
     bl push_callee_saved_registers
 
     // FullRegisterContext* syscall(FullRegisterContext*)
-    blx syscall
+    bl syscall
 
     bl pop_callee_saved_registers
 

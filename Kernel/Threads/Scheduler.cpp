@@ -1,5 +1,6 @@
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Loader.hpp>
+#include <Kernel/HandlerMode.hpp>
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
@@ -10,6 +11,8 @@ namespace Kernel
     {
         FullRegisterContext* scheduler_next(FullRegisterContext *context)
         {
+            dbgln("[scheduler_next]");
+
             Thread *current = Scheduler::the().active();
             current->stash_context(*context);
 
@@ -46,9 +49,13 @@ namespace Kernel
 
     Thread* Scheduler::schedule()
     {
+        VERIFY(is_executing_in_handler_mode());
+
         if (!m_active_thread->m_die_at_next_opportunity) {
             m_queued_threads.enqueue(m_active_thread);
             m_active_thread = nullptr;
+        } else {
+            dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
         }
 
         // FIXME: This algorithm is a bit fishy
@@ -77,9 +84,13 @@ namespace Kernel
             }
         }
 
+        dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
+
         m_active_thread = next;
 
         setup_mpu(m_active_thread->m_regions);
+
+        // FIXME: Drop privileges here
 
         return next;
     }
