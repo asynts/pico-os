@@ -11,7 +11,7 @@ namespace Kernel
 {
     Process& Process::active()
     {
-        auto& thread = *Scheduler::the().active();
+        auto& thread = Scheduler::the().active();
         return *thread.m_process.must();
     }
 
@@ -72,7 +72,7 @@ namespace Kernel
                 dbgln("  {}: {}", *value, StringView { *value });
             }
 
-            auto& thread = *Scheduler::the().active();
+            auto& thread = Scheduler::the().active();
 
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
             VERIFY(executable.m_writable_base % executable.m_writable_size == 0);

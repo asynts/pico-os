@@ -14,11 +14,11 @@ namespace Kernel
             if (debug_scheduler)
                 dbgln("[scheduler_next]");
 
-            Thread *current = Scheduler::the().active();
-            current->stash_context(*context);
+            Thread& active_thread = Scheduler::the().active();
+            active_thread.stash_context(*context);
 
-            Thread *next = Scheduler::the().schedule();
-            context = &next->unstash_context();
+            Thread *next_thread = Scheduler::the().schedule();
+            context = &next_thread->unstash_context();
 
             return context;
         }
@@ -122,7 +122,7 @@ namespace Kernel
         Thread dummy_thread { "Dummy" };
 
         dummy_thread.setup_context([] {
-            Scheduler::the().active()->m_die_at_next_opportunity = true;
+            Scheduler::the().active().m_die_at_next_opportunity = true;
             Scheduler::the().m_enabled = true;
             Scheduler::the().trigger();
 

@@ -18,7 +18,7 @@ namespace Kernel
         if (debug_syscall)
             dbgln("[syscall] syscall={}", context->r0.syscall());
 
-        auto& thread = *Scheduler::the().active();
+        auto& thread = Scheduler::the().active();
 
         thread.block();
         thread.stash_context(*context);
