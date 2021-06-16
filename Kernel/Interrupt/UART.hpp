@@ -9,6 +9,8 @@
 
 namespace Kernel::Interrupt
 {
+    constexpr bool debug_uart = false;
+
     class UART : public Singleton<UART> {
     public:
         void trigger();

@@ -27,7 +27,8 @@ namespace Kernel::Interrupt
 
     void UART::interrupt()
     {
-        dbgln("[UART::interrupt]");
+        if (debug_uart)
+            dbgln("[UART::interrupt]");
 
         while (uart_is_readable(uart0))
         {

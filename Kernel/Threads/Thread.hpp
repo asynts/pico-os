@@ -8,6 +8,7 @@
 #include <Kernel/SystemHandler.hpp>
 #include <Kernel/MPU.hpp>
 #include <Kernel/StackWrapper.hpp>
+#include <Kernel/Interface/Types.hpp>
 
 namespace Kernel
 {
@@ -97,7 +98,25 @@ namespace Kernel
         void block();
         void unblock();
 
-        TypeErasedValue syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);
+        i32 syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);
+
+        i32 sys$read(i32 fd, u8 *buffer, usize count);
+        i32 sys$write(i32 fd, const u8 *buffer, usize count);
+        i32 sys$open(const char *pathname, u32 flags, u32 mode);
+        i32 sys$close(i32 fd);
+        i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
+        i32 sys$wait(i32 *status);
+        i32 sys$exit(i32 status);
+        i32 sys$chdir(const char *pathname);
+        i32 sys$get_working_directory(u8 *buffer, usize *size);
+
+        i32 sys$posix_spawn(
+            i32 *pid,
+            const char *pathname,
+            const UserlandSpawnFileActions *file_actions,
+            const UserlandSpawnAttributes *attrp,
+            char **argv,
+            char **envp);
 
     private:
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);

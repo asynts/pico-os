@@ -1,5 +1,7 @@
 #include <Kernel/Threads/Thread.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
+#include <Kernel/Interface/System.hpp>
+#include <Kernel/Process.hpp>
 
 namespace Kernel
 {
@@ -53,7 +55,8 @@ namespace Kernel
 
     void Thread::block()
     {
-        dbgln("[Thread::block] '{}' ({})", m_name, this);
+        if (debug_thread)
+            dbgln("[Thread::block] '{}' ({})", m_name, this);
         m_blocked = true;
 
         // FIXME: Clearly define ownership and rearange stuff such that we don't have to
@@ -63,15 +66,49 @@ namespace Kernel
 
     void Thread::unblock()
     {
-        dbgln("[Thread::unblock] '{}' ({})", m_name, this);
+        if (debug_thread)
+            dbgln("[Thread::unblock] '{}' ({})", m_name, this);
         m_blocked = false;
 
         // FIXME: ditto
         Scheduler::the().m_queued_threads.enqueue(this);
     }
 
-    TypeErasedValue Thread::syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue)
+    i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)
     {
+        switch (syscall) {
+        case _SC_read:
+            return sys$read(arg1.fd(), arg2.pointer<u8>(), arg3.value<usize>());
+        case _SC_write:
+            return sys$write(arg1.fd(), arg2.pointer<const u8>(), arg3.value<usize>());
+        }
+
         FIXME();
+    }
+
+    i32 Thread::sys$read(i32 fd, u8 *buffer, usize count)
+    {
+        auto& handle = m_process.must()->get_file_handle(fd);
+
+        auto result = handle.read({ buffer, count });
+
+        if (result.is_error()) {
+            return -result.error();
+        } else {
+            return static_cast<i32>(result.value());
+        }
+    }
+
+    i32 Thread::sys$write(i32 fd, const u8 *buffer, usize count)
+    {
+        auto& handle = m_process.must()->get_file_handle(fd);
+
+        auto result = handle.write({ buffer, count });
+
+        if (result.is_error()) {
+            return -result.error();
+        } else {
+            return static_cast<i32>(result.value());
+        }
     }
 }

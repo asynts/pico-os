@@ -10,10 +10,13 @@
 
 namespace Kernel
 {
+    constexpr bool debug_syscall = false;
+
     extern "C"
     FullRegisterContext* syscall(FullRegisterContext *context)
     {
-        dbgln("[syscall] syscall={}", context->r0.syscall());
+        if (debug_syscall)
+            dbgln("[syscall] syscall={}", context->r0.syscall());
 
         auto& thread = *Scheduler::the().active();
 
@@ -24,10 +27,15 @@ namespace Kernel
         Thread& worker_thread = *new Thread { String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()) };
         worker_thread.m_privileged = true;
         worker_thread.setup_context([&thread, context] {
-            TypeErasedValue return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
-            thread.m_stashed_context.must()->r0 = return_value;
+            i32 return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
+            thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
 
             thread.unblock();
+
+            // FIXME: Terminate thread here
+            for (;;) {
+                asm volatile("wfi");
+            }
         });
         Scheduler::the().add_thread(worker_thread);
 
