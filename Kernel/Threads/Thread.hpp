@@ -56,9 +56,13 @@ namespace Kernel
             auto callback_container = [this, callback_ = move(callback)]() mutable {
                 callback_();
 
-                dbgln("[Thread::setup_context::lambda] Thread '{}' ({}) returned?!", this->m_name, this);
+                if (debug_thread)
+                    dbgln("[Thread::setup_context::lambda] Thread '{}' ({}) returned", this->m_name, this);
 
-                FIXME();
+                this->m_die_at_next_opportunity = true;
+                for (;;) {
+                    asm volatile("wfi");
+                }
             };
             using CallbackContainer = decltype(callback_container);
 

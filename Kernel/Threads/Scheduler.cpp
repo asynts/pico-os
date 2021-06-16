@@ -58,7 +58,8 @@ namespace Kernel
             m_queued_threads.enqueue(m_active_thread);
             m_active_thread = nullptr;
         } else {
-            dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
+            if (debug_scheduler)
+                dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
         }
 
         // FIXME: This algorithm is a bit fishy

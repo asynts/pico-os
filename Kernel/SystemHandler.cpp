@@ -31,11 +31,6 @@ namespace Kernel
             thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
 
             thread.unblock();
-
-            // FIXME: Terminate thread here
-            for (;;) {
-                asm volatile("wfi");
-            }
         });
         Scheduler::the().add_thread(worker_thread);
 
