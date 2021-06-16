@@ -22,7 +22,6 @@ namespace Kernel
         if (context->r0.syscall() == _SC_read) {
             thread.m_running_system_call = SystemCallInfo {
                 .m_type = _SC_read,
-                .m_thread = &thread,
                 .m_data = {
                     .m_read = {
                         .m_fd = context->r1.fd(),
@@ -33,7 +32,6 @@ namespace Kernel
         } else if (context->r0.syscall() == _SC_write) {
             thread.m_running_system_call = SystemCallInfo {
                 .m_type = _SC_write,
-                .m_thread = &thread,
                 .m_data = {
                     .m_write = {
                         .m_fd = context->r1.fd(),

@@ -32,13 +32,13 @@ namespace Kernel
 
         bool m_enabled = false;
 
-        Vector<Thread*> m_blocked_threads;
+        CircularQueue<Thread*, 16> m_blocked_threads;
+        CircularQueue<Thread*, 16> m_queued_threads;
 
     private:
         Thread m_default_thread;
 
         Thread *m_active_thread = nullptr;
-        CircularQueue<Thread*, 16> m_queued_threads;
 
         friend Singleton<Scheduler>;
         Scheduler();

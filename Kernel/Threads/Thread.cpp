@@ -58,6 +58,6 @@ namespace Kernel
 
         // FIXME: Clearly define ownership and rearange stuff such that we don't have to
         //        do crosscutting stuff here
-        Scheduler::the().m_blocked_threads.append(this);
+        Scheduler::the().m_blocked_threads.enqueue(this);
     }
 }

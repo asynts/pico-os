@@ -26,8 +26,7 @@ namespace Kernel
 
     struct SystemCallInfo {
         u32 m_type;
-        Thread *m_thread;
-        Optional<u32> m_return_value;
+
         union {
             struct {
                 i32 m_fd;
