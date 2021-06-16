@@ -149,4 +149,34 @@ TEST_CASE(circularqueue_correct_order_after_move)
     ASSERT(queue2.dequeue() == 2);
 }
 
+TEST_CASE(circularqueue_extensive_use)
+{
+    Std::CircularQueue<int, 16> queue;
+
+    for (usize i = 0; i < 16; ++i) {
+        queue.enqueue((i * 3) % 5);
+    }
+
+    for (usize i = 0; i < 8; ++i) {
+        queue.dequeue();
+    }
+
+    for (usize i = 0; i < 4; ++i) {
+        queue.enqueue((i * 4) % 5);
+    }
+
+    Std::Array<int, 12> expected {
+        4, 2, 0, 3, 1, 4, 2, 0, 0, 4, 3, 2
+    };
+
+    ASSERT(expected[3] == 3);
+    ASSERT(expected[7] == 0);
+
+    for (usize i = 0; i < 12; ++i) {
+        ASSERT(queue.dequeue() == expected[i]);
+    }
+
+    ASSERT(queue.size() == 0);
+}
+
 TEST_MAIN();
