@@ -49,12 +49,14 @@ namespace Kernel::Interrupt
 
     KernelResult<usize> UART::write(ReadonlyBytes bytes)
     {
-        usize index = 0;
-        while (uart_is_writable(uart0)) {
-            uart_putc_raw(uart0, static_cast<char>(bytes[index]));
-            ++index;
+        for (usize index = 0; index < bytes.size(); ++index) {
+            if (uart_is_writable(uart0)) {
+                uart_putc_raw(uart0, static_cast<char>(bytes[index]));
+            } else {
+                return index;
+            }
         }
 
-        return index;
+        return bytes.size();
     }
 }
