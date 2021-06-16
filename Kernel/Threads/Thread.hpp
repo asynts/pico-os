@@ -95,6 +95,9 @@ namespace Kernel
         }
 
         void block();
+        void unblock();
+
+        TypeErasedValue syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);
 
     private:
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);

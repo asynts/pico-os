@@ -11,7 +11,6 @@
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/Interrupt/UART.hpp>
-#include <Kernel/Worker.hpp>
 
 #include <hardware/structs/mpu.h>
 
@@ -34,7 +33,6 @@ int main()
 
     Kernel::GlobalMemoryAllocator::the();
     Kernel::Scheduler::the();
-    Kernel::Worker::the();
 
     Kernel::MemoryFileSystem::the();
     Kernel::FlashFileSystem::the();

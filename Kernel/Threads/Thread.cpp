@@ -60,4 +60,18 @@ namespace Kernel
         //        do crosscutting stuff here
         Scheduler::the().m_blocked_threads.enqueue(this);
     }
+
+    void Thread::unblock()
+    {
+        dbgln("[Thread::unblock] '{}' ({})", m_name, this);
+        m_blocked = false;
+
+        // FIXME: ditto
+        Scheduler::the().m_queued_threads.enqueue(this);
+    }
+
+    TypeErasedValue Thread::syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue)
+    {
+        FIXME();
+    }
 }

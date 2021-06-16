@@ -18,36 +18,21 @@ namespace Kernel
         auto& thread = *Scheduler::the().active();
 
         thread.block();
+        thread.stash_context(*context);
 
-        if (context->r0.syscall() == _SC_read) {
-            thread.m_running_system_call = SystemCallInfo {
-                .m_type = _SC_read,
-                .m_data = {
-                    .m_read = {
-                        .m_fd = context->r1.fd(),
-                        .m_buffer = { context->r2.pointer<u8>(), context->r3.value<usize>() },
-                    },
-                },
-            };
-        } else if (context->r0.syscall() == _SC_write) {
-            thread.m_running_system_call = SystemCallInfo {
-                .m_type = _SC_write,
-                .m_data = {
-                    .m_write = {
-                        .m_fd = context->r1.fd(),
-                        .m_buffer = { context->r2.pointer<const u8>(), context->r3.value<usize>() },
-                    },
-                },
-            };
-        } else {
-            FIXME();
-        }
+        // FIXME: Memory leak
+        Thread& worker_thread = *new Thread { String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()) };
+        worker_thread.m_privileged = true;
+        worker_thread.setup_context([&thread, context] {
+            TypeErasedValue return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
+            thread.m_stashed_context.must()->r0 = return_value;
 
-        Thread *current = Scheduler::the().active();
-        current->stash_context(*context);
+            thread.unblock();
+        });
+        Scheduler::the().add_thread(worker_thread);
 
-        Thread *next = Scheduler::the().schedule();
-        context = &next->unstash_context();
+        Thread& next = *Scheduler::the().schedule();
+        context = &next.unstash_context();
 
         return context;
     }
