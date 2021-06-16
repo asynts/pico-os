@@ -54,6 +54,11 @@ namespace Kernel
     {
         VERIFY(is_executing_in_handler_mode());
 
+        // FIXME: Is this sufficent for multiple cores?
+        if (m_queued_threads_lock != nullptr) {
+            return *m_queued_threads_lock;
+        }
+
         if (!m_active_thread->m_die_at_next_opportunity) {
             m_queued_threads.enqueue(m_active_thread);
             m_active_thread = nullptr;

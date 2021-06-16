@@ -33,7 +33,8 @@ namespace Kernel
 
         bool m_enabled = false;
 
-        CircularQueue<Thread*, 16> m_blocked_threads;
+        // Any thread that wants to access the queue in thread mode needs to put it's pointer here
+        Thread *m_queued_threads_lock = nullptr;
         CircularQueue<Thread*, 16> m_queued_threads;
 
     private:

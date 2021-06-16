@@ -2,6 +2,7 @@
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/Process.hpp>
+#include <Kernel/HandlerMode.hpp>
 
 namespace Kernel
 {
@@ -58,10 +59,6 @@ namespace Kernel
         if (debug_thread)
             dbgln("[Thread::block] '{}' ({})", m_name, this);
         m_blocked = true;
-
-        // FIXME: Clearly define ownership and rearange stuff such that we don't have to
-        //        do crosscutting stuff here
-        Scheduler::the().m_blocked_threads.enqueue(this);
     }
 
     void Thread::unblock()
@@ -70,8 +67,19 @@ namespace Kernel
             dbgln("[Thread::unblock] '{}' ({})", m_name, this);
         m_blocked = false;
 
-        // FIXME: ditto
-        Scheduler::the().m_queued_threads.enqueue(this);
+        // FIXME: Clearly define ownership and rearange stuff such that we don't have to
+        //        do crosscutting stuff here
+
+        auto& scheduler = Scheduler::the();
+
+        VERIFY(is_executing_in_thread_mode());
+
+        VERIFY(scheduler.m_queued_threads_lock == nullptr);
+        scheduler.m_queued_threads_lock = this;
+
+        scheduler.m_queued_threads.enqueue(this);
+
+        scheduler.m_queued_threads_lock = nullptr;
     }
 
     i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)
