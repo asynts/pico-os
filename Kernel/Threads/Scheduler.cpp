@@ -92,9 +92,19 @@ namespace Kernel
 
         m_active_thread = next;
 
-        setup_mpu(m_active_thread->m_regions);
+        if (m_active_thread->m_privileged) {
+            asm volatile("msr control, %0;"
+                         "isb;"
+                :
+                : "r"(0b10));
+        } else {
+            asm volatile("msr control, %0;"
+                         "isb;"
+                :
+                : "r"(0b11));
+        }
 
-        // FIXME: Drop privileges here
+        setup_mpu(m_active_thread->m_regions);
 
         return next;
     }
