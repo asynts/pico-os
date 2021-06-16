@@ -24,9 +24,6 @@ namespace Kernel
         Optional<FullRegisterContext*> m_stashed_context;
         Optional<Process*> m_process;
 
-        // FIXME: I don't like this so much
-        Optional<SystemCallInfo> m_running_system_call;
-
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;
 

@@ -24,21 +24,6 @@ namespace Kernel
         u32 m_storage;
     };
 
-    struct SystemCallInfo {
-        u32 m_type;
-
-        union {
-            struct {
-                i32 m_fd;
-                Bytes m_buffer;
-            } m_read;
-            struct {
-                i32 m_fd;
-                ReadonlyBytes m_buffer;
-            } m_write;
-        } m_data;
-    };
-
     struct ExtendedSystemCallArguments {
         TypeErasedValue arg3;
         TypeErasedValue arg4;
