@@ -17,9 +17,9 @@ namespace Kernel
     class Thread {
     public:
         String m_name;
-        bool m_privileged = false;
-        bool m_die_at_next_opportunity = false;
-        bool m_blocked = false;
+        volatile bool m_privileged = false;
+        volatile bool m_die_at_next_opportunity = false;
+        volatile bool m_blocked = false;
 
         Optional<FullRegisterContext*> m_stashed_context;
         Optional<Process*> m_process;
