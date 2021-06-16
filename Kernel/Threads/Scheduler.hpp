@@ -21,7 +21,7 @@ namespace Kernel
             return *m_active_thread;
         }
 
-        Thread* schedule();
+        Thread& schedule();
 
         void add_thread(Thread& thread)
         {

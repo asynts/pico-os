@@ -34,8 +34,8 @@ namespace Kernel
         });
         Scheduler::the().add_thread(worker_thread);
 
-        Thread& next = *Scheduler::the().schedule();
-        context = &next.unstash_context();
+        Thread& next_thread = Scheduler::the().schedule();
+        context = &next_thread.unstash_context();
 
         return context;
     }

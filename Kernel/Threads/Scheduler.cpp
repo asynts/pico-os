@@ -17,8 +17,8 @@ namespace Kernel
             Thread& active_thread = Scheduler::the().active();
             active_thread.stash_context(*context);
 
-            Thread *next_thread = Scheduler::the().schedule();
-            context = &next_thread->unstash_context();
+            Thread& next_thread = Scheduler::the().schedule();
+            context = &next_thread.unstash_context();
 
             return context;
         }
@@ -50,7 +50,7 @@ namespace Kernel
                         | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
     }
 
-    Thread* Scheduler::schedule()
+    Thread& Scheduler::schedule()
     {
         VERIFY(is_executing_in_handler_mode());
 
@@ -107,7 +107,8 @@ namespace Kernel
 
         setup_mpu(m_active_thread->m_regions);
 
-        return next;
+        VERIFY(next != nullptr);
+        return *next;
     }
 
     void Scheduler::trigger()
