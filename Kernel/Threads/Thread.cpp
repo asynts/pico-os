@@ -66,20 +66,6 @@ namespace Kernel
         if (debug_thread)
             dbgln("[Thread::unblock] '{}' ({})", m_name, this);
         m_blocked = false;
-
-        // FIXME: Clearly define ownership and rearange stuff such that we don't have to
-        //        do crosscutting stuff here
-
-        auto& scheduler = Scheduler::the();
-
-        VERIFY(is_executing_in_thread_mode());
-
-        VERIFY(scheduler.m_queued_threads_lock == nullptr);
-        scheduler.m_queued_threads_lock = this;
-
-        scheduler.m_queued_threads.enqueue(this);
-
-        scheduler.m_queued_threads_lock = nullptr;
     }
 
     i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)
