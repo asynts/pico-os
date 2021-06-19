@@ -23,10 +23,9 @@ namespace Kernel
         thread.block();
         thread.stash_context(*context);
 
-        // FIXME: Memory leak
-        Thread& worker_thread = *new Thread { String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()) };
-        worker_thread.m_privileged = true;
-        worker_thread.setup_context([&thread, context] {
+        auto worker_thread = Thread::construct(String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()));
+        worker_thread->m_privileged = true;
+        worker_thread->setup_context([&thread, context] {
             i32 return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
             thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
 

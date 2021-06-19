@@ -28,14 +28,15 @@ namespace Kernel
     {
         // FIXME: Memory leak
         auto *process = new Process { name };
-        auto& thread = *new Thread { String::format("Process: {}", name) };
 
-        thread.m_process = process;
+        auto thread = Thread::construct(String::format("Process: {}", name));
+
+        thread->m_process = process;
 
         // FIXME: Is this still required?
-        thread.m_privileged = true;
+        thread->m_privileged = true;
 
-        thread.setup_context([arguments, variables, name, elf]() mutable {
+        thread->setup_context([arguments, variables, name, elf]() mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
             auto& process = Process::active();

@@ -1,10 +1,7 @@
 #pragma once
 
 #include <Std/Forward.hpp>
-
-// FIXME: Move constructors
-
-// FIXME: Assignment operators
+#include <Std/Format.hpp>
 
 namespace Std
 {
@@ -26,13 +23,31 @@ namespace Std
         {
             m_pointer = other.m_pointer;
 
-            VERIFY(m_pointer);
-            m_pointer->ref();
+            if (m_pointer)
+                m_pointer->ref();
+        }
+        RefPtr(RefPtr&& other)
+        {
+            m_pointer = exchange(other.m_pointer, nullptr);
         }
         ~RefPtr()
         {
             if (m_pointer)
                 m_pointer->unref();
+        }
+
+        RefPtr& operator=(const RefPtr& other)
+        {
+            m_pointer = other.m_pointer;
+
+            if (m_pointer)
+                m_pointer->ref();
+            return *this;
+        }
+        RefPtr& operator=(RefPtr&& other)
+        {
+            m_pointer = exchange(other.m_pointer, nullptr);
+            return *this;
         }
 
         operator const T*() const { return m_pointer; }
@@ -55,10 +70,19 @@ namespace Std
     template<typename T>
     class RefCounted {
     public:
+        RefCounted() = default;
+        RefCounted(const RefCounted&) = delete;
+        RefCounted(RefCounted&&) = delete;
+
         template<typename... Parameters>
         static RefPtr<T> construct(Parameters&&... parameters)
         {
             return RefPtr<T> { new T { forward<Parameters>(parameters)... } };
+        }
+
+        usize refcount() const
+        {
+            return m_refcount;
         }
 
         void ref()
@@ -78,5 +102,9 @@ namespace Std
 
     private:
         usize m_refcount = 0;
+    };
+
+    template<typename T>
+    struct Formatter<RefPtr<T>> : Formatter<T*> {
     };
 }

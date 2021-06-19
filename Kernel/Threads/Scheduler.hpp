@@ -23,9 +23,9 @@ namespace Kernel
 
         Thread& schedule();
 
-        void add_thread(Thread& thread)
+        void add_thread(RefPtr<Thread> thread)
         {
-            m_queued_threads.enqueue(&thread);
+            m_queued_threads.enqueue(thread);
         }
 
         void loop();
@@ -35,12 +35,12 @@ namespace Kernel
 
         // Any thread that wants to access the queue in thread mode needs to put it's pointer here
         Thread *volatile m_queued_threads_lock = nullptr;
-        CircularQueue<Thread*, 16> m_queued_threads;
+        CircularQueue<RefPtr<Thread>, 16> m_queued_threads;
 
     private:
-        Thread m_default_thread;
+        RefPtr<Thread> m_default_thread;
 
-        Thread *m_active_thread = nullptr;
+        RefPtr<Thread> m_active_thread = nullptr;
 
         friend Singleton<Scheduler>;
         Scheduler();

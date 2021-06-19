@@ -78,4 +78,15 @@ TEST_CASE(refptr_nullptr)
     Tests::Tracker::assert(0, 0, 0, 0);
 }
 
+TEST_CASE(refptr_move)
+{
+    Tests::Tracker::clear();
+
+    auto refptr1 = B::construct();
+    auto refptr2 = move(refptr1);
+
+    VERIFY(refptr1 == nullptr);
+    VERIFY(refptr2->refcount() == 1);
+}
+
 TEST_MAIN();

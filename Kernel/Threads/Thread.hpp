@@ -2,6 +2,7 @@
 
 #include <Std/String.hpp>
 #include <Std/Optional.hpp>
+#include <Std/RefPtr.hpp>
 
 #include <Kernel/Forward.hpp>
 #include <Kernel/PageAllocator.hpp>
@@ -14,7 +15,7 @@ namespace Kernel
 {
     constexpr bool debug_thread = false;
 
-    class Thread {
+    class Thread : public RefCounted<Thread> {
     public:
         String m_name;
         volatile bool m_privileged = false;
@@ -27,7 +28,10 @@ namespace Kernel
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;
 
-        explicit Thread(String name);
+        ~Thread()
+        {
+            dbgln("[Thread::~Thread] m_name='{}'", m_name);
+        }
 
         template<typename Callback>
         void setup_context(Callback&& callback)
@@ -120,6 +124,9 @@ namespace Kernel
             char **envp);
 
     private:
+        friend RefCounted<Thread>;
+        explicit Thread(String name);
+
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);
     };
 }

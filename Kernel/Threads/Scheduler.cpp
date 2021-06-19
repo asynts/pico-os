@@ -33,9 +33,9 @@ namespace Kernel
     }
 
     Scheduler::Scheduler()
-        : m_default_thread("Default Thread (Core 0)")
+        : m_default_thread(Thread::construct("Default Thread (Core 0)"))
     {
-        m_default_thread.setup_context([] {
+        m_default_thread->setup_context([] {
             for (;;) {
                 asm volatile ("wfi");
             }
@@ -53,6 +53,8 @@ namespace Kernel
     Thread& Scheduler::schedule()
     {
         VERIFY(is_executing_in_handler_mode());
+
+        dbgln("[Scheduler::schedule] m_active_thread={} ({})", m_active_thread, m_active_thread->m_name);
 
         // FIXME: Is this sufficent for multiple cores?
         if (m_queued_threads_lock != nullptr) {
@@ -77,12 +79,14 @@ namespace Kernel
             }
         }
 
-        Thread *next;
+        RefPtr<Thread> next;
 
         if (all_threads_blocking) {
-            next = &m_default_thread;
+            next = m_default_thread;
         } else {
             for (;;) {
+                dbgln("[Scheduler::schedule] queued: {} (refcount={})", m_queued_threads.front()->m_name, m_queued_threads.front()->refcount());
+
                 next = m_queued_threads.dequeue();
 
                 if (next->m_blocked) {
@@ -92,6 +96,8 @@ namespace Kernel
                 }
             }
         }
+
+        dbgln("[Scheduler::schedule] next={} ({}) refcount={}", next, next->m_name, next->refcount());
 
         if (debug_scheduler)
             dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
@@ -125,9 +131,9 @@ namespace Kernel
 
     void Scheduler::loop()
     {
-        Thread dummy_thread { "Dummy" };
+        auto dummy_thread = Thread::construct("Dummy");
 
-        dummy_thread.setup_context([] {
+        dummy_thread->setup_context([] {
             Scheduler::the().active().m_die_at_next_opportunity = true;
             Scheduler::the().m_enabled = true;
             Scheduler::the().trigger();
@@ -135,9 +141,9 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         });
 
-        m_active_thread = &dummy_thread;
+        m_active_thread = dummy_thread;
 
-        FullRegisterContext& context = dummy_thread.unstash_context();
+        FullRegisterContext& context = dummy_thread->unstash_context();
 
         u32 control = 0b10;
         asm volatile("msr control, %0;"
