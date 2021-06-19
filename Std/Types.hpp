@@ -30,3 +30,5 @@ static_assert(sizeof(i64) == 8);
 static_assert(sizeof(usize) == sizeof(decltype(sizeof(int))));
 static_assert(sizeof(isize) == sizeof(decltype(sizeof(int))));
 static_assert(sizeof(uptr) == sizeof(void*));
+
+using nullptr_t = decltype(nullptr);

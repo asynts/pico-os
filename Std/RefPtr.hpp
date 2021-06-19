@@ -2,7 +2,9 @@
 
 #include <Std/Forward.hpp>
 
-// FIXME: Implement move, or rather, RefPtr<T>
+// FIXME: Move constructors
+
+// FIXME: Assignment operators
 
 namespace Std
 {
@@ -10,18 +12,27 @@ namespace Std
     class RefCounted;
 
     template<typename T>
-    class NonnullRefPtr {
+    class RefPtr {
     public:
-        ~NonnullRefPtr()
+        RefPtr()
+            : m_pointer(nullptr)
         {
-            m_pointer->unref();
         }
-        NonnullRefPtr(const NonnullRefPtr& other)
+        RefPtr(nullptr_t)
+            : m_pointer(nullptr)
+        {
+        }
+        RefPtr(const RefPtr& other)
         {
             m_pointer = other.m_pointer;
 
             VERIFY(m_pointer);
             m_pointer->ref();
+        }
+        ~RefPtr()
+        {
+            if (m_pointer)
+                m_pointer->unref();
         }
 
         operator const T*() const { return m_pointer; }
@@ -34,7 +45,7 @@ namespace Std
         T *m_pointer;
 
         friend RefCounted<T>;
-        explicit NonnullRefPtr(T *pointer)
+        explicit RefPtr(T *pointer)
             : m_pointer(pointer)
         {
             m_pointer->ref();
@@ -45,9 +56,9 @@ namespace Std
     class RefCounted {
     public:
         template<typename... Parameters>
-        static NonnullRefPtr<T> construct(Parameters&&... parameters)
+        static RefPtr<T> construct(Parameters&&... parameters)
         {
-            return NonnullRefPtr<T> { new T { forward<Parameters>(parameters)... } };
+            return RefPtr<T> { new T { forward<Parameters>(parameters)... } };
         }
 
         void ref()

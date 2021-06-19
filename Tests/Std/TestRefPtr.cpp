@@ -1,13 +1,13 @@
 #include <Tests/TestSuite.hpp>
 
-#include <Std/NonnullRefPtr.hpp>
+#include <Std/RefPtr.hpp>
 
 struct A : Std::RefCounted<A> {
 };
 
 TEST_CASE(refptr)
 {
-    Std::NonnullRefPtr<A> refptr = A::construct();
+    Std::RefPtr<A> refptr = A::construct();
 }
 
 struct B : Tests::Tracker, Std::RefCounted<B> {
@@ -56,7 +56,7 @@ TEST_CASE(refptr_multiple)
         auto refptr1 = B::construct();
 
         {
-            Std::NonnullRefPtr<B> refptr2 = refptr1;
+            Std::RefPtr<B> refptr2 = refptr1;
 
             Tests::Tracker::assert(1, 0, 0, 0);
         }
@@ -65,6 +65,17 @@ TEST_CASE(refptr_multiple)
     }
 
     Tests::Tracker::assert(1, 0, 0, 1);
+}
+
+TEST_CASE(refptr_nullptr)
+{
+    Tests::Tracker::clear();
+
+    {
+        Std::RefPtr<B> refptr;
+    }
+
+    Tests::Tracker::assert(0, 0, 0, 0);
 }
 
 TEST_MAIN();
