@@ -5,14 +5,22 @@
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
     returns `ConsoleFile` instead of the actual file.
 
-  - We sometimes crash in `Process::create` when computing the new region.
-    This appears to be a race condition so the Scheduler is involved?
-
   - I think, `Singleton<T>`s can be copied and moved?
 
   - `Optional<T>` should clear source when moving into other object.
 
-  - Threads should be able to return, or at least self-terminate?
+  - Sometimes we seem to mess something up, this is visible when `ConsoleFileHandle` has an invalid
+    `this` pointer. I reproduced this by running:
+
+    ~~~none
+    Example.elf
+    Example.elf
+    Example.elf
+    Example.elf
+    Example.elf
+    Example.elf
+    Example.elf
+    ~~~
 
 #### Future features
 
