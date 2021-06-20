@@ -27,6 +27,10 @@ namespace Kernel
         worker_thread->m_privileged = true;
         worker_thread->setup_context([&thread, context] {
             i32 return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
+
+            if (context->r0.syscall() == _SC_exit)
+                VERIFY(thread.m_die_at_next_opportunity);
+
             thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
 
             thread.unblock();

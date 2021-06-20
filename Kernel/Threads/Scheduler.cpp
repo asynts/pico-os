@@ -67,7 +67,8 @@ namespace Kernel
 
         bool all_threads_blocking = true;
         for (size_t i = 0; i < m_queued_threads.size(); ++i) {
-            if (!m_queued_threads[i]->m_blocked) {
+            auto& thread = m_queued_threads[i];
+            if (!thread->m_blocked && !thread->m_die_at_next_opportunity) {
                 all_threads_blocking = false;
                 break;
             }
@@ -83,6 +84,8 @@ namespace Kernel
 
                 if (next->m_blocked) {
                     m_queued_threads.enqueue(next);
+                } else if (next->m_die_at_next_opportunity) {
+                    continue;
                 } else {
                     break;
                 }

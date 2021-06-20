@@ -103,6 +103,8 @@ namespace Kernel
                 eargs->arg6.pointer<char*>());
         case _SC_wait:
             return sys$wait(arg1.pointer<i32>());
+        case _SC_exit:
+            return sys$exit(arg1.value<i32>());
         }
 
         FIXME();
@@ -289,5 +291,21 @@ namespace Kernel
                 return terminated_child_process.m_process_id;
             }
         }
+    }
+
+    i32 Thread::sys$exit(i32 status)
+    {
+        dbgln("sys$exit({})", status);
+
+        if (m_process->m_parent) {
+            m_process->m_parent->m_terminated_children.enqueue({ m_process->m_process_id, status });
+            ASSERT(m_process->m_parent->m_terminated_children.size() > 0);
+        }
+
+        m_die_at_next_opportunity = true;
+
+        // We are currently executing in the worker thread. When the worker is done, it will unblock
+        // the thread causing it to terminate and then terminate as well.
+        return -1;
     }
 }

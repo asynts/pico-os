@@ -42,7 +42,6 @@ namespace Kernel
         i32 m_process_id;
         CircularQueue<TerminatedProcess, 8> m_terminated_children;
 
-        i32 sys$exit(i32 status);
         i32 sys$chdir(const char *pathname);
 
     private:

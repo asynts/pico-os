@@ -39,6 +39,7 @@ int sys$wait(int *wstatus)
 void sys$exit(int status)
 {
     syscall(_SC_exit, status, 0, 0);
+    asm volatile("bkpt #0");
     printf("sys$exit returned?\n");
     abort();
 }

@@ -123,25 +123,6 @@ namespace Kernel
         return *process;
     }
 
-    i32 Process::sys$exit(i32 status)
-    {
-        if (m_parent) {
-            m_parent->m_terminated_children.enqueue({ m_process_id, status });
-
-            ASSERT(m_parent->m_terminated_children.size() > 0);
-        }
-
-        FIXME();
-        // Scheduler::the().terminate_active_thread();
-
-        // Since we are in handler mode, we can't instantly terminate but instead
-        // have to leave handler mode for PendSV to fire.
-        //
-        // Returning normally should clean up the stack and should be functionally
-        // equivalent to doing the complex stuff required to terminate instantly.
-        return -1;
-    }
-
     i32 Process::sys$chdir(const char *pathname)
     {
         Path path { pathname };
