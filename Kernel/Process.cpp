@@ -12,7 +12,7 @@ namespace Kernel
     Process& Process::active()
     {
         auto& thread = Scheduler::the().active();
-        return *thread.m_process.must();
+        return thread.m_process.must();
     }
 
     Process& Process::create(StringView name, ElfWrapper elf)
@@ -26,8 +26,7 @@ namespace Kernel
     }
     Process& Process::create(StringView name, ElfWrapper elf, const Vector<String>& arguments, const Vector<String>& variables)
     {
-        // FIXME: Memory leak
-        auto *process = new Process { name };
+        auto process = Process::construct(name);
 
         auto thread = Thread::construct(String::format("Process: {}", name));
 

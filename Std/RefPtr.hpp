@@ -61,6 +61,17 @@ namespace Std
             return *this;
         }
 
+        const T& must() const
+        {
+            VERIFY(m_pointer != nullptr);
+            return *m_pointer;
+        }
+        T& must()
+        {
+            VERIFY(m_pointer != nullptr);
+            return *m_pointer;
+        }
+
         operator const T*() const { return m_pointer; }
         operator T*() { return m_pointer; }
 

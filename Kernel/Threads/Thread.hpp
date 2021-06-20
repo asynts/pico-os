@@ -10,6 +10,7 @@
 #include <Kernel/MPU.hpp>
 #include <Kernel/StackWrapper.hpp>
 #include <Kernel/Interface/Types.hpp>
+#include <Kernel/Process.hpp>
 
 namespace Kernel
 {
@@ -23,7 +24,7 @@ namespace Kernel
         volatile bool m_blocked = false;
 
         Optional<FullRegisterContext*> m_stashed_context;
-        Optional<Process*> m_process;
+        RefPtr<Process> m_process;
 
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;

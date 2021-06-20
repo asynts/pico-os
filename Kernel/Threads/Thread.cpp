@@ -82,7 +82,7 @@ namespace Kernel
 
     i32 Thread::sys$read(i32 fd, u8 *buffer, usize count)
     {
-        auto& handle = m_process.must()->get_file_handle(fd);
+        auto& handle = m_process->get_file_handle(fd);
 
         auto result = handle.read({ buffer, count });
 
@@ -95,7 +95,7 @@ namespace Kernel
 
     i32 Thread::sys$write(i32 fd, const u8 *buffer, usize count)
     {
-        auto& handle = m_process.must()->get_file_handle(fd);
+        auto& handle = m_process->get_file_handle(fd);
 
         auto result = handle.write({ buffer, count });
 

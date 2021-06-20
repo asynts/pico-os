@@ -2,32 +2,15 @@
 
 #include <Std/HashMap.hpp>
 #include <Std/CircularQueue.hpp>
+#include <Std/RefPtr.hpp>
 
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/Loader.hpp>
 
 namespace Kernel
 {
-    class Process {
+    class Process : public RefCounted<Process> {
     public:
-        explicit Process(String name, Optional<LoadedExecutable> executable = {})
-            : m_name(move(name))
-            , m_executable(move(executable))
-        {
-            m_process_id = m_next_process_id++;
-
-            auto& tty_file = FileSystem::lookup("/dev/tty");
-
-            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stdin_fileno == 0);
-
-            i32 stdout_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stdout_fileno == 1);
-
-            i32 stderr_fileno = add_file_handle(tty_file.create_handle());
-            VERIFY(stderr_fileno == 2);
-        }
-
         static Process& active();
 
         static Process& create(StringView name, ElfWrapper);
@@ -82,5 +65,24 @@ namespace Kernel
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
         i32 m_process_id;
+
+        friend RefCounted<Process>;
+        explicit Process(String name, Optional<LoadedExecutable> executable = {})
+            : m_name(move(name))
+            , m_executable(move(executable))
+        {
+            m_process_id = m_next_process_id++;
+
+            auto& tty_file = FileSystem::lookup("/dev/tty");
+
+            i32 stdin_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stdin_fileno == 0);
+
+            i32 stdout_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stdout_fileno == 1);
+
+            i32 stderr_fileno = add_file_handle(tty_file.create_handle());
+            VERIFY(stderr_fileno == 2);
+        }
     };
 }

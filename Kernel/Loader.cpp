@@ -92,30 +92,6 @@ namespace Kernel
         return move(executable);
     }
 
-    LoadedExecutable LoadedExecutable::clone()
-    {
-        LoadedExecutable copy;
-
-        copy.m_writable_size = m_writable_size;
-        copy.m_writable_base = u32(new u8[m_writable_size]);
-        memcpy((void*)copy.m_writable_base, (void*)m_writable_base, m_writable_size);
-
-        copy.m_readonly_size = m_readonly_size;
-        copy.m_readonly_base = m_readonly_base;
-
-        copy.m_entry = copy.m_readonly_base + (m_entry - m_readonly_base);
-
-        copy.m_data_base = copy.m_writable_base + (m_data_base - m_writable_base);
-        copy.m_text_base = copy.m_readonly_base + (m_text_base - m_readonly_base);
-        copy.m_bss_base = copy.m_writable_base + (m_bss_base - m_writable_base);
-
-        copy.m_stack_size = m_stack_size;
-        copy.m_stack_base = u32(new u8[m_stack_size]);
-        memcpy((void*)copy.m_stack_base, (void*)m_stack_base, m_stack_size);
-
-        return copy;
-    }
-
     void setup_mpu(Vector<MPU::Region>& regions)
     {
         // FIXME: We should never have uninitialized regions
