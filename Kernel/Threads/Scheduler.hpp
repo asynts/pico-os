@@ -12,6 +12,7 @@
 namespace Kernel
 {
     constexpr bool debug_scheduler = false;
+    constexpr bool scheduler_slow = false;
 
     class Scheduler : public Singleton<Scheduler> {
     public:

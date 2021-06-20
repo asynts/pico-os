@@ -41,9 +41,10 @@ namespace Kernel
             }
         });
 
-        // FIXME: Figure out a sensitive value, 0x00ffffff is the maximum
-        // FIXME: Check that this is correct
-        systick_hw->rvr = 0x00f00000;
+        if (scheduler_slow)
+            systick_hw->rvr = 0x00f00000;
+        else
+            systick_hw->rvr = 0x000f0000;
 
         systick_hw->csr = 1 << M0PLUS_SYST_CSR_CLKSOURCE_LSB
                         | 1 << M0PLUS_SYST_CSR_TICKINT_LSB
