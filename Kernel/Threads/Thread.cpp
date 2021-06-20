@@ -95,6 +95,8 @@ namespace Kernel
                 eargs->arg4.pointer<const UserlandSpawnAttributes>(),
                 eargs->arg5.pointer<char*>(),
                 eargs->arg6.pointer<char*>());
+        case _SC_wait:
+            return sys$wait(arg1.pointer<i32>());
         }
 
         FIXME();
@@ -268,5 +270,18 @@ namespace Kernel
 
         *pid = new_process.m_process_id;
         return 0;
+    }
+
+    i32 Thread::sys$wait(i32 *status)
+    {
+        // FIXME: Syncronization
+        for (;;) {
+            if (m_process->m_terminated_children.size() > 0) {
+                auto terminated_child_process = m_process->m_terminated_children.dequeue();
+                *status = terminated_child_process.m_status;
+
+                return terminated_child_process.m_process_id;
+            }
+        }
     }
 }

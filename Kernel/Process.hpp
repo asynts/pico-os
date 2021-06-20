@@ -11,6 +11,11 @@ namespace Kernel
 {
     class Process : public RefCounted<Process> {
     public:
+        struct TerminatedProcess {
+            i32 m_process_id;
+            i32 m_status;
+        };
+
         static Process& active();
 
         static Process& create(StringView name, ElfWrapper);
@@ -35,20 +40,13 @@ namespace Kernel
 
         Process *m_parent = nullptr;
         i32 m_process_id;
+        CircularQueue<TerminatedProcess, 8> m_terminated_children;
 
-        i32 sys$wait(i32 *status);
         i32 sys$exit(i32 status);
         i32 sys$chdir(const char *pathname);
 
     private:
         static inline i32 m_next_process_id = 0;
-
-        struct TerminatedProcess {
-            i32 m_process_id;
-            i32 m_status;
-        };
-
-        CircularQueue<TerminatedProcess, 8> m_terminated_children;
 
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;

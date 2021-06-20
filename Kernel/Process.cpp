@@ -121,21 +121,6 @@ namespace Kernel
         return *process;
     }
 
-    i32 Process::sys$wait(i32 *status)
-    {
-        if (m_terminated_children.size() > 0) {
-            auto terminated_child_process = m_terminated_children.dequeue();
-            *status = terminated_child_process.m_status;
-
-            return terminated_child_process.m_process_id;
-        }
-
-        FIXME();
-        // Scheduler::the().donate_my_remaining_cpu_slice();
-
-        return -EINTR;
-    }
-
     i32 Process::sys$exit(i32 status)
     {
         if (m_parent) {
