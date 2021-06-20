@@ -122,24 +122,4 @@ namespace Kernel
 
         return *process;
     }
-
-    i32 Process::sys$chdir(const char *pathname)
-    {
-        Path path { pathname };
-
-        if (!path.is_absolute())
-            path = m_working_directory / path;
-
-        auto file_opt = Kernel::FileSystem::try_lookup(path);
-
-        if (file_opt.is_error())
-            return -file_opt.error();
-
-        if ((file_opt.value()->m_mode & ModeFlags::Format) != ModeFlags::Directory)
-            return -ENOTDIR;
-
-        m_working_directory = path;
-
-        return 0;
-    }
 }

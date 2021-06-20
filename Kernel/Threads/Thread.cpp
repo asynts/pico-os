@@ -105,6 +105,8 @@ namespace Kernel
             return sys$wait(arg1.pointer<i32>());
         case _SC_exit:
             return sys$exit(arg1.value<i32>());
+        case _SC_chdir:
+            return sys$chdir(arg1.cstring());
         }
 
         FIXME();
@@ -307,5 +309,25 @@ namespace Kernel
         // We are currently executing in the worker thread. When the worker is done, it will unblock
         // the thread causing it to terminate and then terminate as well.
         return -1;
+    }
+
+    i32 Thread::sys$chdir(const char *pathname)
+    {
+        Path path { pathname };
+
+        if (!path.is_absolute())
+            path = m_process->m_working_directory / path;
+
+        auto file_opt = Kernel::FileSystem::try_lookup(path);
+
+        if (file_opt.is_error())
+            return -file_opt.error();
+
+        if ((file_opt.value()->m_mode & ModeFlags::Format) != ModeFlags::Directory)
+            return -ENOTDIR;
+
+        m_process->m_working_directory = path;
+
+        return 0;
     }
 }
