@@ -33,10 +33,6 @@ namespace Kernel
         String m_name;
         Optional<LoadedExecutable> m_executable;
 
-        i32 sys$read(i32 fd, u8 *buffer, usize count);
-        i32 sys$write(i32 fd, const u8 *buffer, usize count);
-        i32 sys$open(const char *pathname, u32 flags, u32 mode);
-        i32 sys$close(i32 fd);
         i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
         i32 sys$wait(i32 *status);
         i32 sys$exit(i32 status);

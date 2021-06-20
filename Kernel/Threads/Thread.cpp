@@ -3,6 +3,7 @@
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/HandlerMode.hpp>
+#include <Kernel/FileSystem/MemoryFileSystem.hpp>
 
 namespace Kernel
 {
@@ -75,6 +76,10 @@ namespace Kernel
             return sys$read(arg1.fd(), arg2.pointer<u8>(), arg3.value<usize>());
         case _SC_write:
             return sys$write(arg1.fd(), arg2.pointer<const u8>(), arg3.value<usize>());
+        case _SC_open:
+            return sys$open(arg1.cstring(), arg2.value<u32>(), arg3.value<u32>());
+        case _SC_close:
+            return sys$close(arg1.fd());
         }
 
         FIXME();
@@ -104,5 +109,68 @@ namespace Kernel
         } else {
             return static_cast<i32>(result.value());
         }
+    }
+
+    i32 Thread::sys$open(const char *pathname, u32 flags, u32 mode)
+    {
+        dbgln("[Process::sys$open] pathname={} flags={} mode={}", pathname, flags, mode);
+
+        Path path = pathname;
+
+        if (!path.is_absolute())
+            path = m_process->m_working_directory / path;
+
+        auto file_opt = Kernel::FileSystem::try_lookup(path);
+
+        if (file_opt.is_error()) {
+            if (file_opt.error() == ENOENT && (flags & O_CREAT)) {
+                auto parent_opt = Kernel::FileSystem::try_lookup(path.parent());
+
+                if (parent_opt.is_error()) {
+                    dbgln("[Process::sys$open] error={}", ENOTDIR);
+                    return -ENOTDIR;
+                }
+
+                auto& new_file = *new Kernel::MemoryFile;
+                dynamic_cast<Kernel::VirtualDirectory*>(parent_opt.value())->m_entries.set(path.filename(), &new_file);
+
+                auto& new_handle = new_file.create_handle();
+                return m_process->add_file_handle(new_handle);
+            }
+
+            dbgln("[Process::sys$open] error={}", file_opt.error());
+            return -file_opt.error();
+        }
+
+        VirtualFile *file = file_opt.value();
+
+        if ((flags & O_DIRECTORY)) {
+            if ((file->m_mode & ModeFlags::Format) != ModeFlags::Directory) {
+                dbgln("[Process::sys$open] error={}", ENOTDIR);
+                return -ENOTDIR;
+            }
+        }
+
+        if ((flags & O_TRUNC)) {
+            if ((file->m_mode & ModeFlags::Format) != ModeFlags::Regular) {
+                ASSERT((file->m_mode & ModeFlags::Format) == ModeFlags::Directory);
+                dbgln("[Process::sys$open] error={}", EISDIR);
+                return -EISDIR;
+            }
+
+            file->truncate();
+        }
+
+        auto& handle = file->create_handle();
+        return m_process->add_file_handle(handle);
+    }
+
+    i32 Thread::sys$close(i32 fd)
+    {
+        dbgln("[Process::sys$close] fd={}", fd);
+
+        // FIXME
+
+        return 0;
     }
 }
