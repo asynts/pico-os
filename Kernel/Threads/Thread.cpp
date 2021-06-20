@@ -4,6 +4,7 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/FileSystem/FlashFileSystem.hpp>
 
 namespace Kernel
 {
@@ -71,6 +72,8 @@ namespace Kernel
 
     i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)
     {
+        auto *eargs = arg3.pointer<ExtendedSystemCallArguments>();
+
         switch (syscall) {
         case _SC_read:
             return sys$read(arg1.fd(), arg2.pointer<u8>(), arg3.value<usize>());
@@ -80,6 +83,18 @@ namespace Kernel
             return sys$open(arg1.cstring(), arg2.value<u32>(), arg3.value<u32>());
         case _SC_close:
             return sys$close(arg1.fd());
+        case _SC_fstat:
+            return sys$fstat(arg1.fd(), arg2.pointer<UserlandFileInfo>());
+        case _SC_get_working_directory:
+            return sys$get_working_directory(arg1.pointer<u8>(), arg2.pointer<usize>());
+        case _SC_posix_spawn:
+            return sys$posix_spawn(
+                arg1.pointer<i32>(),
+                arg2.cstring(),
+                eargs->arg3.pointer<const UserlandSpawnFileActions>(),
+                eargs->arg4.pointer<const UserlandSpawnAttributes>(),
+                eargs->arg5.pointer<char*>(),
+                eargs->arg6.pointer<char*>());
         }
 
         FIXME();
@@ -171,6 +186,87 @@ namespace Kernel
 
         // FIXME
 
+        return 0;
+    }
+
+    i32 Thread::sys$fstat(i32 fd, UserlandFileInfo *statbuf)
+    {
+        dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
+
+        auto& handle = m_process->get_file_handle(fd);
+
+        // FIXME: For device files this will be incorrect
+        auto& file = handle.file();
+
+        statbuf->st_dev = file.m_filesystem;
+        statbuf->st_rdev = file.m_device_id;
+        statbuf->st_size = file.m_size;
+        statbuf->st_blksize = 0xdead;
+        statbuf->st_blocks = 0xdead;
+
+        statbuf->st_ino = file.m_ino;
+        statbuf->st_mode = file.m_mode;
+        statbuf->st_uid = file.m_owning_user;
+        statbuf->st_gid = file.m_owning_group;
+
+        return 0;
+    }
+
+    i32 Thread::sys$get_working_directory(u8 *buffer, usize *buffer_size)
+    {
+        auto string = m_process->m_working_directory.string();
+
+        if (string.size() + 1 > *buffer_size) {
+            *buffer_size = string.size() + 1;
+            return -ERANGE;
+        } else {
+            string.strcpy_to({ (char*)buffer, *buffer_size });
+            *buffer_size = string.size() + 1;
+            return 0;
+        }
+    }
+
+    i32 Thread::sys$posix_spawn(
+        i32 *pid,
+        const char *pathname,
+        const UserlandSpawnFileActions *file_actions,
+        const UserlandSpawnAttributes *attrp,
+        char **argv,
+        char **envp)
+    {
+        FIXME_ASSERT(file_actions == nullptr);
+        FIXME_ASSERT(attrp == nullptr);
+
+        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
+
+        Vector<String> arguments;
+        while (*argv != nullptr)
+            arguments.append(*argv++);
+
+        Vector<String> environment;
+        while (*envp != nullptr)
+            arguments.append(*envp++);
+
+        Path path { pathname };
+
+        if (!path.is_absolute())
+            path = m_process->m_working_directory / path;
+
+        HashMap<String, String> system_to_host;
+        system_to_host.set("/bin/Shell.elf", "Userland/Shell.1.elf");
+        system_to_host.set("/bin/Example.elf", "Userland/Example.1.elf");
+        system_to_host.set("/bin/Editor.elf", "Userland/Editor.1.elf");
+
+        auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
+        ElfWrapper elf { file.m_data.data(), system_to_host.get_opt(path.string()).must() };
+
+        auto& new_process = Kernel::Process::create(pathname, move(elf), arguments, environment);
+        new_process.m_parent = m_process;
+        new_process.m_working_directory = m_process->m_working_directory;
+
+        dbgln("[Process::sys$posix_spawn] Created new process PID {} running {}", new_process.m_process_id, path);
+
+        *pid = new_process.m_process_id;
         return 0;
     }
 }

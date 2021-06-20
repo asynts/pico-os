@@ -33,19 +33,12 @@ namespace Kernel
         String m_name;
         Optional<LoadedExecutable> m_executable;
 
-        i32 sys$fstat(i32 fd, UserlandFileInfo *statbuf);
+        Process *m_parent = nullptr;
+        i32 m_process_id;
+
         i32 sys$wait(i32 *status);
         i32 sys$exit(i32 status);
         i32 sys$chdir(const char *pathname);
-        i32 sys$get_working_directory(u8 *buffer, usize *size);
-
-        i32 sys$posix_spawn(
-            i32 *pid,
-            const char *pathname,
-            const UserlandSpawnFileActions *file_actions,
-            const UserlandSpawnAttributes *attrp,
-            char **argv,
-            char **envp);
 
     private:
         static inline i32 m_next_process_id = 0;
@@ -56,11 +49,9 @@ namespace Kernel
         };
 
         CircularQueue<TerminatedProcess, 8> m_terminated_children;
-        Process *m_parent = nullptr;
 
         HashMap<i32, VirtualFileHandle*> m_handles;
         i32 m_next_handle_id = 0;
-        i32 m_process_id;
 
         friend RefCounted<Process>;
         explicit Process(String name, Optional<LoadedExecutable> executable = {})

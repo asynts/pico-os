@@ -20,6 +20,7 @@ namespace Kernel
         const char* cstring() { return pointer<const char>(); }
         i32 fd() { return value<i32>(); }
         i32 pid() { return value<i32>(); }
+        usize size() { return value<usize>(); }
 
         u32 m_storage;
     };

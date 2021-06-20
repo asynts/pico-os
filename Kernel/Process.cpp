@@ -121,29 +121,6 @@ namespace Kernel
         return *process;
     }
 
-    i32 Process::sys$fstat(i32 fd, UserlandFileInfo *statbuf)
-    {
-        dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
-
-        auto& handle = get_file_handle(fd);
-
-        // FIXME: For device files this will be incorrect
-        auto& file = handle.file();
-
-        statbuf->st_dev = file.m_filesystem;
-        statbuf->st_rdev = file.m_device_id;
-        statbuf->st_size = file.m_size;
-        statbuf->st_blksize = 0xdead;
-        statbuf->st_blocks = 0xdead;
-
-        statbuf->st_ino = file.m_ino;
-        statbuf->st_mode = file.m_mode;
-        statbuf->st_uid = file.m_owning_user;
-        statbuf->st_gid = file.m_owning_group;
-
-        return 0;
-    }
-
     i32 Process::sys$wait(i32 *status)
     {
         if (m_terminated_children.size() > 0) {
@@ -196,63 +173,5 @@ namespace Kernel
         m_working_directory = path;
 
         return 0;
-    }
-
-    i32 Process::sys$posix_spawn(
-        i32 *pid,
-        const char *pathname,
-        const UserlandSpawnFileActions *file_actions,
-        const UserlandSpawnAttributes *attrp,
-        char **argv,
-        char **envp)
-    {
-        FIXME_ASSERT(file_actions == nullptr);
-        FIXME_ASSERT(attrp == nullptr);
-
-        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
-
-        Vector<String> arguments;
-        while (*argv != nullptr)
-            arguments.append(*argv++);
-
-        Vector<String> environment;
-        while (*envp != nullptr)
-            arguments.append(*envp++);
-
-        Path path { pathname };
-
-        if (!path.is_absolute())
-            path = m_working_directory / path;
-
-        HashMap<String, String> system_to_host;
-        system_to_host.set("/bin/Shell.elf", "Userland/Shell.1.elf");
-        system_to_host.set("/bin/Example.elf", "Userland/Example.1.elf");
-        system_to_host.set("/bin/Editor.elf", "Userland/Editor.1.elf");
-
-        auto& file = dynamic_cast<FlashFile&>(FileSystem::lookup(path));
-        ElfWrapper elf { file.m_data.data(), system_to_host.get_opt(path.string()).must() };
-
-        auto& new_process = Kernel::Process::create(pathname, move(elf), arguments, environment);
-        new_process.m_parent = this;
-        new_process.m_working_directory = m_working_directory;
-
-        dbgln("[Process::sys$posix_spawn] Created new process PID {} running {}", new_process.m_process_id, path);
-
-        *pid = new_process.m_process_id;
-        return 0;
-    }
-
-    i32 Process::sys$get_working_directory(u8 *buffer, usize *buffer_size)
-    {
-        auto string = m_working_directory.string();
-
-        if (string.size() + 1 > *buffer_size) {
-            *buffer_size = string.size() + 1;
-            return -ERANGE;
-        } else {
-            string.strcpy_to({ (char*)buffer, *buffer_size });
-            *buffer_size = string.size() + 1;
-            return 0;
-        }
     }
 }
