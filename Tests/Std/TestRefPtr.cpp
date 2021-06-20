@@ -89,4 +89,18 @@ TEST_CASE(refptr_move)
     VERIFY(refptr2->refcount() == 1);
 }
 
+TEST_CASE(refptr_assign)
+{
+    Tests::Tracker::clear();
+
+    auto refptr1 = B::construct();
+    auto refptr2 = B::construct();
+
+    Tests::Tracker::assert(2, 0, 0, 0);
+
+    refptr2 = refptr1;
+
+    Tests::Tracker::assert(2, 0, 0, 1);
+}
+
 TEST_MAIN();

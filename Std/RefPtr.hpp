@@ -32,12 +32,21 @@ namespace Std
         }
         ~RefPtr()
         {
+            clear();
+        }
+
+        void clear()
+        {
             if (m_pointer)
                 m_pointer->unref();
+
+            m_pointer = nullptr;
         }
 
         RefPtr& operator=(const RefPtr& other)
         {
+            clear();
+
             m_pointer = other.m_pointer;
 
             if (m_pointer)
@@ -46,6 +55,8 @@ namespace Std
         }
         RefPtr& operator=(RefPtr&& other)
         {
+            clear();
+
             m_pointer = exchange(other.m_pointer, nullptr);
             return *this;
         }
