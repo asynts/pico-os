@@ -67,7 +67,7 @@ namespace Kernel
         String m_host_path;
     };
 
-    LoadedExecutable load_executable_into_memory(ElfWrapper);
+    LoadedExecutable load_executable_into_memory(ElfWrapper, Thread&);
 
     void setup_mpu(Vector<MPU::Region>&);
 

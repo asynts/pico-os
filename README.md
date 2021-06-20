@@ -1,9 +1,5 @@
 ### TODO
 
-#### Next Version
-
-  - Execute system calls outside of interrupt handlers and block threads from scheduling
-
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
@@ -19,6 +15,8 @@
   - Threads should be able to return, or at least self-terminate?
 
 #### Future features
+
+  - Add some license text, like MIT or something?
 
   - Run inside QEMU
 

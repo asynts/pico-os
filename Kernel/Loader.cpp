@@ -8,7 +8,7 @@
 
 namespace Kernel
 {
-    LoadedExecutable load_executable_into_memory(ElfWrapper elf)
+    LoadedExecutable load_executable_into_memory(ElfWrapper elf, Thread& thread)
     {
         PageAllocator::the().dump();
 
@@ -31,9 +31,10 @@ namespace Kernel
         executable.m_readonly_base = elf.base_as_u32() + readonly_segment.p_offset;
 
         executable.m_writable_size = round_to_power_of_two(writable_segment.p_memsz);
-        auto writable_range = PageAllocator::the().allocate(power_of_two(executable.m_writable_size)).must();
-        executable.m_writable_base = writable_range.m_base;
-        VERIFY(writable_range.size() == executable.m_writable_size);
+        auto owned_writable_range = PageAllocator::the().allocate_owned(power_of_two(executable.m_writable_size)).must();
+        executable.m_writable_base = owned_writable_range.m_range->m_base;
+        VERIFY(owned_writable_range.size() == executable.m_writable_size);
+        thread.m_owned_page_ranges.append(move(owned_writable_range));
 
         __builtin_memcpy((u8*)executable.m_writable_base, elf.base() + writable_segment.p_offset, writable_segment.p_filesz);
 
@@ -159,18 +160,22 @@ namespace Kernel
         // FIXME: Free old stack?!
         // FIXME: Make sure to drop the corresponding region as well
 
-        // FIXME: Keep track of new regions?!
-
         asm volatile("msr psp, %0;"
                      "msr control, %1;"
                      "isb;"
                      "mov sb, %2;"
+                     "mov r0, %4;"
+                     "mov r1, %5;"
+                     "mov r2, %6;"
                      "bx %3;"
             :
             : "r"(stack.top()), // FIXME: This is wrong!
               "r"(0b11),
               "r"(executable.m_writable_base),
-              "r"(executable.m_entry)
-            : "sb");
+              "r"(executable.m_entry),
+              "r"(argc),
+              "r"(argv),
+              "r"(envp)
+            : "r0", "r1", "r2", "sb");
     }
 }

@@ -40,7 +40,7 @@ namespace Kernel
 
             auto& process = Process::active();
 
-            process.m_executable = load_executable_into_memory(elf);
+            process.m_executable = load_executable_into_memory(elf, Thread::active());
             auto& executable = process.m_executable.must();
 
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
@@ -61,6 +61,8 @@ namespace Kernel
             int argc = arguments.size();
             char **argv = push_cstring_array(arguments);
             char **envp = push_cstring_array(variables);
+
+            dbgln("[Process::create] argc={} argv={} envp={}", argc, argv, envp);
 
             dbgln("[Process::create] argv:");
             for (char **value = argv; *value; ++value) {

@@ -46,7 +46,6 @@ namespace Kernel
         ReadonlyBytes bytes() const { return m_range->bytes(); }
         Bytes bytes() { return m_range->bytes(); }
 
-    private:
         Optional<PageRange> m_range;
     };
 
