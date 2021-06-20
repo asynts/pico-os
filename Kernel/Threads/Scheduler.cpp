@@ -52,8 +52,6 @@ namespace Kernel
 
     Thread& Scheduler::schedule()
     {
-        dbgln("m_active_thread->refcount()={}", m_active_thread->refcount());
-
         VERIFY(is_executing_in_handler_mode());
 
         if (!m_active_thread->m_die_at_next_opportunity) {

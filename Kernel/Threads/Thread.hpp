@@ -30,7 +30,8 @@ namespace Kernel
 
         ~Thread()
         {
-            dbgln("[Thread::~Thread] m_name='{}'", m_name);
+            if (debug_thread)
+                dbgln("[Thread::~Thread] m_name='{}'", m_name);
         }
 
         template<typename Callback>
