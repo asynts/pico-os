@@ -1,5 +1,7 @@
 ### TODO
 
+**Try setting goals with time estimates**
+
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
@@ -22,6 +24,15 @@
     Example.elf
     ~~~
 
+  - In BSB we had the issue that context switches were not syncronized which
+    caused issues sometimes. Ensure that context switching is properly
+    syncronized.
+
+  - Free loaded executables; we already free stacks of threads we should do
+    this for executables too.
+
+  - Typing very quickly can drop characters, this could be resolved with the DMA feature.
+
 #### Future features
 
   - Add some license text, like MIT or something?
@@ -30,11 +41,17 @@
 
   - Write userland applications in Zig
 
+  - UART with DMA to increase buffer size, this could allow copy+paste into the
+    window
+
 #### Future tweaks (Userland)
 
   - Implement a proper malloc
 
 #### Future tweaks (Kernel)
+
+  - Context switch using PendSV? I think this note refered to context switching
+    in thread mode and if that could utilize the supervisor mode?
 
   - Use RAII to manage `PageRange`s
 
@@ -43,6 +60,12 @@
   - Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
 
   - Setup MPU for supervisor mode
+
+  - HardFault in usermode crashes kernel
+
+  - Stack smash protection with MPU
+
+      - Build with `-fstack-protector`?
 
 #### Future tweaks (Build)
 
@@ -61,8 +84,6 @@
   - Try using LLDB instead of GDB
 
   - Don't leak includes from newlib libc
-
-  - Build with `-fstack-protector`
 
   - Use LLVM/LLD for `FileEmbed`; Not sure what I meant with this, but LLVM
     surely has all the tools buildin that I need
