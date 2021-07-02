@@ -83,4 +83,47 @@ TEST_CASE(optional_moving)
     Tests::Tracker::assert(5, 3, 1, 9);
 }
 
+TEST_CASE(optional_move_clears)
+{
+    Std::Optional<int> opt1 = 42;
+
+    Std::Optional<int> opt2 = move(opt1);
+
+    ASSERT(!opt1.is_valid());
+}
+
+TEST_CASE(optional_rvalue_must_clears)
+{
+    Std::Optional<int> opt1 = 42;
+
+    Std::Optional<int> opt2 = move(opt1).must();
+
+    ASSERT(!opt1.is_valid());
+}
+
+TEST_CASE(optional_does_not_return_dangling_reference)
+{
+    struct A {
+        bool m_initialized = false;
+
+        A() : m_initialized(true) { }
+        ~A()
+        {
+            m_initialized = false;
+        }
+    };
+
+    Std::Optional<A> opt2;
+
+    {
+        Std::Optional<A> opt1 { A{} };
+        opt2 = move(opt1).must();
+
+        ASSERT(!opt1.is_valid());
+    }
+
+    ASSERT(opt2.is_valid());
+    ASSERT(opt2->m_initialized);
+}
+
 TEST_MAIN();
