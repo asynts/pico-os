@@ -2,14 +2,18 @@
 
 **Try setting goals with time estimates**
 
+#### Next Version
+
+-   `Optional<T>` should clear source when moving into other object.
+
+-   In BSB we had the issue that context switches were not syncronized which
+    caused issues sometimes. Ensure that context switching is properly
+    syncronized.
+
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
     returns `ConsoleFile` instead of the actual file.
-
-  - I think, `Singleton<T>`s can be copied and moved?
-
-  - `Optional<T>` should clear source when moving into other object.
 
   - Sometimes we seem to mess something up, this is visible when `ConsoleFileHandle` has an invalid
     `this` pointer. I reproduced this by running:
@@ -23,10 +27,6 @@
     Example.elf
     Example.elf
     ~~~
-
-  - In BSB we had the issue that context switches were not syncronized which
-    caused issues sometimes. Ensure that context switching is properly
-    syncronized.
 
   - Free loaded executables; we already free stacks of threads we should do
     this for executables too.

@@ -6,6 +6,11 @@ namespace Std {
     template<typename T>
     class Singleton {
     public:
+        Singleton(const Singleton&) = delete;
+        Singleton(Singleton&&) = delete;
+
+        Singleton() = default;
+
         static T& the()
         {
             static bool initialized = false;
