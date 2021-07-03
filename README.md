@@ -4,8 +4,6 @@
 
 #### Next Version
 
--   Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
-
 -   Add some license text, like MIT or something?
 
 -   UART with DMA to increase buffer size, this could allow copy+paste into the
