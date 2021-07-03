@@ -31,14 +31,7 @@ namespace Kernel
     }
 
     Scheduler::Scheduler()
-        : m_default_thread(Thread::construct("Default Thread (Core 0)"))
     {
-        m_default_thread->setup_context([] {
-            for (;;) {
-                asm volatile ("wfi");
-            }
-        });
-
         if (scheduler_slow)
             systick_hw->rvr = 0x00f00000;
         else
@@ -122,6 +115,13 @@ namespace Kernel
 
     void Scheduler::loop()
     {
+        m_default_thread = Thread::construct("Default Thread (Core 0)");
+        m_default_thread->setup_context([] {
+            for (;;) {
+                asm volatile ("wfi");
+            }
+        });
+
         auto dummy_thread = Thread::construct("Dummy");
 
         dummy_thread->setup_context([] {
