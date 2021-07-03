@@ -30,6 +30,7 @@ private:
 
 TEST_CASE(singleton)
 {
+    A::initialize();
     A::the();
 }
 

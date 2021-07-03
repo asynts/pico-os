@@ -26,19 +26,19 @@ void create_shell_process()
 
 int main()
 {
-    Kernel::Interrupt::UART::the();
+    Kernel::Interrupt::UART::initialize();
+    Kernel::ConsoleFile::initialize();
 
-    Kernel::ConsoleFile::the();
+    Kernel::PageAllocator::initialize();
+    Kernel::GlobalMemoryAllocator::initialize();
+
+    Kernel::Scheduler::initialize();
 
     dbgln("\e[0;1mBOOT\e[0m");
 
-    Kernel::PageAllocator::the();
-    Kernel::GlobalMemoryAllocator::the();
-    Kernel::Scheduler::the();
-
-    Kernel::MemoryFileSystem::the();
-    Kernel::FlashFileSystem::the();
-    Kernel::DeviceFileSystem::the();
+    Kernel::FlashFileSystem::initialize();
+    Kernel::MemoryFileSystem::initialize();
+    Kernel::DeviceFileSystem::initialize();
 
     dbgln("[main] Creating /example.txt");
     auto& example_file = *new Kernel::MemoryFile;

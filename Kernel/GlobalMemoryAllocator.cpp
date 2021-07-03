@@ -12,7 +12,6 @@ namespace Kernel
     GlobalMemoryAllocator::GlobalMemoryAllocator()
         : MemoryAllocator(allocate_heap())
     {
-        dbgln("[GlobalMemoryAllocator::GlobalMemoryAllocator] Allocated area {}", m_heap);
     }
 }
 
