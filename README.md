@@ -4,8 +4,6 @@
 
 #### Next Version
 
--   Add some license text, like MIT or something?
-
 -   UART with DMA to increase buffer size, this could allow copy+paste into the
     window
 
