@@ -35,7 +35,7 @@ TEST_CASE(memoryallocator)
 
 TEST_CASE(memoryallocator_death_by_a_thousand_cuts)
 {
-    std::array<uint8_t, 0xc0000> heap;
+    std::array<uint8_t, 0xc000> heap;
 
     constexpr usize max_allocations = (heap.size() / 20) - 1;
 
