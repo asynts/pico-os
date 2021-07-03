@@ -4,9 +4,6 @@
 
 #### Next Version
 
--   UART with DMA to increase buffer size, this could allow copy+paste into the
-    window
-
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
@@ -27,8 +24,6 @@
 
   - Free loaded executables; we already free stacks of threads we should do
     this for executables too.
-
-  - Typing very quickly can drop characters, this could be resolved with the DMA feature.
 
 #### Future features
 

@@ -19,7 +19,7 @@ namespace Kernel::Interrupt
         KernelResult<usize> write(ReadonlyBytes);
 
     private:
-        CircularQueue<char, 64> m_input_queue;
+        CircularQueue<char, 1 * KiB> m_input_queue;
 
         friend Singleton<UART>;
         UART();

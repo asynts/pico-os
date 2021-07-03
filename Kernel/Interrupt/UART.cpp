@@ -4,6 +4,9 @@
 #include <hardware/uart.h>
 #include <hardware/gpio.h>
 
+// FIXME: The queue is not protected, we should setup DMA to automatically
+//        write everything into a buffer
+
 namespace Kernel::Interrupt
 {
     UART::UART()
@@ -17,7 +20,7 @@ namespace Kernel::Interrupt
         //        0xff and 0xfc
         uart_getc(uart0);
 
-        uart_set_fifo_enabled(uart0, false);
+        uart_set_fifo_enabled(uart0, true);
 
         irq_set_exclusive_handler(UART0_IRQ, UART::interrupt);
         irq_set_enabled(UART0_IRQ, true);

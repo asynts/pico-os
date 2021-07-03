@@ -26,11 +26,11 @@ void create_shell_process()
 
 int main()
 {
-    Kernel::Interrupt::UART::initialize();
-    Kernel::ConsoleFile::initialize();
-
     Kernel::PageAllocator::initialize();
     Kernel::GlobalMemoryAllocator::initialize();
+
+    Kernel::Interrupt::UART::initialize();
+    Kernel::ConsoleFile::initialize();
 
     Kernel::Scheduler::initialize();
 
