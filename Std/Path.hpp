@@ -93,6 +93,14 @@ namespace Std
             return path;
         }
 
+        Path& operator=(const Path& rhs)
+        {
+            m_is_absolute = rhs.m_is_absolute;
+            m_components = rhs.m_components;
+
+            return *this;
+        }
+
     private:
         bool m_is_absolute;
         Vector<String> m_components;

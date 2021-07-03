@@ -4,8 +4,6 @@
 
 #### Next Version
 
--   Enable compiler warnings.
-
 -   Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
 
 -   Add some license text, like MIT or something?

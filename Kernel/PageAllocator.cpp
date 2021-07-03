@@ -24,8 +24,7 @@ namespace Kernel
 
         // Try to grab as much memory as possible
         for (usize power = max_power; power > 0; --power) {
-            // FIXME: Verify this algorithm
-            if (__HeapLimit - __end__ > 1 << (power + 1)) {
+            if (__HeapLimit - __end__ >= 1 << (power + 1)) {
                 usize size = 1 << power;
 
                 dbgln("[PageAllocator::PageAllocator] Found suitable block size 2^{} = {}", power, size);

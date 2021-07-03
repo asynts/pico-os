@@ -86,7 +86,7 @@ namespace Kernel::MPU
 
         usize power_of_two = __builtin_ctzl(size);
 
-        VERIFY(power_of_two >= 0);
+        VERIFY(power_of_two >= 1);
 
         return power_of_two - 1;
     }

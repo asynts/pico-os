@@ -20,9 +20,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 pico_sdk_init()
 
+# FIXME: This is mostly necessary for the SDK
+set(DISABLE_WARNINGS -Wno-unused-parameter -Wno-type-limits)
+set(DISABLE_CXX_WARNINGS -Wno-reorder -Wno-ignored-qualifiers)
+
 add_library(project_options INTERFACE)
-target_compile_options(project_options INTERFACE -fdiagnostics-color=always -Wall -Werror -O0)
-target_compile_options(project_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-frtti -Wno-reorder>)
+target_compile_options(project_options INTERFACE -fdiagnostics-color=always -Wall ${DISABLE_WARNINGS} -Wextra -Werror -O0)
+target_compile_options(project_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-frtti ${DISABLE_CXX_WARNINGS}>)
 target_include_directories(project_options INTERFACE ${CMAKE_SOURCE_DIR})
 
 add_subdirectory(Userland)
