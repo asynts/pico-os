@@ -4,6 +4,15 @@
 
 #### Next Version
 
+-   Enable compiler warnings.
+
+-   Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
+
+-   Add some license text, like MIT or something?
+
+-   UART with DMA to increase buffer size, this could allow copy+paste into the
+    window
+
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
@@ -29,14 +38,9 @@
 
 #### Future features
 
-  - Add some license text, like MIT or something?
-
   - Run inside QEMU
 
   - Write userland applications in Zig
-
-  - UART with DMA to increase buffer size, this could allow copy+paste into the
-    window
 
 #### Future tweaks (Userland)
 
@@ -51,8 +55,6 @@
 
   - Group `PageRange`s together in `PageAllocator::deallocate`.
 
-  - Provide a shortcut for `Scheduler::the().active_thread()` similar: `Process::current()`.
-
   - Setup MPU for supervisor mode
 
   - HardFault in usermode crashes kernel
@@ -64,8 +66,6 @@
 #### Future tweaks (Build)
 
   - Alignment of `.stack`, `.heap` sections is lost in `readelf`
-
-  - Turn on all sorts of warnings
 
   - C++20 modules
 

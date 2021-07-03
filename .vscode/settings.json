@@ -1,6 +1,9 @@
 {
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
     "cmake.buildDirectory": "${workspaceFolder}/Build/IntelliSense",
     "files.exclude": {
         ".git/": true,
