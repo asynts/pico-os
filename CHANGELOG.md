@@ -4,5 +4,5 @@
 
 -   Choose a license for the project.
 
--   Greatly increase buffer size of UART and enable internal FIFO to
-    allow copy and paste without dropping characters.
+-   Read from UART via DMA to avoid races and to avoid dropping data if
+    input arrives quickly.
