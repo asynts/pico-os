@@ -20,11 +20,11 @@ namespace Kernel
 
         auto& readonly_segment = elf.segments()[0];
         VERIFY(readonly_segment.p_type == PT_LOAD);
-        VERIFY(readonly_segment.p_flags == PF_R | PF_X);
+        VERIFY(readonly_segment.p_flags == (PF_R | PF_X));
 
         auto& writable_segment = elf.segments()[1];
         VERIFY(writable_segment.p_type == PT_LOAD);
-        VERIFY(writable_segment.p_flags == PF_R | PF_W);
+        VERIFY(writable_segment.p_flags == (PF_R | PF_W));
 
         VERIFY(readonly_segment.p_memsz == readonly_segment.p_filesz);
         executable.m_readonly_size = readonly_segment.p_memsz;

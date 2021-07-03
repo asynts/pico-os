@@ -21,8 +21,8 @@ set(CMAKE_CXX_STANDARD 20)
 pico_sdk_init()
 
 add_library(project_options INTERFACE)
-target_compile_options(project_options INTERFACE -fdiagnostics-color=always -Werror -O0)
-target_compile_options(project_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-frtti>)
+target_compile_options(project_options INTERFACE -fdiagnostics-color=always -Wall -Werror -O0)
+target_compile_options(project_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-frtti -Wno-reorder>)
 target_include_directories(project_options INTERFACE ${CMAKE_SOURCE_DIR})
 
 add_subdirectory(Userland)

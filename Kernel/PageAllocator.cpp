@@ -18,12 +18,14 @@ namespace Kernel
         }
 
         // FIXME: We should be able to manage the entire 32 KiB RAM in the page allocator
+        // FIXME: Wait, I thought we had 256 KiB RAM?
 
         dbgln("[PageAllocator::PageAllocator] Trying to find suitable block in {}-{}", __end__, __HeapLimit);
 
         // Try to grab as much memory as possible
         for (usize power = max_power; power > 0; --power) {
-            if (__HeapLimit - __end__ > (1 << power + 1)) {
+            // FIXME: Verify this algorithm
+            if (__HeapLimit - __end__ > 1 << (power + 1)) {
                 usize size = 1 << power;
 
                 dbgln("[PageAllocator::PageAllocator] Found suitable block size 2^{} = {}", power, size);

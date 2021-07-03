@@ -11,6 +11,7 @@
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/Interrupt/UART.hpp>
+#include <Kernel/PageAllocator.hpp>
 
 #include <hardware/structs/mpu.h>
 
@@ -31,6 +32,7 @@ int main()
 
     dbgln("\e[0;1mBOOT\e[0m");
 
+    Kernel::PageAllocator::the();
     Kernel::GlobalMemoryAllocator::the();
     Kernel::Scheduler::the();
 

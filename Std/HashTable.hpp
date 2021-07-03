@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include <Std/SortedSet.hpp>
 #include <Std/Concepts.hpp>
