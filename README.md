@@ -1,7 +1,5 @@
 ### TODO
 
-**Try setting goals with time estimates**
-
 #### Next Version
 
 #### Bugs
@@ -21,9 +19,6 @@
     Example.elf
     Example.elf
     ~~~
-
-  - Free loaded executables; we already free stacks of threads we should do
-    this for executables too.
 
 #### Future features
 
