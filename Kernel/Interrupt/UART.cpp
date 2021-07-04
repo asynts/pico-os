@@ -20,9 +20,9 @@ namespace Kernel::Interrupt
         // The read address is the address of the UART data register which is constant
         channel_config_set_read_increment(&config, false);
 
-        // Write into a ringbuffer with '2^5=32' elements
+        // Write into a ringbuffer with '2^buffer_power=buffer_size' elements
         channel_config_set_write_increment(&config, true);
-        channel_config_set_ring(&config, true, 5);
+        channel_config_set_ring(&config, true, buffer_power);
 
         // The UART signals when data is avaliable
         channel_config_set_dreq(&config, DREQ_UART0_RX);
@@ -60,7 +60,7 @@ namespace Kernel::Interrupt
     KernelResult<usize> UART::read(Bytes bytes)
     {
         usize index;
-        for (index = 0; index < input_buffer_size(); ++index) {
+        for (index = 0; index < min(input_buffer_size(), bytes.size()); ++index) {
             bytes[index] = m_input_buffer->bytes()[input_buffer_consume_offset()];
             ++m_input_buffer_consume_offset_raw;
         }
