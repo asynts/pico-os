@@ -7,27 +7,33 @@
 # include <iostream>
 #elif defined(KERNEL)
 # include <Kernel/ConsoleDevice.hpp>
-# include <Kernel/Threads/Scheduler.hpp>
+# include <Kernel/KernelMutex.hpp>
 #else
 # error "Only TEST and KERNEL are supported"
 #endif
 
 namespace Std
 {
+#ifdef KERNEL
+    static Kernel::KernelMutex dbgln_mutex;
+#endif
+
     void dbgln_raw(StringView str)
     {
 #ifdef TEST
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #else
-        Kernel::SchedulerGuard guard;
-
         StringBuilder builder;
         builder.append("\e[36m");
         builder.append(str);
         builder.append("\e[0m\n");
 
+        dbgln_mutex.lock();
+
         Kernel::ConsoleFileHandle handle;
         handle.write(builder.view().bytes());
+
+        dbgln_mutex.unlock();
 #endif
     }
 

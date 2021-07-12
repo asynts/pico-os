@@ -16,6 +16,11 @@ namespace Kernel
 
     class Scheduler : public Singleton<Scheduler> {
     public:
+        Thread* active_thread_if_avaliable()
+        {
+            return m_active_thread;
+        }
+
         Thread& active()
         {
             VERIFY(m_active_thread != nullptr);
@@ -43,28 +48,5 @@ namespace Kernel
 
         friend Singleton<Scheduler>;
         Scheduler();
-    };
-
-    class SchedulerGuard {
-    public:
-        SchedulerGuard()
-        {
-            m_was_enabled = exchange(Scheduler::the().m_enabled, false);
-        }
-        SchedulerGuard(const SchedulerGuard&) = delete;
-        SchedulerGuard(SchedulerGuard&& other)
-        {
-            m_was_enabled = exchange(other.m_was_enabled, {});
-        }
-        ~SchedulerGuard()
-        {
-            if (m_was_enabled.is_valid()) {
-                VERIFY(!Scheduler::the().m_enabled);
-                Scheduler::the().m_enabled = m_was_enabled.value();
-            }
-        }
-
-    private:
-        Optional<bool> m_was_enabled;
     };
 }

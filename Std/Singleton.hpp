@@ -31,6 +31,11 @@ namespace Std
             new (m_instance) T;
         }
 
+        static bool is_initialized()
+        {
+            return m_initialized;
+        }
+
         static T& the()
         {
             VERIFY(m_initialized);

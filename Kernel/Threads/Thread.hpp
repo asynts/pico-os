@@ -64,6 +64,7 @@ namespace Kernel
                 if (debug_thread)
                     dbgln("[Thread::setup_context::lambda] Thread '{}' ({}) returned", this->m_name, this);
 
+                // FIXME: This is suboptimal
                 this->m_die_at_next_opportunity = true;
                 for (;;) {
                     asm volatile("wfi");
