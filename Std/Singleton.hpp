@@ -23,12 +23,13 @@ namespace Std
 
         Singleton() = default;
 
-        static void initialize()
+        template<typename... Parameters>
+        static void initialize(Parameters&&... parameters)
         {
             VERIFY(!m_initialized);
 
             m_initialized = true;
-            new (m_instance) T;
+            new (m_instance) T { forward<Parameters>(parameters)... };
         }
 
         static bool is_initialized()
