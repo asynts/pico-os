@@ -44,6 +44,7 @@ namespace Kernel
 
         auto thread = Kernel::Thread::construct("Kernel (boot_with_scheduler)");
         thread->setup_context(boot_with_scheduler);
+        thread->m_privileged = true;
 
         Kernel::Scheduler::the().add_thread(thread);
         Kernel::Scheduler::the().loop();
