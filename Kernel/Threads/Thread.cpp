@@ -56,18 +56,30 @@ namespace Kernel
         m_stashed_context = stack_wrapper.push_value(context);
     }
 
-    void Thread::block()
+    void Thread::mark_blocked()
     {
-        if (debug_thread)
-            dbgln("[Thread::block] '{}' ({})", m_name, this);
         m_blocked = true;
     }
 
-    void Thread::unblock()
+    void Thread::mark_unblocked()
     {
-        if (debug_thread)
-            dbgln("[Thread::unblock] '{}' ({})", m_name, this);
         m_blocked = false;
+    }
+
+    void Thread::block()
+    {
+        VERIFY(&Scheduler::the().active() == this);
+
+        m_blocked = true;
+        Scheduler::the().trigger();
+    }
+
+    void Thread::wakeup()
+    {
+        VERIFY(&Scheduler::the().active() != this);
+
+        m_blocked = false;
+        Scheduler::the().add_thread(*this);
     }
 
     Thread& Thread::active()

@@ -20,7 +20,7 @@ namespace Kernel
 
         auto& thread = Scheduler::the().active();
 
-        thread.block();
+        thread.mark_blocked();
         thread.stash_context(*context);
 
         auto worker_thread = Thread::construct(String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()));
@@ -33,7 +33,7 @@ namespace Kernel
 
             thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
 
-            thread.unblock();
+            thread.mark_unblocked();
         });
         Scheduler::the().add_thread(worker_thread);
 

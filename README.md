@@ -5,9 +5,11 @@
 -   Context switch using PendSV? I think this note refered to context switching
     in thread mode and if that could utilize the supervisor mode?
 
--   Use RAII to manage `PageRange`s
-
 -   Group `PageRange`s together in `PageAllocator::deallocate`.
+
+-   Add passive locking primitives
+
+-   Add active locking primitives
 
 #### Bugs
 

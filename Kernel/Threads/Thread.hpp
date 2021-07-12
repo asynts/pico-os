@@ -104,8 +104,12 @@ namespace Kernel
             return context;
         }
 
+        // FIXME: Get rid of this?
+        void mark_blocked();
+        void mark_unblocked();
+
         void block();
-        void unblock();
+        void wakeup();
 
         i32 syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);
 

@@ -19,6 +19,11 @@ namespace Std
             : m_pointer(nullptr)
         {
         }
+        RefPtr(T& other)
+            : m_pointer(&other)
+        {
+            m_pointer->ref();
+        }
         RefPtr(const RefPtr& other)
         {
             m_pointer = other.m_pointer;
@@ -33,6 +38,11 @@ namespace Std
         ~RefPtr()
         {
             clear();
+        }
+
+        bool is_null() const
+        {
+            return m_pointer == nullptr;
         }
 
         void clear()
