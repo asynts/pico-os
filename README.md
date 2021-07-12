@@ -2,6 +2,13 @@
 
 #### Next Version
 
+-   Context switch using PendSV? I think this note refered to context switching
+    in thread mode and if that could utilize the supervisor mode?
+
+-   Use RAII to manage `PageRange`s
+
+-   Group `PageRange`s together in `PageAllocator::deallocate`.
+
 #### Bugs
 
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
@@ -31,13 +38,6 @@
   - Implement a proper malloc
 
 #### Future tweaks (Kernel)
-
-  - Context switch using PendSV? I think this note refered to context switching
-    in thread mode and if that could utilize the supervisor mode?
-
-  - Use RAII to manage `PageRange`s
-
-  - Group `PageRange`s together in `PageAllocator::deallocate`.
 
   - Setup MPU for supervisor mode
 
