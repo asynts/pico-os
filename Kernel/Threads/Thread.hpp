@@ -73,6 +73,8 @@ namespace Kernel
             using CallbackContainer = decltype(callback_container);
 
             u8 *callback_container_on_stack = stack_wrapper.reserve(sizeof(CallbackContainer));
+
+            // FIXME: We hardfault right here, it seems that 'callback_container_on_stack' makes no sense
             new (callback_container_on_stack) CallbackContainer { move(callback_container) };
 
             void (*callback_container_wrapper)(void*) = type_erased_member_function_wrapper<CallbackContainer, &CallbackContainer::operator()>;

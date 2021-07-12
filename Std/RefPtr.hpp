@@ -53,6 +53,9 @@ namespace Std
             m_pointer = nullptr;
         }
 
+        const T* ptr() const { return m_pointer; }
+        T* ptr() { return m_pointer; }
+
         RefPtr& operator=(const RefPtr& other)
         {
             clear();

@@ -35,6 +35,8 @@ namespace Kernel
         // FIXME: Is this still required?
         thread->m_privileged = true;
 
+        // FIXME: We seem to crash when the move constructors run. I suspect that the 'this' pointer of the lambda is incorrect
+        __breakpoint();
         thread->setup_context([arguments, variables, name, elf]() mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
