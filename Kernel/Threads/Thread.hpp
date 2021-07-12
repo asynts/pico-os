@@ -40,7 +40,7 @@ namespace Kernel
         template<typename Callback>
         void setup_context(Callback&& callback)
         {
-            auto& stack = m_owned_page_ranges.append(PageAllocator::the().allocate_owned(PageAllocator::stack_power).must());
+            auto& stack = m_owned_page_ranges.append(PageAllocator::the().allocate(PageAllocator::stack_power).must());
 
             auto& stack_region = m_regions.append({});
             stack_region.rbar.region = 0;

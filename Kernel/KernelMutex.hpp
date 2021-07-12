@@ -33,7 +33,7 @@ namespace Kernel
             if (m_holding_thread.is_null()) {
                 m_holding_thread = active_thread;
             } else {
-                m_waiting_threads.enqueue(active_thread)
+                m_waiting_threads.enqueue(active_thread);
                 active_thread.block();
             }
         }
@@ -48,7 +48,7 @@ namespace Kernel
                 FIXME_ASSERT(m_holding_thread.is_null());
                 m_holding_thread = next_thread;
 
-                m_holding_thread->unblock();
+                m_holding_thread->wakeup();
             }
         }
 

@@ -61,60 +61,8 @@ namespace Kernel
         static constexpr usize max_power = 18;
         static constexpr usize stack_power = power_of_two(0x800);
 
-        Optional<PageRange> allocate(usize power)
-        {
-            usize size = 1 << power;
-
-            if (debug_page_allocator)
-                dbgln("[PageAllocator::allocate] power={}", power);
-
-            ASSERT(power <= max_power);
-
-            if (m_blocks[power] != nullptr) {
-                uptr base = reinterpret_cast<uptr>(m_blocks[power]);
-
-                if (debug_page_allocator)
-                    dbgln("[PageAllocator::allocate] Found suitable block {}", base);
-
-                m_blocks[power] = m_blocks[power]->m_next;
-                return PageRange { power, base };
-            }
-
-            ASSERT(power < max_power);
-
-            auto block_opt = allocate(power + 1);
-            if (!block_opt.is_valid()) {
-                return {};
-            }
-            auto block = block_opt.value();
-
-            deallocate(PageRange{ power, block.m_base + size });
-
-            return PageRange { power, block.m_base };
-        }
-
-        // FIXME: Remove the other method
-        Optional<OwnedPageRange> allocate_owned(usize power)
-        {
-            auto range_opt = allocate(power);
-
-            if (range_opt.is_valid())
-                return OwnedPageRange { range_opt.value() };
-            else
-                return {};
-        }
-
-        void deallocate(PageRange range)
-        {
-            if (debug_page_allocator)
-                dbgln("[PageAllocator::deallocate] power={} base={}", range.m_power, range.m_base);
-
-            ASSERT(range.m_power <= max_power);
-
-            auto *block_ptr = reinterpret_cast<Block*>(range.m_base);
-            block_ptr->m_next = m_blocks[range.m_power];
-            m_blocks[range.m_power] = block_ptr;
-        }
+        Optional<OwnedPageRange> allocate(usize power);
+        void deallocate(OwnedPageRange&);
 
         void dump()
         {
@@ -129,6 +77,9 @@ namespace Kernel
     private:
         friend Singleton<PageAllocator>;
         PageAllocator();
+
+        Optional<PageRange> allocate_locked(usize power);
+        void deallocate_locked(PageRange);
 
         // There is quite a bit of trickery going on here:
         //
