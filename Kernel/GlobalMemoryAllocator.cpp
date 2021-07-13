@@ -10,7 +10,7 @@ namespace Kernel
 
     Bytes GlobalMemoryAllocator::allocate_heap()
     {
-        m_heap = PageAllocator::the().allocate(power_of_two(0x2000)).must();
+        m_heap = PageAllocator::the().allocate(power_of_two(0x4000)).must();
         return m_heap->bytes();
     }
 }

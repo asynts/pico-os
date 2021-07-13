@@ -13,6 +13,8 @@
 
 #### Bugs
 
+-   We have a ton of memory leaks in the filesystem, e.g. `VirtualFile::create_handle_impl`.
+
   - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
     returns `ConsoleFile` instead of the actual file.
 
@@ -30,6 +32,8 @@
     ~~~
 
 #### Future features
+
+-   Add `MemoryAllocator::allocate_eternal` which doesn't create MTRACE logs
 
   - Run inside QEMU
 
