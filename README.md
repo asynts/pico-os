@@ -33,6 +33,11 @@
 
 #### Future features
 
+-   Keep track of 'used' page ranges. There is an excelent algorithm that can be used to store these bits
+    in a very compact tree structure.
+
+-   Maybe I could port the Minix filesystem when I add an IDE driver?
+
 -   Keep documentation about interrupt safe functions and which functions can be called in which boot stage
 
 -   Add `MemoryAllocator::allocate_eternal` which doesn't create MTRACE logs
