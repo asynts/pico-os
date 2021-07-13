@@ -3,15 +3,15 @@
 
 namespace Kernel
 {
-    static Bytes allocate_heap()
-    {
-        auto range = PageAllocator::the().allocate(power_of_two(0x2000)).must();
-        return range.bytes();
-    }
-
     GlobalMemoryAllocator::GlobalMemoryAllocator()
         : MemoryAllocator(allocate_heap())
     {
+    }
+
+    Bytes GlobalMemoryAllocator::allocate_heap()
+    {
+        m_heap = PageAllocator::the().allocate(power_of_two(0x2000)).must();
+        return m_heap->bytes();
     }
 }
 

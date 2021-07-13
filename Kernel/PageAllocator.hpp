@@ -9,7 +9,7 @@
 
 namespace Kernel
 {
-    constexpr bool debug_page_allocator = false;
+    inline bool debug_page_allocator = false;
 
     struct PageRange {
         usize m_power;
@@ -64,13 +64,12 @@ namespace Kernel
         Optional<OwnedPageRange> allocate(usize power);
         void deallocate(OwnedPageRange&);
 
+        // FIXME: Syncronize
         void dump()
         {
-            if (debug_page_allocator) {
-                dbgln("[PageAllocator] blocks:");
-                for (usize power = 0; power < max_power; ++power) {
-                    dbgln("  [{}]: {}", power, m_blocks[power]);
-                }
+            dbgln("[PageAllocator] blocks:");
+            for (usize power = 0; power < max_power; ++power) {
+                dbgln("  [{}]: {}", power, m_blocks[power]);
             }
         }
 

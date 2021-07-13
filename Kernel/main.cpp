@@ -17,6 +17,8 @@
 
 #include <Kernel/MPU.hpp>
 
+// FIXME: Remove 'Kernel::' prefixes
+
 namespace Kernel
 {
     // FIXME: Clean this up

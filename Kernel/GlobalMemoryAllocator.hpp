@@ -4,6 +4,7 @@
 #include <Std/MemoryAllocator.hpp>
 
 #include <Kernel/Forward.hpp>
+#include <Kernel/PageAllocator.hpp>
 
 namespace Kernel
 {
@@ -14,5 +15,9 @@ namespace Kernel
     private:
         friend Singleton<GlobalMemoryAllocator>;
         GlobalMemoryAllocator();
+
+        Optional<OwnedPageRange> m_heap;
+
+        Bytes allocate_heap();
     };
 }
