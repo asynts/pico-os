@@ -2,9 +2,6 @@
 
 #### Next Version
 
--   Context switch using PendSV? I think this note refered to context switching
-    in thread mode and if that could utilize the supervisor mode?
-
 -   Group `PageRange`s together in `PageAllocator::deallocate`.
 
 -   Add passive locking primitives
@@ -82,6 +79,69 @@
   - GDB apparently has a secret 'proc' command that makes it possible to debug
     multiple processes.  This was mentioned in the DragonFlyBSD documentation,
     keyword: "inferiour"
+
+### Development Environment
+
+ 1. Install required packages:
+
+    ```none
+    pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt
+    ```
+
+ 2. Install TIO from AUR:
+
+    ```none
+    cdm ~/src/aur.archlinux.org
+    git clone --depth 1 https://aur.archlinux.org/tio.git
+    cd tio
+    makepkg --install
+    ```
+
+ 3. Build `openocd`:
+
+    ```none
+    cdm ~/src/github.com/raspberrypi
+    git clone --branch picoprobe --depth 1 git@github.com:raspberrypi/openocd.git
+    cd openocd
+    ./bootstrap
+    CFLAGS=-Wno-error ./configure --enable-picoprobe
+    make -j24
+    sudo make install
+    ```
+
+ 4. Build `pico-sdk`:
+
+    ```none
+    cdm ~/dev
+    git clone --branch tweaks git@github.com:asynts/pico-sdk.git
+    ```
+
+ 4. Build the project with:
+
+    ```none
+    cdm Build
+    cmake .. -GNinja -DPICO_SDK_PATH=~/dev/pico-sdk
+    ninja
+    ```
+
+ 4. Connect Raspberry Pi Pico.  The scripts expect two Raspberry devices where
+    one is used for debugging and the other runs the operating system. There
+    needs to be a UART connection from the debugee to the debugger.
+
+    The debugger runs the picoprobe firmware.
+
+ 5. Run `inv probe` to start up `openocd`.
+
+ 6. Run `inv tty`, this will be the shell into the target system.
+
+ 7. Run `inv dbg`, this will be used for debugging and to load the application.
+
+### Running the System
+
+ 1. In the debugger terminal, run `rebuild`.
+
+ 2. `run` will start the system.  The shell is accessible in the `inv tty`
+    terminal.
 
 ### Helpful Documentation
 

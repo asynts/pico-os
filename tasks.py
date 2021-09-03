@@ -56,41 +56,4 @@ def tty(c):
 
 @invoke.task
 def backup(c):
-    # FIXME: Ugh, I should switch to using ruby for scripts or something like it
-    backup_script = tempfile.NamedTemporaryFile(suffix=".sh")
-    backup_script.write(f"""
-set -e
-
-working_directory=$(mktemp -d)
-cd "$working_directory"
-
-echo "Working in directory $(pwd)"
-
-# FIXME: This is pretty hack-ish
-cat > script.py <<EOF
-import time
-print(f"{time.time_ns():016x}")
-EOF
-
-echo "Generated script"
-
-local_filename=$(date "+%Y-%m-%d_$(python script.py)_bsb.gitbundle")
-
-git clone --bare "git@scm.sra.uni-hannover.de:source/v_bsb21_group26.git" repo
-
-echo "Downloaded to ."
-
-(cd repo && git bundle create "../$local_filename" --all)
-
-echo "Generated bundle $local_filename"
-
-remote_filename="s3://backup.asynts.com/git/bsb/$local_filename"
-
-aws s3 cp "$local_filename" "$remote_filename"
-
-echo "Uploaded to $remote_filename"
-""".encode())
-
-@invoke.task
-def backup(c):
     c.run("~/dev/scripts/backup.rb --name 'pico-os' --url 'git@github.com:asynts/os' --upload 's3://backup.asynts.com/git/pico-os'")
