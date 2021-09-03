@@ -10,9 +10,9 @@ namespace Std
 
         usize heap_size() const { return m_heap.size(); }
 
-        u8* allocate(usize, bool debug_override = true, void *address = nullptr);
-        void deallocate(u8*, bool debug_override = true, void *address = nullptr);
-        u8* reallocate(u8*, usize, bool debug_override = true, void *address = nullptr);
+        virtual u8* allocate(usize, bool debug_override = true, void *address = nullptr);
+        virtual void deallocate(u8*, bool debug_override = true, void *address = nullptr);
+        virtual u8* reallocate(u8*, usize, bool debug_override = true, void *address = nullptr);
 
         void dump()
         {

@@ -11,6 +11,7 @@
 # include <cstdlib>
 #elif defined(KERNEL)
 # include <Kernel/ConsoleDevice.hpp>
+# include <Kernel/HandlerMode.hpp>
 #endif
 
 namespace Std
@@ -21,7 +22,12 @@ namespace Std
         std::cerr << std::string_view { value.data(), value.size() };
 #elif defined(KERNEL)
         Kernel::ConsoleFileHandle handle;
+
+        // We do not aquire a mutex here, because the system may not work at
+        // this point.
+        bool were_interrupts_enabled = Kernel::disable_interrupts();
         handle.write(value.bytes());
+        Kernel::restore_interrupts(were_interrupts_enabled);
 #endif
     }
     static void write_output(usize value)
@@ -34,7 +40,11 @@ namespace Std
         StringBuilder builder;
         builder.appendf("{}", value);
 
+        // We do not aquire a mutex here, because the system may not work at
+        // this point.
+        bool were_interrupts_enabled = Kernel::disable_interrupts();
         handle.write(builder.bytes());
+        Kernel::restore_interrupts(were_interrupts_enabled);
 #endif
     }
 

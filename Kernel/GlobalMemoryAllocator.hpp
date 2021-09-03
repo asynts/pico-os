@@ -8,10 +8,15 @@
 
 namespace Kernel
 {
-    class GlobalMemoryAllocator
+    class GlobalMemoryAllocator final
         : public Singleton<GlobalMemoryAllocator>
         , public MemoryAllocator
     {
+    public:
+        u8* allocate(usize, bool debug_override = true, void *address = nullptr) override;
+        void deallocate(u8*, bool debug_override = true, void *address = nullptr) override;
+        u8* reallocate(u8*, usize, bool debug_override = true, void *address = nullptr) override;
+
     private:
         friend Singleton<GlobalMemoryAllocator>;
         GlobalMemoryAllocator();
