@@ -6,17 +6,20 @@
 #include <Kernel/Process.hpp>
 #include <Kernel/FileSystem/FileSystem.hpp>
 #include <Kernel/Interface/Types.hpp>
+#include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
 
 namespace Kernel
 {
-    constexpr bool debug_syscall = false;
+    constexpr bool debug_syscall = true;
 
     extern "C"
     FullRegisterContext* syscall(FullRegisterContext *context)
     {
-        if (debug_syscall)
+        if (debug_syscall) {
             dbgln("[syscall] syscall={}", context->r0.syscall());
+            GlobalMemoryAllocator::the().dump();
+        }
 
         auto& thread = Scheduler::the().active();
 

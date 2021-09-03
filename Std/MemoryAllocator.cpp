@@ -51,6 +51,8 @@ namespace Std
             previous = entry;
         }
 
+        dump();
+
         VERIFY_NOT_REACHED();
     }
 
