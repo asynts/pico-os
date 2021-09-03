@@ -15,7 +15,6 @@ namespace Kernel
 
         return ipsr == 0;
     }
-
     inline bool is_executing_in_handler_mode()
     {
         return !is_executing_in_thread_mode();
@@ -39,6 +38,33 @@ namespace Kernel
             : "=r"(control));
 
         return (control & 1) == 0;
+    }
+
+    // XXX Verify that these functions work.
+    inline bool are_interrupts_enabled()
+    {
+        u32 primask;
+        asm volatile("mrs %0, primask;"
+            : "=r"(primask));
+        return primask;
+    }
+    inline bool disable_interrupts()
+    {
+        if (are_interrupts_enabled()) {
+            asm volatile("cpsid i;");
+            return true;
+        }
+
+        return false;
+    }
+    inline void enable_interrupts()
+    {
+        asm volatile("cpsie i;");
+    }
+    inline void restore_interrupts(bool were_enabled)
+    {
+        if (were_enabled)
+            enable_interrupts();
     }
 
     // FIXME: Some of this code is redundant with the scheduler
