@@ -42,6 +42,9 @@ namespace Kernel
 
         dbgln("\e[0;1mBOOT\e[0m");
 
+        Kernel::GlobalMemoryAllocator::the().dump();
+        GlobalMemoryAllocator::the().m_debug = true;
+
         Kernel::Scheduler::initialize();
 
         auto thread = Kernel::Thread::construct("Kernel (boot_with_scheduler)");
