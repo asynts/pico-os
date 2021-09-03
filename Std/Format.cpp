@@ -8,6 +8,7 @@
 #elif defined(KERNEL)
 # include <Kernel/ConsoleDevice.hpp>
 # include <Kernel/KernelMutex.hpp>
+# include <Kernel/HandlerMode.hpp>
 #else
 # error "Only TEST and KERNEL are supported"
 #endif
@@ -16,10 +17,28 @@ namespace Std
 {
 #ifdef KERNEL
     static Kernel::KernelMutex dbgln_mutex;
+    static volatile int dbgln_called_in_interrupt = 0;
 #endif
 
     void dbgln_raw(StringView str)
     {
+#ifdef KERNEL
+        // XXX This is not atomic, on Cortex-M0 this is not trivial to
+        //     implement.
+        if (Kernel::is_executing_in_handler_mode()) {
+            dbgln_called_in_interrupt = dbgln_called_in_interrupt + 1;
+
+            // In handler mode, we can not ensure syncronization.
+            return;
+        } else if (dbgln_called_in_interrupt) {
+            int dbgln_called_in_interrupt_backup = dbgln_called_in_interrupt;
+            dbgln_called_in_interrupt = 0;
+
+            dbgln("[dbgln] dropped {} messages from handler mode", dbgln_called_in_interrupt_backup);
+        }
+#endif
+
+
 #ifdef TEST
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #else
