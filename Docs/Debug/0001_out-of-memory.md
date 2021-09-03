@@ -20,6 +20,9 @@ After startup, we print out the shell prompt and then run out of memory.
     This is not ok, because the implementation is not able to deal with
     interrupts.
 
+-   Now we end up in the default thread with interrupts disabled, this is
+    debugged in `0003`.
+
 ### Ideas
 
 -   Try running the test suite.
@@ -28,22 +31,13 @@ After startup, we print out the shell prompt and then run out of memory.
 
 -   Go through the commit history.
 
--   XXX Can we avoid allocating in interrupts?
-
--   XXX We could push another stack frame and then return from the interrupt
-    prematurely.  This will be insecure if this part is writable by another
-    thread in the same process, but we are not there yet.
-
 ### Theories
 
 -   Maybe we allocate from an interrupt handler and this is an syncronization
     issue.
 
--   We have some sort of race condition and my very fast computer runs into it
-    consistently.
+### Approach
 
--   There is something that allocates stuff in an infinite loop.
+-   We systematically syncronize with `PRIMASK` and a mutex.
 
--   We do not have enough memory avaliable because of `pico-sdk`.
-
--   In deallocate, we sometimes drop tons of memory.
+    3480fc7d289248d9fc5359ec5ca4ada12fdcb11b
