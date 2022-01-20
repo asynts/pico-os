@@ -10,8 +10,9 @@ import struct
 import elftools.elf.elffile
 
 def main(input_filename, output_filename):
-    with open(output_filename, "wb+") as output_file:
+    with open(output_filename, "wb") as output_file:
         with open(input_filename, "rb") as input_file:
+            # First, we copy the input file into the output file.
             output_file.write(input_file.read())
 
             input_file.seek(0)
@@ -22,17 +23,17 @@ def main(input_filename, output_filename):
             target_section = elf_file.get_section_by_name(".boot_2_flash_second_stage")
             assert target_section.data_size == 256
 
+            # We read the contents of the boot section into a buffer.
             data = bytearray(target_section.data())
 
+            # We insert the checksum into the buffer.
             checksum = zlib.crc32(data)
             data[-4:] = struct.pack("<I", checksum)
 
-            header_size = target_section.structs.Elf_Chdr.sizeof()
-            offset = target_section["sh_offset"] + header_size
+            offset = target_section["sh_offset"]
 
+            # We write the buffer into the output file.
             output_file.seek(offset)
-
-            # FIXME: I don't think we replace here.
             output_file.write(data)
 
 if __name__ == "__main__":

@@ -13,5 +13,4 @@ LDFLAGS=""
 python3 scripts/checksum.py build/boot_2_flash_second_stage.S.o build/boot_2_flash_second_stage.with-checksum.o
 
 "$LD" $LDFLAGS -o build/system.elf -T link.ld \
-    build/boot_2_flash_second_stage.S.o
-#    build/boot_2_flash_second_stage.with-checksum.o
+    build/boot_2_flash_second_stage.with-checksum.o
