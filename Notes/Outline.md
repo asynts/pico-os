@@ -2,8 +2,6 @@
 
 Some things that need to be established before I can start with the implementation:
 
--   Can I use `dynamic_cast` or do I need to link something for that?
-
 -   I need to have a good understanding of filesystems.
     Last time I didn't quite understand it when I started.
 
@@ -12,6 +10,12 @@ Some things that need to be established before I can start with the implementati
 -   Are modules strictly hierachical?
     Is it possible for `foo.bar.baz` to include `foo.another`?
 
+-   How can I test/run the system on actual hardware?
+    Last time this was quite laborious.
+    Maybe I can setup QEMU for development?
+
+-   I also need to write some sort of linker script.
+
 ### System Calls
 
 -   `sys$read`
@@ -19,23 +23,11 @@ Some things that need to be established before I can start with the implementati
 -   `sys$open`
 -   `sys$close`
 -   `sys$fstat`
-
 -   `sys$wait`
-    I don't think we should use this.
-    In Linux there is something with the proc filesystem that makes this work.
-
 -   `sys$exit`
-
 -   `sys$chdir`
-
--   `sys$get_working_directory`
-    How does Linux does this?
-    I seem to recall that there are multiple alternatives.
-
+-   `sys$getcwd`
 -   `sys$posix_spawn`
-    How can I avoid that process id madness.
-    (Obviously, I would never spawn that many processes but with file descriptoers it is much easier to wait for a subprocess.
-    The last person that uses `sys$close` destorys it truely.)
 
 ### Outline
 
@@ -66,6 +58,7 @@ Based on the previous implementation, here are the classes and functions that I 
 
 -   `GlobalPageAllocator`
 -   `InterruptHandler`
+-   `BootLoader`
 -   `devices.TerminalDevice`
 -   `threads.KernelMutex`
 -   `threads.Scheduler`

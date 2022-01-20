@@ -21,6 +21,7 @@ CXXFLAGS="-std=c++20 -fmodules-ts -nostdlib -mcpu=cortex-m0plus"
 "$CXX" $CXXFLAGS -c common/baz.cpp -o build/common/baz.cpp.o
 "$CXX" $CXXFLAGS -c common/foo.cpp -o build/common/foo.cpp.o
 "$CXX" $CXXFLAGS -c common/bar.cpp -o build/common/bar.cpp.o
+"$CXX" $CXXFLAGS -c common/dynamic-casts.cpp -o build/common/dynamic-casts.cpp.o
 "$CXX" $CXXFLAGS -c common/module.cpp -o build/common/module.cpp.o
 
 [[ -d build/std ]] || mkdir -p build/std
@@ -32,6 +33,7 @@ CXXFLAGS="-std=c++20 -fmodules-ts -nostdlib -mcpu=cortex-m0plus"
     build/common/foo.cpp.o \
     build/common/bar.cpp.o \
     build/common/baz.cpp.o \
+    build/common/dynamic-casts.cpp.o \
     build/common/module.cpp.o \
     build/std/module.cpp.o \
     build/main.cpp.o
