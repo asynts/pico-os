@@ -1,5 +1,5 @@
 import common;
 
 int main() {
-    return bar();
+    return baz<int>() + another<int>() + baz<double>();
 }
