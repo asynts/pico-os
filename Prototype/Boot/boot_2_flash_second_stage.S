@@ -3,6 +3,7 @@
 .thumb
 
 .section .boot_2_flash_second_stage, "wx"
+_marker:
 
 # The boot sequence is as follows:
 #
@@ -23,3 +24,7 @@ boot_2_flash_second_stage:
     # FIXME
     wfi
     b boot_2_flash_second_stage
+
+# Pad the size of this section to 256 bytes.
+# This is mandatory such that the 'checksum.py' script can insert the checksum without much hastle.
+.fill 256 - (. - _marker), 1, 0
