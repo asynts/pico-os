@@ -2,7 +2,7 @@
 .cpu cortex-m0plus
 .thumb
 
-.section boot_2_flash_second_stage, "rwx"
+.section .boot_2_flash_second_stage, "wx"
 
 # The boot sequence is as follows:
 #
@@ -18,7 +18,8 @@
 #     RAM       boot_3_high_level               C++ entry point.
 
 .global boot_2_flash_second_stage
+.thumb_func
 boot_2_flash_second_stage:
     # FIXME
     wfi
-    b boot
+    b boot_2_flash_second_stage
