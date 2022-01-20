@@ -24,6 +24,15 @@ CXXFLAGS="-std=c++20 -fmodules-ts -nostdlib -mcpu=cortex-m0plus"
 "$CXX" $CXXFLAGS -c common/dynamic-casts.cpp -o build/common/dynamic-casts.cpp.o
 "$CXX" $CXXFLAGS -c common/module.cpp -o build/common/module.cpp.o
 
+[[ -d build/nested ]] || mkdir -p build/nested
+[[ -d build/nested/foo ]] || mkdir -p build/nested/foo
+[[ -d build/nested/bar ]] || mkdir -p build/nested/bar
+[[ -d build/nested/bar/baz ]] || mkdir -p build/nested/bar/baz
+"$CXX" $CXXFLAGS -c nested/foo/module.cpp -o build/nested/foo/module.cpp.o
+"$CXX" $CXXFLAGS -c nested/bar/baz/module.cpp -o build/nested/bar/baz/module.cpp.o
+"$CXX" $CXXFLAGS -c nested/bar/module.cpp -o build/nested/bar/module.cpp.o
+"$CXX" $CXXFLAGS -c nested/module.cpp -o build/nested/module.cpp.o
+
 [[ -d build/std ]] || mkdir -p build/std
 "$CXX" $CXXFLAGS -c std/module.cpp -o build/std/module.cpp.o
 
@@ -35,5 +44,9 @@ CXXFLAGS="-std=c++20 -fmodules-ts -nostdlib -mcpu=cortex-m0plus"
     build/common/baz.cpp.o \
     build/common/dynamic-casts.cpp.o \
     build/common/module.cpp.o \
+    build/nested/foo/module.cpp.o \
+    build/nested/bar/module.cpp.o \
+    build/nested/bar/baz/module.cpp.o \
+    build/nested/module.cpp.o \
     build/std/module.cpp.o \
     build/main.cpp.o

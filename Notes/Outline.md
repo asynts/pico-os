@@ -7,9 +7,6 @@ Some things that need to be established before I can start with the implementati
 
 -   How can I unit test parts of the system?
 
--   Are modules strictly hierachical?
-    Is it possible for `foo.bar.baz` to include `foo.another`?
-
 -   How can I test/run the system on actual hardware?
     Last time this was quite laborious.
     Maybe I can setup QEMU for development?
