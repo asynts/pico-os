@@ -1,0 +1,17 @@
+{
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "files.exclude": {
+        ".git/": true,
+        "Build/": true,
+    },
+
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "editor.snippetSuggestions": "none",
+    "editor.minimap.enabled": false,
+
+    "C_Cpp.autoAddFileAssociations": false,
+    "C_Cpp.errorSquiggles": "Disabled",
+}
