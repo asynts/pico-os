@@ -4,10 +4,21 @@
 # The checksum is placed in the last four bytes of the output file.
 
 import sys
-import zlib
 import struct
+import binascii
 
 import elftools.elf.elffile
+
+def bitrev(value, bits):
+    return int("{:0{width}b}".format(value, width=bits)[::-1], 2)
+
+# It appears that there is some sort of micro-optimization in the bootloader code.
+# Therefore, we need to flip the bit order around.
+def compute_checksum(data):
+    data = bytes(bitrev(byte, 8) for byte in data)
+    checksum = binascii.crc32(data, 0)
+    checksum = (checksum ^ 0xffffffff) & 0xffffffff
+    return bitrev(checksum, 32)
 
 def main(input_filename, output_filename):
     with open(output_filename, "wb") as output_file:
@@ -27,12 +38,10 @@ def main(input_filename, output_filename):
             data = bytearray(target_section.data())
 
             # We insert the checksum into the buffer.
-            checksum = zlib.crc32(data, 0xffffffff)
-            data[-4:] = struct.pack("<I", checksum)
-
-            offset = target_section["sh_offset"]
+            data[-4:] = struct.pack("<I", compute_checksum(data[:-4]))
 
             # We write the buffer into the output file.
+            offset = target_section["sh_offset"]
             output_file.seek(offset)
             output_file.write(data)
 
