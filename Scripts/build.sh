@@ -5,7 +5,7 @@ set -e
 # In the future, it would be better to configure some build tool.
 
 ASM="arm-none-eabi-as"
-ASMFLAGS="-mcpu=cortex-m0plus"
+ASMFLAGS="-mcpu=cortex-m0plus -g"
 
 LD="arm-none-eabi-ld"
 LDFLAGS=""

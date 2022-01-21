@@ -2,7 +2,7 @@
 .cpu cortex-m0plus
 .thumb
 
-.section .boot_2_flash_second_stage, "wx"
+.section .boot_2_flash_second_stage, "awx"
 _marker:
 
 # The boot sequence is as follows:
@@ -21,7 +21,10 @@ _marker:
 .global boot_2_flash_second_stage
 .thumb_func
 boot_2_flash_second_stage:
-    # FIXME
+    movs r1, #13
+
+    # FIXME: Actually implement the bootloader.
+
     wfi
     b boot_2_flash_second_stage
 

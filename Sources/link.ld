@@ -57,7 +57,7 @@ SECTIONS
         __data_end__ = .;
     } > RAM AT > FLASH
 
-    .bss : {
+    .bss (NOLOAD) : {
         __bss_start__ = .;
 
         /* FIXME: There are a ton of other sections that need to stay. */
