@@ -4,13 +4,24 @@ set -e
 # Currently, this project is build with a custom bash script.
 # In the future, it would be better to configure some build tool.
 
-# FIXME: Add some exit trap for safety.
-
 ASM="arm-none-eabi-as"
 ASMFLAGS="-mcpu=cortex-m0plus"
 
 LD="arm-none-eabi-ld"
 LDFLAGS=""
+
+function trap_exit() {
+    retval=$?
+    if [[ $retval = 0 ]]
+    then
+        echo -e "\033[1;32msuccess\033[0m"
+        exit 0
+    else
+        echo -e "\033[1;31mfailure\033[0m"
+        exit $retval
+    fi
+}
+trap trap_exit EXIT
 
 if [[ "$PWD" != "/home/me/dev/pico-os" ]]
 then
