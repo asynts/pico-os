@@ -1,5 +1,7 @@
 I suspect that my `checksum.py` script is producing an incorrect checksum.
 
+### Notes
+
 -   I've used `objcopy` and xxd to extract the contents of the `.boot_2_flash_second_stage` section:
 
     ```none
@@ -56,5 +58,11 @@ I suspect that my `checksum.py` script is producing an incorrect checksum.
         (binascii.crc32(bytes(bitrev(b, 8) for b in idata_padded), args.seed ^ 0xffffffff) ^ 0xffffffff) & 0xffffffff, 32)
     odata = idata_padded + struct.pack("<L", checksum)
     ```
+
+### Ideas
+
+### Theories
+
+### Conclusions
 
 -   It turns out that I forgot to truncate the input to 252 bytes.
