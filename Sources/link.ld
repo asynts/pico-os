@@ -43,13 +43,9 @@ SECTIONS
         __boot_2_flash_second_stage_end = .;
     } > RAM AT > FLASH
 
-    /*
-    FIXME: For some reason the linker places this in the same segment as '.boot_2_flash_second_stage'.
-           This makes no sense to me, in my mind this would go into a seperate segment that has a load address 0x20000000.
-    */
     .boot_0_openocd_entry : {
         KEEP (*(.boot_0_openocd_entry))
-    } > RAM
+    } > RAM AT > RAM
 
     ASSERT(__boot_2_flash_second_stage_start == ORIGIN(RAM),
         "assertion: '.boot_2_flash_second_stage' must be placed at address '0x20000000'.")
@@ -65,7 +61,7 @@ SECTIONS
 
         . = ALIGN(4);
         __text_end__ = .;
-    } > FLASH
+    } > FLASH AT > FLASH
 
     .rodata : {
         __rodata_start__ = .;
@@ -75,7 +71,7 @@ SECTIONS
 
         . = ALIGN(4);
         __rodata_end__ = .;
-    } > FLASH
+    } > FLASH AT > FLASH
 
     .data : {
         __data_start__ = .;
@@ -95,7 +91,7 @@ SECTIONS
 
         . = ALIGN(4);
         __bss_end__ = .;
-    } > RAM
+    } > RAM AT > RAM
 
     /* FIXME: We are missing tons of ARM specific stuff. */
 
