@@ -90,6 +90,8 @@ onto the chip it appears that it is not loaded.
 
 -   What is the `monitor reset init` about?
 
+-   Do the segments of the executable make sense?
+
 ### Theories
 
 -   My theory is that I got FLASH and RAM the wrong way around.
@@ -98,5 +100,28 @@ onto the chip it appears that it is not loaded.
 
 -   I suspect, that `openocd` will simply put us at whatever is registered as entry address.
     We do not go through the boot loader.
+
+-   I think I understand what is going on.
+    There are generally two contexts in which our executable is inspected:
+
+    -   When the application runs, the debugger would like to know where the symbols are.
+
+    -   When the application is loaded, the loader needs to know which segments need to be loaded where.
+
+    However, in this situation there is a third context:
+
+    -   When `openocd` loads the executable into memory.
+        This is different from the normal loader.
+
+    Therefore, we do the following:
+
+    -   Our boot loader is programmed to deal with a handful hardcoded sections which are found by looking at the `__*_start__` and `__*_end__` symbols.
+
+    -   The physical address is the address at which we store it in the executable.
+        This is where `openocd` should load our stuff, but it seems that this is broken?
+
+    -   The virtual address is what the debugger sees.
+
+    I don't know exactly, but it appears that something is going wrong here.
 
 ### Conclusions
