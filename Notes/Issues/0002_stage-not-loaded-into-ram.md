@@ -92,6 +92,9 @@ onto the chip it appears that it is not loaded.
 
 -   Do the segments of the executable make sense?
 
+-   If I debug a working application, do we end up in the flash too?
+    How can I test this?
+
 ### Theories
 
 -   My theory is that I got FLASH and RAM the wrong way around.
@@ -125,3 +128,15 @@ onto the chip it appears that it is not loaded.
     I don't know exactly, but it appears that something is going wrong here.
 
 ### Conclusions
+
+-   The boot loader that is provided in the `pico-sdk` is executed in two contexts:
+
+     1. When the chip is reset, some logic burned into the ROM will load the first 256 bytes into memory and run them.
+        This means that the boot loader is executed at '0x20000000'.
+
+     2. When load the system from GDB, we load it at the load-memory-address '0x10000000' and execute from there.
+
+    The boot loader in the SDK seems to be able to deal with this.
+
+-   In my boot loader, I will add a custom entry point that will be executed by GDB.
+    This will trigger the normal reset function `boot_1_reset`.

@@ -1,28 +1,58 @@
 /*
-There are a few unusual things about this script.
-The bootloader and all writable sections are stored in flash but are copied into RAM.
-Therefore, during linking they need to be in a very different location from where they are stored.
+There are a few unusual things about this script:
+
+-   The bootloader and all writable sections are stored in flash but are loaded into RAM.
+    Therefore, we need to tell the linker where to find them at runtime and communicate to the loader, where to load it.
+
+-   There are two different ways, we can boot the system:
+
+     1. If we just reset the chip, it grabs the vector from '0x00000000' and then triggers the reset vector.
+        We call this function 'boot_1_reset'.
+
+     2. If we run in GDB, we load the executable ourselves with the 'load' command.
+        Since we want to be able to reproduce the normal behaviour, we enter at 'boot_0_openocd_entry' which
+        manually jumps to 'boot_1_reset'.
+
+        FIXME: We should load the vector table too?!
 */
 
 MEMORY
 {
-    FLASH(rx) : ORIGIN = 0x10000000, LENGTH = 2M
-    RAM(rwx) : ORIGIN = 0x20000000, LENGTH = 256K
+    ROM   (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
+    FLASH (rx ) : ORIGIN = 0x10000000, LENGTH = 2M
+    RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
 }
 
-ENTRY(boot_2_flash_second_stage);
+/*
+This is only inspected by 'openocd' or rather 'gdb'.
+When we reset the chip normally, it doesn't even know this value.
+In both cases, we execute 'boot_1_reset' directly or indirectly.
+*/
+ENTRY(boot_0_openocd_entry);
 
 SECTIONS
 {
     .boot_2_flash_second_stage : {
+        . = ORIGIN(RAM);
+
         __boot_2_flash_second_stage_start = .;
 
         KEEP (*(.boot_2_flash_second_stage))
-
-        /* FIXME: Add the checksum. */
         . = ALIGN(256);
+
         __boot_2_flash_second_stage_end = .;
-    } > FLASH
+    } > RAM AT > FLASH
+
+    /*
+    FIXME: For some reason the linker places this in the same segment as '.boot_2_flash_second_stage'.
+           This makes no sense to me, in my mind this would go into a seperate segment that has a load address 0x20000000.
+    */
+    .boot_0_openocd_entry : {
+        KEEP (*(.boot_0_openocd_entry))
+    } > RAM
+
+    ASSERT(__boot_2_flash_second_stage_start == ORIGIN(RAM),
+        "assertion: '.boot_2_flash_second_stage' must be placed at address '0x20000000'.")
 
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")
