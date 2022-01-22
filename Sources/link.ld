@@ -22,7 +22,7 @@ SECTIONS
         /* FIXME: Add the checksum. */
         . = ALIGN(256);
         __boot_2_flash_second_stage_end = .;
-    } > RAM AT > FLASH
+    } > FLASH
 
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")

@@ -22,6 +22,7 @@ _marker:
 .thumb_func
 boot_2_flash_second_stage:
     movs r1, #13
+    bkpt #0
 
     # FIXME: Actually implement the bootloader.
 
