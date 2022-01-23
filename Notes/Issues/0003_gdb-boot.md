@@ -27,14 +27,7 @@ This makes no sense, because they (should) have different load addresses.
 
 -   We should load the vector table, this is what the chip does otherwise?
 
--   I could write this in Assembler by hand, but that would be ugly.
-
--   The simple solution would be to write my own `memcpy` implementation quickly.
-
 ### Theories
-
--   The C++ compiler translates our precisely crafted code into an unaligned load instruction which obviously fails.
-    Maybe they compiler needs some different flags to avoid this issue?
 
 ### Conclusions
 
