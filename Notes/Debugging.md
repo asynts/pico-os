@@ -28,3 +28,11 @@ In order to properly debug this operating system, we need to run on real hardwar
     ```none
     ./Scripts/debugger.sh
     ```
+
+ 4. To load and run whatever is in `Build/System.elf`:
+
+    ```none
+    monitor reset
+    load
+    continue
+    ```

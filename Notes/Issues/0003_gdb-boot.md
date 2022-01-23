@@ -41,3 +41,5 @@ This makes no sense, because they (should) have different load addresses.
 -   It appears that the linker will do weird things unless we always specify both the memory area we want to run at, and the memory
     area we want to load at.
     In other words, we needed to explicitly say `> RAM AT > RAM` instead of just `> RAM`.
+
+-   Turns out, that I had the logic that loads the `rom_table_lookup` function pointer was a bit off.

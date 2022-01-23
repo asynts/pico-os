@@ -13,6 +13,9 @@ tmp="$(mktemp -d)"
 
 cat > "$tmp/init.gdb" <<EOD
 set confirm off
+set code-cache off
+set stack-cache off
+
 set history save on
 set history size unlimited
 set history remove-duplicates 1
