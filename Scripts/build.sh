@@ -52,8 +52,9 @@ function compile_asm() {
 function step_build_boot() {
     [[ -d Build/boot ]] || mkdir -p Build/boot
 
-    compile_asm "boot/boot_2_flash_second_stage.S" discard
+    compile_asm "boot/boot_0_debugger_entry.S" keep
 
+    compile_asm "boot/boot_2_flash_second_stage.S" discard
     python3 Scripts/checksum.py Build/boot/boot_2_flash_second_stage.S.o Build/boot/boot_2_flash_second_stage.with-checksum.o
     OBJS+=("Build/boot/boot_2_flash_second_stage.with-checksum.o")
 }
@@ -61,6 +62,6 @@ step_build_boot
 
 function step_link_system() {
     "$LD" $LDFLAGS -o Build/System.elf -T Sources/link.ld \
-        $OBJS
+        ${OBJS[@]}
 }
 step_link_system

@@ -10,10 +10,27 @@ There are a few unusual things about this script:
         We call this function 'boot_1_reset'.
 
      2. If we run in GDB, we load the executable ourselves with the 'load' command.
-        Since we want to be able to reproduce the normal behaviour, we enter at 'boot_0_openocd_entry' which
+        Since we want to be able to reproduce the normal behaviour, we enter at 'boot_0_debugger_entry' which
         manually jumps to 'boot_1_reset'.
 
         FIXME: We should load the vector table too?!
+
+The boot sequence is as follows:
+
+    RAM       boot_0_debugger_entry           Only when we are executing from debugger.
+                                              Jump to 'boot_1_reset'.
+
+    ROM       boot_1_reset                    Reset entry point.
+                                              We do not know the address of this function in advance, a pointer is stored at '0x00000004'.
+                                              This is burned into the chip.
+                                              Loads first 256 bytes from flash into RAM.
+
+    RAM       boot_2_flash_second_stage       Assembly entry point.
+                                              Configures the flash memory for XIP (execute-in-place).
+                                              Loads the kernel into memory.
+                                              Configures reset table.
+
+    RAM       boot_3_high_level               C++ entry point.
 */
 
 MEMORY
@@ -28,7 +45,7 @@ This is only inspected by 'openocd' or rather 'gdb'.
 When we reset the chip normally, it doesn't even know this value.
 In both cases, we execute 'boot_1_reset' directly or indirectly.
 */
-ENTRY(boot_0_openocd_entry);
+ENTRY(boot_0_debugger_entry);
 
 SECTIONS
 {
@@ -43,8 +60,8 @@ SECTIONS
         __boot_2_flash_second_stage_end = .;
     } > RAM AT > FLASH
 
-    .boot_0_openocd_entry : {
-        KEEP (*(.boot_0_openocd_entry))
+    .boot_0_debugger_entry : {
+        KEEP (*(.boot_0_debugger_entry))
     } > RAM AT > RAM
 
     ASSERT(__boot_2_flash_second_stage_start == ORIGIN(RAM),

@@ -8,5 +8,3 @@ It is supposed to be ordered.
 -   Write a bootloader into C++.
 
 ### Tweaks
-
--   Rename `boot_0_openocd_entry` to something more suitable, this is not `openocd` specific.
