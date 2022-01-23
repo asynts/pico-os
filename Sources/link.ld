@@ -15,22 +15,26 @@ There are a few unusual things about this script:
 
         FIXME: We should load the vector table too?!
 
-The boot sequence is as follows:
+If the chip is reset, the boot sequence is as follows:
 
-    RAM       boot_0_debugger_entry           Only when we are executing from debugger.
-                                              Jump to 'boot_1_reset'.
+    ROM       boot_1_reset                  This is burned into the chip.
+                                            Loads first 256 bytes from flash into RAM.
 
-    ROM       boot_1_reset                    Reset entry point.
-                                              We do not know the address of this function in advance, a pointer is stored at '0x00000004'.
-                                              This is burned into the chip.
-                                              Loads first 256 bytes from flash into RAM.
+    RAM       boot_2_flash_second_stage     Configures the flash memory for XIP (execute-in-place).
+                                            Loads the kernel into memory.
+                                            Configures vector table.
 
-    RAM       boot_2_flash_second_stage       Assembly entry point.
-                                              Configures the flash memory for XIP (execute-in-place).
-                                              Loads the kernel into memory.
-                                              Configures reset table.
+    FLASH     boot_3_high_level             C++ entry point.
 
-    RAM       boot_3_high_level               C++ entry point.
+If we run in a debugger, the boot sequence is as follows:
+
+    FLASH   boot_1_debugger                 Copies first 256 bytes from flash into RAM.
+
+    RAM     boot_2_flash_second_stage       Configures the flash memory for XIP (execute-in-place).
+                                            Loads the kernel into memory.
+                                            Configures vector table.
+
+    FLASH   boot_3_high_level               C++ entry point.
 */
 
 MEMORY
@@ -45,13 +49,11 @@ This is only inspected by 'openocd' or rather 'gdb'.
 When we reset the chip normally, it doesn't even know this value.
 In both cases, we execute 'boot_1_reset' directly or indirectly.
 */
-ENTRY(boot_0_debugger_entry);
+ENTRY(boot_1_debugger);
 
 SECTIONS
 {
     .boot_2_flash_second_stage : {
-        . = ORIGIN(RAM);
-
         __boot_2_flash_second_stage_start = .;
 
         KEEP (*(.boot_2_flash_second_stage))
@@ -60,15 +62,15 @@ SECTIONS
         __boot_2_flash_second_stage_end = .;
     } > RAM AT > FLASH
 
-    .boot_0_debugger_entry : {
-        KEEP (*(.boot_0_debugger_entry))
-    } > RAM AT > RAM
-
     ASSERT(__boot_2_flash_second_stage_start == ORIGIN(RAM),
         "assertion: '.boot_2_flash_second_stage' must be placed at address '0x20000000'.")
 
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")
+
+    .boot_1_debugger : {
+        KEEP (*(.boot_1_debugger))
+    } > FLASH AT > FLASH
 
     .text : {
         __text_start__ = .;

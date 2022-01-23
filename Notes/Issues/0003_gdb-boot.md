@@ -21,17 +21,20 @@ This makes no sense, because they (should) have different load addresses.
     Notice that this is very fragile, because this is a software breakpoint.
     We can not place a hardware breakpoint in RAM.
 
+-   It appears that there is no helper function in rom that can trigger a reset.
+
 ### Ideas
 
 -   We should load the vector table, this is what the chip does otherwise?
 
--   In ROM there are some helper functions.
-    Maybe one of them can be used to reset the chip?
+-   I could write this in Assembler by hand, but that would be ugly.
+
+-   The simple solution would be to write my own `memcpy` implementation quickly.
 
 ### Theories
 
--   I suspect, that we need to load the vector table from `0x00000000`.
-    Additionally, it should look like an interrupt from the perspective of the handler.
+-   The C++ compiler translates our precisely crafted code into an unaligned load instruction which obviously fails.
+    Maybe they compiler needs some different flags to avoid this issue?
 
 ### Conclusions
 
