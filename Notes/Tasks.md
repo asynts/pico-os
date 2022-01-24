@@ -10,8 +10,12 @@ It is supposed to be ordered.
 ### Tweaks
 
 -   Add symbol for `boot_1_reset`.
+    Maybe just `bootrom`? That would be more portable?
+    I should also get rid of symbols that are defined by the linker script.
 
 -   Run the `boot` folder into a C++20 module.
+
+-   Move the resolved issues into another folder.
 
 ### Bugs
 

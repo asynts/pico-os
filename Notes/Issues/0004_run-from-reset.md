@@ -62,14 +62,39 @@ When I do `run` in GDB, I would expect, that the chip is reset and then goes thr
 
     https://github.com/raspberrypi/openocd/blob/df76ec7edee9ebb9be86e4cff7479da642b0e8df/tcl/target/rp2040.cfg
 
+-   I am able to set a breakpoint in the bootrom as follows:
+
+    ```none
+    > monitor reset init
+    > load
+    > x/wx 0x00000004
+    0x000000ef
+    ```
+
+    This is the address at with we will enter upon reset.
+    We set a hardware assisted breakpoint there:
+
+    ```none
+    > monitor reset init
+    > load
+    > hbreak *0x000000ef
+    > run
+    ```
+
+    However, when I continue, I hit another breakpoint.
+    This may be an assertion, because the checksum is incorrect.
+
 ### Ideas
 
--   I could add a symbol for `boot_1_reset`.
+-   I could load the `hello_serial.elf` program and try to debug the boot process there.
 
--   I could look at what `monitor reset` does.
+-   Do the breakpoints persist when the chip is reset?
+    Does GDB get confused with this?
+
+-   Can I ask the chip which breakpoints it knows?
 
 ### Theories
 
--   I think there is something weird with `monitor reset init` and that this is explained in `tcl/target/rp2040.cfg`.
+-   I suspect, that the checksum is still incorrect, and I therefore hit an assertion.
 
 ### Conclusions
