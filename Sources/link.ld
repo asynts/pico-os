@@ -39,9 +39,12 @@ If we run in a debugger, the boot sequence is as follows:
 
 MEMORY
 {
-    ROM   (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
-    FLASH (rx ) : ORIGIN = 0x10000000, LENGTH = 2M
-    RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
+    ROM (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
+    FLASH   (rx ) : ORIGIN = 0x10000000, LENGTH = 2M
+    RAM     (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
+
+    /* The flash stage is loaded at this address, therefore, we must put it there. */
+    BOOTRAM (rwx) : ORIGIN = 0x20041f00, LENGTH = 256
 }
 
 /*
@@ -57,13 +60,12 @@ SECTIONS
         __boot_2_flash_second_stage_start = .;
 
         KEEP (*(.boot_2_flash_second_stage))
-        . = ALIGN(256);
 
         __boot_2_flash_second_stage_end = .;
-    } > RAM AT > FLASH
+    } > BOOTRAM AT > FLASH
 
-    ASSERT(__boot_2_flash_second_stage_start == ORIGIN(RAM),
-        "assertion: '.boot_2_flash_second_stage' must be placed at address '0x20000000'.")
+    ASSERT(__boot_2_flash_second_stage_start == ORIGIN(BOOTRAM),
+        "assertion: '.boot_2_flash_second_stage' must be placed at address '0x20041f00'.")
 
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")
