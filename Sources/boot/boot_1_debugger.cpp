@@ -1,6 +1,6 @@
-// FIXME: Make this work with C++20 modules.
-// FIXME: Make this work without 'noexcept' everywhere.
-// module boot;
+export module boot:debugger;
+
+import boot:flash_second_stage;
 
 using u8  = unsigned char;
 using u16 = unsigned short;
@@ -10,9 +10,6 @@ using u64 = unsigned long long;
 using rom_table_lookup_fn = void*(*)(u16 *table, u32 code);
 using rom_memcpy44_fn = u8*(*)(u32 *destination, u32 *source, u32 count);
 
-extern "C"
-void boot_2_flash_second_stage() noexcept;
-
 #define ASSERT(condition) \
     { \
         if (!(condition)) { \
@@ -20,7 +17,7 @@ void boot_2_flash_second_stage() noexcept;
         } \
     }
 
-extern "C"
+export extern "C"
 __attribute__((section(".boot_1_debugger")))
 void boot_1_debugger() noexcept {
     u32 data;

@@ -7,9 +7,8 @@ set -e
 ASM="arm-none-eabi-as"
 ASMFLAGS="-mcpu=cortex-m0plus -g"
 
-# FIXME: C++20 modules
 CXX="arm-none-eabi-g++"
-CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib"
+CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti"
 
 LD="arm-none-eabi-ld"
 LDFLAGS=""
@@ -74,11 +73,15 @@ function compile_cxx() {
 function step_build_boot() {
     [[ -d Build/boot ]] || mkdir -p Build/boot
 
-    compile_cxx "boot/boot_1_debugger.cpp" keep
+    compile_cxx "boot/boot_3_high_level.cpp" keep
 
     compile_asm "boot/boot_2_flash_second_stage.S" discard
     python3 Scripts/checksum.py Build/boot/boot_2_flash_second_stage.S.o Build/boot/boot_2_flash_second_stage.with-checksum.o
     OBJS+=("Build/boot/boot_2_flash_second_stage.with-checksum.o")
+
+    compile_cxx "boot/boot_2_flash_second_stage.cpp" keep
+
+    compile_cxx "boot/boot_1_debugger.cpp" keep
 }
 step_build_boot
 

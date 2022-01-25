@@ -7,15 +7,11 @@ It is supposed to be ordered.
 
 -   Write a bootloader into C++.
 
+    -   We need to setup the interrupt handlers in `boot_2_flash_second_stage`.
+
+    -   We need to initialize the flash in `boot_2_flash_second_stage`.
+
 ### Tweaks
-
--   Add symbol for `boot_1_reset`.
-    Maybe just `bootrom`? That would be more portable?
-    I should also get rid of symbols that are defined by the linker script.
-
--   Run the `boot` folder into a C++20 module.
-
--   Move the resolved issues into another folder.
 
 ### Bugs
 
@@ -24,6 +20,3 @@ It is supposed to be ordered.
     ```none
     ./Scripts/debugger.sh: line 25: -x: command not found
     ```
-
--   For some reason `run` doesn't work in GDB.
-    I would expect that this goes through `boot_1_reset`.
