@@ -86,12 +86,18 @@ When I do `run` in GDB, I would expect, that the chip is reset and then goes thr
 
 ### Ideas
 
--   I could load the `hello_serial.elf` program and try to debug the boot process there.
-
 -   Do the breakpoints persist when the chip is reset?
     Does GDB get confused with this?
 
 -   Can I ask the chip which breakpoints it knows?
+
+-   I could manually validate the checksum using the code in the `pico-bootrom` repository.
+
+    In order to do that, I will have to setup some virtual machine that is a Cortex-M0.
+
+-   Another idea would be to manually change the checksum of `hello_serial.elf` to see what happens.
+
+-   I could use my checksum tool to compute the checksum of `hello_serial.elf`.
 
 ### Theories
 
