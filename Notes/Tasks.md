@@ -13,6 +13,8 @@ It is supposed to be ordered.
 
 ### Tweaks
 
+-   Instead of losing the symbols in `checksum.py` I could write a linker script that keeps them.
+
 ### Bugs
 
 -   After closing the debugger, we see the following message:
