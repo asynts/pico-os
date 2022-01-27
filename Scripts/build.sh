@@ -84,6 +84,7 @@ function step_build_boot() {
     # This may seem overly complicated, but it retains all the debugging symbols.
     # We can't just pad the file itself with '.fill', because the data-in-code feature that ARM relies on, won't work.
     compile_asm "boot/boot_2_flash.S" discard
+    # FIXME: Link here
     "$OBJCOPY" --gap-fill=0x00 --pad-to=0x100 "Build/boot/boot_2_flash.S.o" "Build/boot/boot_2_flash.padded.o"
     python3 Scripts/checksum.py Build/boot/boot_2_flash.padded.o Build/boot/boot_2_flash.patched.o
     OBJS+=("Build/boot/boot_2_flash.patched.o")

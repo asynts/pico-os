@@ -16,16 +16,19 @@ After importing the code from the boot loader, I am no longer able to reach the 
 
     However, none of them appear to be referenced in the code that I imported.
 
+-   I though that the literals were placed in a different section.
+    But this is not the case, they are mearly marked with a global symbol.
+
+-   There is an additional `.rel.boot_2_flash` section.
+    This doesn't look good.
+
 ### Ideas
 
 -   Check if the first 256 bytes are loaded into RAM.
 
 ### Theories
 
--   The `objcopy` no longer works because the sections are generated in the wrong order.
-
--   The `objcopy` no longer works because some stuff goes into the wrong section.
-
--   Something (the literals!) are placed in the wrong section.
+-   I suspect, that we are generating some relocations somewhere, because some macro isn't defined.
+    Therefore, we change the section after padding and after computing the checksum.
 
 ### Conclusions
