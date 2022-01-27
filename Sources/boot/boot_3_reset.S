@@ -5,7 +5,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "boot_0_constants.h"
+#include "regs/address_map.h"
+#include "regs/m0plus.h"
 
 .syntax unified
 .cpu cortex-m0plus
@@ -22,10 +23,7 @@
 boot_3_reset:
     // Tell the processor about our vector table.
     ldr r0, =boot_vector_table
-
-    // FIXME: This should be 'ldr r1, =(PPB_BASE + M0PLUS_VTOR_OFFSET)' but that doesn't compile.
-    ldr r1, =0xe000ed08
-
+    ldr r1, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
     str r0, [r1]
 
     // Obtain the stack pointer and address of 'isr_reset' from vector table.

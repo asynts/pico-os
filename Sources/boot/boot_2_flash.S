@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "include/regs/pads_qspi.h"
+#include "regs/pads_qspi.h"
 
 .syntax unified
 .cpu cortex-m0plus
@@ -21,7 +21,10 @@ _marker:
 .type boot_2_flash, %function
 boot_2_flash:
     // Setup pad configuration.
+
+    // FIXME: This does not work, it appears that it attempts to put this with an alignment of 0x100 and thus outside of the boot sector.
     ldr r3, =PADS_QSPI_BASE
+/*
     movs r0, #(2 << PADS_QSPI_GPIO_QSPI_SCLK_DRIVE_LSB | PADS_QSPI_GPIO_QSPI_SCLK_SLEWFAST_BITS)
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SCLK_OFFSET]
     ldr r0, [r3, #PADS_QSPI_GPIO_QSPI_SD0_OFFSET]
@@ -31,7 +34,7 @@ boot_2_flash:
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD1_OFFSET]
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD2_OFFSET]
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD3_OFFSET]
-
+*/
     bkpt #0
 
 /* Pad the size of this section to 256 bytes. */

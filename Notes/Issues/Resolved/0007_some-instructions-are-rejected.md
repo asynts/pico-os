@@ -14,12 +14,19 @@ This is particularly annoying because many of these instructions are in the `pic
     ldr r1, =(A + B)
     ```
 
-### Ideas
+-   When it is compiled in the SDK, this is done as follows:
 
--   I could try to figure out how the SDK builds these files, this could reveal some compiler flag or something like that.
+    ```none
+    arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -c compile_time_choice.S -o compile_time_choice.S.obj
+    ```
+
+    I removed all the clutter around it.
+
+### Ideas
 
 ### Theories
 
--   I need to provide some compiler flag which I currently do not provide.
-
 ### Conclusions
+
+-   In the SDK, instead of using `arm-none-eabi-as`, they use `arm-none-eabi-gcc -c`.
+    Weird, but I'll do the same.

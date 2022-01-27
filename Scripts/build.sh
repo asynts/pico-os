@@ -4,8 +4,8 @@ set -e
 # Currently, this project is build with a custom bash script.
 # In the future, it would be better to configure some build tool.
 
-ASM="arm-none-eabi-as"
-ASMFLAGS="-mcpu=cortex-m0plus -g"
+ASM="arm-none-eabi-gcc"
+ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include"
 
 CXX="arm-none-eabi-g++"
 CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti"
@@ -37,7 +37,7 @@ OBJS=()
 function compile_asm() {
     filepath=$1
     keep_or_discard=$2
-    "$ASM" $ASMFLAGS -o "Build/$filepath.o" "Sources/$filepath"
+    "$ASM" $ASMFLAGS -o "Build/$filepath.o" -c "Sources/$filepath"
 
     case "$keep_or_discard"
     in
