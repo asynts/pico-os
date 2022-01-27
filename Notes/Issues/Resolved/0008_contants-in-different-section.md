@@ -7,10 +7,13 @@ When I use a constant with `ldr r1, =1` it is placed at `0x100` which is outside
 -   I thought, that the assembler would understand the padding as text and try to place it after it.
     However, marking it with `.type _padding, %object` does not help.
 
-### Ideas
+-   By using `objcopy --pad-to` to do the padding instead of the `.fill` in Assembly, it works.
 
--   I could write a linker script that does one thing: `. = ALIGN(256)`.
+### Ideas
 
 ### Theories
 
--   I suspect, that the `ldr r1, =1` is processed very late and the padding is computed after.
+### Conclusion
+
+-   I conclude, that the data-in-code is processed very late and after the `.fill`.
+    Therefore, we need to do the padding afterwards with `objcopy` for example.

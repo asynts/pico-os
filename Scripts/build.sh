@@ -13,6 +13,8 @@ CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts
 LD="arm-none-eabi-ld"
 LDFLAGS=""
 
+OBJCOPY="arm-none-eabi-objcopy"
+
 function trap_exit() {
     retval=$?
     if [[ $retval = 0 ]]
@@ -75,8 +77,15 @@ function step_build_boot() {
 
     compile_asm "boot/boot_1_debugger.S" keep
 
+    # First, we compile the assembly file.
+    # Then, we pad it to 256 bytes with objcopy.
+    # Finally we insert the checksum with a custom python script.
+    #
+    # This may seem overly complicated, but it retains all the debugging symbols.
+    # We can't just pad the file itself with '.fill', because the data-in-code feature that ARM relies on, won't work.
     compile_asm "boot/boot_2_flash.S" discard
-    python3 Scripts/checksum.py Build/boot/boot_2_flash.S.o Build/boot/boot_2_flash.patched.o
+    "$OBJCOPY" --gap-fill=0x00 --pad-to=0x100 "Build/boot/boot_2_flash.S.o" "Build/boot/boot_2_flash.padded.o"
+    python3 Scripts/checksum.py Build/boot/boot_2_flash.padded.o Build/boot/boot_2_flash.patched.o
     OBJS+=("Build/boot/boot_2_flash.patched.o")
 
     compile_asm "boot/boot_3_reset.S" keep
