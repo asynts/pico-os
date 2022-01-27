@@ -75,9 +75,12 @@ function step_build_boot() {
 
     compile_asm "boot/boot_1_debugger.S" keep
 
-    compile_asm "boot/boot_2_flash_second_stage.S" discard
-    python3 Scripts/checksum.py Build/boot/boot_2_flash_second_stage.S.o Build/boot/boot_2_flash_second_stage.with-checksum.o
-    OBJS+=("Build/boot/boot_2_flash_second_stage.with-checksum.o")
+    compile_asm "boot/boot_2_flash.S" discard
+    python3 Scripts/checksum.py Build/boot/boot_2_flash.S.o Build/boot/boot_2_flash.patched.o
+    OBJS+=("Build/boot/boot_2_flash.patched.o")
+
+    compile_asm "boot/boot_3_reset.S" keep
+    compile_asm "boot/boot_3_vectors.S" keep
 }
 step_build_boot
 

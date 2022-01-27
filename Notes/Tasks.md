@@ -13,6 +13,8 @@ It is supposed to be ordered.
 
 ### Tweaks
 
+-   Add documentation in all the bootloader code.
+
 ### Bugs
 
 -   After closing the debugger, we see the following message:

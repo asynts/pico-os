@@ -32,7 +32,7 @@ def main(input_filename, output_filename):
 
             elf_file = elftools.elf.elffile.ELFFile(input_file)
 
-            target_section = elf_file.get_section_by_name(".boot_2_flash_second_stage")
+            target_section = elf_file.get_section_by_name(".boot_2_flash")
             assert target_section.data_size == 256
 
             # We read the contents of the boot section into a buffer.
