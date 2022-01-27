@@ -10,9 +10,6 @@ ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include"
 CXX="arm-none-eabi-g++"
 CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti"
 
-LD="arm-none-eabi-ld"
-LDFLAGS=""
-
 OBJCOPY="arm-none-eabi-objcopy"
 
 function trap_exit() {
@@ -78,14 +75,18 @@ function step_build_boot() {
     compile_asm "boot/boot_1_debugger.S" keep
 
     # First, we compile the assembly file.
-    # Then, we pad it to 256 bytes with objcopy.
+    # Then we link it to ensure that all relocations are gone and that we have exactly 256 bytes.
     # Finally we insert the checksum with a custom python script.
-    #
-    # This may seem overly complicated, but it retains all the debugging symbols.
-    # We can't just pad the file itself with '.fill', because the data-in-code feature that ARM relies on, won't work.
     compile_asm "boot/boot_2_flash.S" discard
-    "$OBJCOPY" --gap-fill=0x00 --pad-to=0x100 "Build/boot/boot_2_flash.S.o" "Build/boot/boot_2_flash.padded.o"
-    python3 Scripts/checksum.py Build/boot/boot_2_flash.padded.o Build/boot/boot_2_flash.patched.o
+    arm-none-eabi-gcc \
+        -mcpu=cortex-m0plus -mthumb \
+        --specs=nosys.specs \
+        -nostartfiles \
+        -Wl,--relocatable \
+        -Wl,--script=Sources/boot/boot_2_link.ld \
+        "Build/boot/boot_2_flash.S.o" \
+        -o "Build/boot/boot_2_flash.linked.o"
+    python3 Scripts/checksum.py Build/boot/boot_2_flash.linked.o Build/boot/boot_2_flash.patched.o
     OBJS+=("Build/boot/boot_2_flash.patched.o")
 
     compile_asm "boot/boot_3_reset.S" keep
@@ -94,7 +95,13 @@ function step_build_boot() {
 step_build_boot
 
 function step_link_system() {
-    "$LD" $LDFLAGS -o Build/System.elf -T Sources/link.ld \
+    # FIXME: What precisely does '--specs=nosys.specs -nostartfiles' do?
+    #        Do we need '-nostdlib' as well?
+
+    arm-none-eabi-gcc \
+        --specs=nosys.specs -nostartfiles \
+        -T Sources/link.ld \
+        -o Build/System.elf \
         ${OBJS[@]}
 }
 step_link_system
