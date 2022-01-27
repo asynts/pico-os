@@ -5,8 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#define PPB_BASE 0xe0000000
-#define M0PLUS_VTOR_OFFSET 0xed08
+#include "boot_0_constants.h"
 
 .syntax unified
 .cpu cortex-m0plus

@@ -5,6 +5,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "include/regs/pads_qspi.h"
+
 .syntax unified
 .cpu cortex-m0plus
 .thumb
@@ -18,6 +20,18 @@ _marker:
 .global boot_2_flash
 .type boot_2_flash, %function
 boot_2_flash:
+    // Setup pad configuration.
+    ldr r3, =PADS_QSPI_BASE
+    movs r0, #(2 << PADS_QSPI_GPIO_QSPI_SCLK_DRIVE_LSB | PADS_QSPI_GPIO_QSPI_SCLK_SLEWFAST_BITS)
+    str r0, [r3, #PADS_QSPI_GPIO_QSPI_SCLK_OFFSET]
+    ldr r0, [r3, #PADS_QSPI_GPIO_QSPI_SD0_OFFSET]
+    movs r1, #PADS_QSPI_GPIO_QSPI_SD0_SCHMITT_BITS
+    bics r0, r1
+    str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD0_OFFSET]
+    str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD1_OFFSET]
+    str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD2_OFFSET]
+    str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD3_OFFSET]
+
     bkpt #0
 
 /* Pad the size of this section to 256 bytes. */
