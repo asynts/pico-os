@@ -70,10 +70,6 @@ SECTIONS
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")
 
-    .boot_1_debugger : {
-        KEEP (*(.boot_1_debugger))
-    } > FLASH AT > FLASH
-
     .text : {
         __text_start__ = .;
 
@@ -115,6 +111,13 @@ SECTIONS
     } > RAM AT > RAM
 
     /* FIXME: We are missing tons of ARM specific stuff. */
+
+    .stack (NOLOAD) : {
+        . = ALIGN(8);
+        . += 4096;
+
+        boot_1_stack_top = .;
+    } > RAM AT > RAM
 
     __end__ = .;
 }

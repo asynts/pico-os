@@ -27,8 +27,14 @@ using boot_2_flash_second_stage_fn = void(*)();
         } \
     }
 
+#define PPB_BASE 0xe0000000
+#define M0PLUS_VTOR_OFFSET 0xed08
+
+extern "C" {
+    extern u32 __vectors[];
+}
+
 export extern "C"
-__attribute__((section(".boot_1_debugger")))
 void boot_1_debugger() noexcept {
     u32 data;
 
@@ -54,7 +60,10 @@ void boot_1_debugger() noexcept {
     // Usually, this is done by the reset logic in ROM.
     rom_memcpy44(reinterpret_cast<u32*>(0x20041f00), reinterpret_cast<u32*>(0x10000000), 0x100);
 
+    // Tell the processor where to find the vector table.
+    *reinterpret_cast<u32**>(PPB_BASE + M0PLUS_VTOR_OFFSET) = __vectors;
+
     // We need no longer have symbol information about the boot sector after putting it through the checksum stage.
-    auto boot_2_flash_second_stage = reinterpret_cast<boot_2_flash_second_stage_fn>(0x20041f00);
+    auto boot_2_flash_second_stage = reinterpret_cast<boot_2_flash_second_stage_fn>(0x20041f01);
     boot_2_flash_second_stage();
 }

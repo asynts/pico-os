@@ -15,6 +15,8 @@ It is supposed to be ordered.
 
 -   Instead of losing the symbols in `checksum.py` I could write a linker script that keeps them.
 
+-   Get rid of `noexcept` everywhere.
+
 ### Bugs
 
 -   After closing the debugger, we see the following message:

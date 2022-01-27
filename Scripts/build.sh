@@ -92,6 +92,8 @@ function step_build_boot() {
     ./Scripts/checksum.py "Build/boot/boot_2_flash_second_stage.cpp.o" "Build/boot/boot_2_flash_second_stage.patched.S"
     SOURCES="$BUILD" compile_asm "boot/boot_2_flash_second_stage.patched.S" keep
 
+    compile_asm "boot/boot_2_vectors.S" keep
+
     compile_cxx "boot/boot_1_debugger.cpp" keep
 }
 step_build_boot
