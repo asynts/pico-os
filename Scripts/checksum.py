@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # Copies the input file and computes the checksum of the '.boot_2_flash_second_stage' section.
-# The checksum is placed in the last four bytes of the output file.
+# The checksum is patched into the output file.
+# All debugging symbols are keept in the output file.
 
 import sys
 import struct

@@ -26,15 +26,11 @@ If the chip is reset, the boot sequence is as follows:
 
     FLASH     boot_3_high_level             C++ entry point.
 
-If we run in a debugger, the boot sequence is as follows:
+If we run in a debugger and use 'continue' to start up, the boot sequence is as follows:
 
-    FLASH   boot_1_debugger                 Copies first 256 bytes from flash into RAM.
+    FLASH   boot_1_debugger                 Breakpoint.
 
-    RAM     boot_2_flash_second_stage       Configures the flash memory for XIP (execute-in-place).
-                                            Loads the kernel into memory.
-                                            Configures vector table.
-
-    FLASH   boot_3_high_level               C++ entry point.
+If we run in a debugger and use 'run' to start up, the boot sequence is identical to the normal reset.
 */
 
 MEMORY
@@ -69,10 +65,6 @@ SECTIONS
 
     ASSERT(__boot_2_flash_second_stage_end - __boot_2_flash_second_stage_start == 256,
         "assertion: '.boot_2_flash_second_stage' must be exactly 256 bytes.")
-
-    .boot_1_debugger : {
-        KEEP (*(.boot_1_debugger))
-    } > FLASH AT > FLASH
 
     .text : {
         __text_start__ = .;
