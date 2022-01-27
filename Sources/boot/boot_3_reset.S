@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "regs/address_map.h"
-#include "regs/m0plus.h"
+#include "hardware/regs/addressmap.h"
+#include "hardware/regs/m0plus.h"
 
 .syntax unified
 .cpu cortex-m0plus

@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 // =============================================================================
 // Register block : M0PLUS
 // Version        : 1
@@ -1147,5 +1146,4 @@
 #define M0PLUS_MPU_RASR_ENABLE_LSB    _u(0)
 #define M0PLUS_MPU_RASR_ENABLE_ACCESS "RW"
 // =============================================================================
-
 #endif // HARDWARE_REGS_M0PLUS_DEFINED

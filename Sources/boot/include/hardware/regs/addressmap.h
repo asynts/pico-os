@@ -3,11 +3,10 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #ifndef _ADDRESSMAP_H_
 #define _ADDRESSMAP_H_
 
-#include "platform_defs.h"
+#include "hardware/platform_defs.h"
 
 // Register address offsets for atomic RMW aliases
 #define REG_ALIAS_RW_BITS  (0x0u << 12u)

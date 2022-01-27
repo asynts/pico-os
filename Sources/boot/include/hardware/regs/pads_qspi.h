@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 // =============================================================================
 // Register block : PADS_QSPI
 // Version        : 1
