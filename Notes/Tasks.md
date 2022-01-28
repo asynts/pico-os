@@ -1,19 +1,27 @@
-### Current
-
-### Priority List
+### Major
 
 This is supposed to be a list of things that need to be done.
 It is supposed to be ordered.
 
 -   Write a bootloader into C++.
 
-    -   We need to setup the interrupt handlers in `boot_2_flash_second_stage`.
+-   Implement some `putchar` equivalent.
 
-    -   We need to initialize the flash in `boot_2_flash_second_stage`.
+-   Implement `sys::format`.
 
-### Tweaks
+### Minor
 
 -   Add documentation in all the bootloader code.
+
+-   Make sure that the backtraces are helpful.
+
+-   Validate linker scripts.
+    Look for `KEEP`, verify that all sections are accounted for and that we don't link
+    unnecessary libraries.
+
+-   Simplify the boot procedure.
+
+-   Load `.data` and `.bss`.
 
 ### Bugs
 
