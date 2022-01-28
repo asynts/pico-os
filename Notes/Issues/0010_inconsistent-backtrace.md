@@ -24,11 +24,19 @@ When I do a backtrace in some locations, it sometimes includes '0x00000000' or i
 
 -   Using `.fnstart` and `.fnend` appears to generate the information needed for exception handling, but I get issues with linking.
 
+-   I tried building with `-fexceptions` and adding `-lgcc`.
+    However, the backtraces are still incorrect.
+
+-   It appears that if I use `.fnend`, this will generate an `.ARM.extab` section which has a `R_ARM_NONE` relocation for `__aeabi_unwind_cpp_pr0`.
+    This is nasty.
+
+-   Even with these sections present, the debugger still goes haywire.
+
 ### Ideas
 
--   Try building with `-fexceptions` and use `.fnstart` with `.fnend`.
+-   **I should isolate the issue into a prototype.**
 
--   I could experiment with adding jumps.
+-   I could try using LLDB instead.
 
 -   Go though the build script and simplify.
 
@@ -48,6 +56,7 @@ When I do a backtrace in some locations, it sometimes includes '0x00000000' or i
 
 ### Theories
 
--   I suspect, that this is because there are actually two symbols there, `_marker` and `boot_2_flash`.
+-   Maybe this has nothing to do with the `.ARM.*` sections.
+    This could just be that GDB uses some information like the stack beyond what I know.
 
 ### Conclusions
