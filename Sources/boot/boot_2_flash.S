@@ -102,11 +102,9 @@ _marker:
 // function by user code, after copying out of XIP region. r3 holds SSI base,
 // r0...2 used as temporaries. Other GPRs not used.
 .global boot_2_flash
-.type boot_2_flash,%function
+.type boot_2_flash, %function
 .thumb_func
 boot_2_flash:
-    push {lr}
-
     // Set pad configuration:
     // - SCLK 8mA drive, no slew limiting
     // - SDx disable input Schmitt to reduce delay

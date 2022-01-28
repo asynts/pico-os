@@ -5,7 +5,7 @@ set -e
 # In the future, it would be better to configure some build tool.
 
 ASM="arm-none-eabi-gcc"
-ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include"
+ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include -fno-exceptions -fno-rtti -nostdlib"
 
 CXX="arm-none-eabi-g++"
 CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti"
@@ -90,6 +90,7 @@ function step_link_system() {
     #        Do we need '-nostdlib' as well?
 
     arm-none-eabi-gcc \
+        -nostdlib -fno-exceptions -fno-rtti \
         --specs=nosys.specs -nostartfiles \
         -T Sources/link.ld \
         -o Build/System.elf \

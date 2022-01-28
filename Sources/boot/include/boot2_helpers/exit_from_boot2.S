@@ -9,15 +9,10 @@
 
 #include "hardware/regs/m0plus.h"
 
-// If entered from the bootrom, lr (which we earlier pushed) will be 0,
-// and we vector through the table at the start of the main flash image.
-// Any regular function call will have a nonzero value for lr.
 check_return:
-    pop {r0}
-    cmp r0, #0
-    beq vector_into_flash
-    bx r0
-vector_into_flash:
+    // FIXME: Setup 'lr' for backtrace.
+
+    // Load the vector table from '0x10000100' and jump to reset handler.
     ldr r0, =(XIP_BASE + 0x100)
     ldr r1, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
     str r0, [r1]
