@@ -9,6 +9,8 @@
 .cpu cortex-m0plus
 .thumb
 
+// The flash boot will load the vector table from here.
+// It will setup the stack and jump to the 'isr_reset' routine.
 .section .vectors, "ax"
 .align 4
 

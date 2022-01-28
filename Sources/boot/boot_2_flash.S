@@ -103,9 +103,6 @@
 .type boot_2_flash,%function
 .thumb_func
 boot_2_flash:
-    // FIXME: Remove
-    bkpt #0
-
     push {lr}
 
     // Set pad configuration:
@@ -142,7 +139,6 @@ boot_2_flash:
     movs r1, #1
     movs r2, #SSI_RX_SAMPLE_DLY_OFFSET  // == 0xf0 so need 8 bits of offset significance
     str r1, [r3, r2]
-
 
 // On QSPI parts we usually need a 01h SR-write command to enable QSPI mode
 // (i.e. turn WPn and HOLDn into IO2/IO3)

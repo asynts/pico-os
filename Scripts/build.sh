@@ -89,7 +89,6 @@ function step_build_boot() {
     python3 Scripts/checksum.py Build/boot/boot_2_flash.linked.o Build/boot/boot_2_flash.patched.o
     OBJS+=("Build/boot/boot_2_flash.patched.o")
 
-    compile_asm "boot/boot_3_reset.S" keep
     compile_asm "boot/boot_3_vectors.S" keep
 }
 step_build_boot

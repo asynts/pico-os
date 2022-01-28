@@ -15,13 +15,12 @@ SECTIONS
     /* FIXME: There are a ton of other sections that need to stay. */
 
     .boot_2_flash : {
-        KEEP (*(.boot_2_flash_second_stage))
+        KEEP (*(.boot_2_flash))
     } > BOOTRAM AT > FLASH
 
     .text : {
         __text_start__ = .;
 
-        *(.reset)
         *(.vectors)
         *(.text*)
         *(.rodata*)
