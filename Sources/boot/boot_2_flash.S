@@ -94,6 +94,8 @@
 // The bootrom will load this into memory at the former address and hand over to us.
 .section .boot_2_flash, "ax"
 
+_marker:
+
 // The exit point is passed in lr. If entered from bootrom, this will be the
 // flash address immediately following this second stage (0x10000100).
 // Otherwise it will be a return address -- second stage being called as a
@@ -284,5 +286,7 @@ configure_ssi:
 .global literals
 literals:
 .ltorg
+
+.fill 256 - (. - _marker), 1, 0
 
 .end

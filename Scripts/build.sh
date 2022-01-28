@@ -78,15 +78,7 @@ function step_build_boot() {
     # Then we link it to ensure that all relocations are gone and that we have exactly 256 bytes.
     # Finally we insert the checksum with a custom python script.
     compile_asm "boot/boot_2_flash.S" discard
-    arm-none-eabi-gcc \
-        -mcpu=cortex-m0plus -mthumb \
-        --specs=nosys.specs \
-        -nostartfiles \
-        -Wl,--relocatable \
-        -Wl,--script=Sources/boot/boot_2_link.ld \
-        "Build/boot/boot_2_flash.S.o" \
-        -o "Build/boot/boot_2_flash.linked.o"
-    python3 Scripts/checksum.py Build/boot/boot_2_flash.linked.o Build/boot/boot_2_flash.patched.o
+    python3 Scripts/checksum.py Build/boot/boot_2_flash.S.o Build/boot/boot_2_flash.patched.o
     OBJS+=("Build/boot/boot_2_flash.patched.o")
 
     compile_asm "boot/boot_3_vectors.S" keep
