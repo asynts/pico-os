@@ -21,8 +21,6 @@ It is supposed to be ordered.
 
 -   Simplify the boot procedure.
 
--   Load `.data` and `.bss`.
-
 ### Bugs
 
 -   After closing the debugger, we see the following message:

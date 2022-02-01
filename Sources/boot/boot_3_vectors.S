@@ -114,3 +114,13 @@ decl_isr_bkpt isr_irq28
 decl_isr_bkpt isr_irq29
 decl_isr_bkpt isr_irq30
 decl_isr_bkpt isr_irq31
+
+.global boot_3
+.global isr_reset
+isr_reset:
+    // void boot_4_load_kernel(void);
+    b boot_4_load_kernel
+
+1:
+    wfi
+    b 1b

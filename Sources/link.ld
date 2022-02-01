@@ -2,7 +2,7 @@
 
 MEMORY
 {
-    ROM (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
+    ROM     (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
     FLASH   (rx ) : ORIGIN = 0x10000000, LENGTH = 2M
     RAM     (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
     BOOTRAM (rwx) : ORIGIN = 0x20041f00, LENGTH = 256
@@ -45,6 +45,14 @@ SECTIONS
 
         . = ALIGN(4);
         __bss_end__ = .;
+    } > RAM AT > RAM
+
+    .noinit (NOLOAD) : {
+        __noinit_start__ = .;
+        *(.noinit*)
+
+        . = ALIGN(4);
+        __noinit_end__ = .;
     } > RAM AT > RAM
 
     .stack (NOLOAD) : {
