@@ -4,11 +4,14 @@ set -e
 # Currently, this project is build with a custom bash script.
 # In the future, it would be better to configure some build tool.
 
+# FIXME: What combination of '-ffreestanding' '-nostdlib', '--specs' and '-nostartfiles' is actually necessary?
+# FIXME: What about '-mthumb'
+
 ASM="arm-none-eabi-gcc"
-ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include -fno-exceptions -fno-rtti -nostdlib"
+ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include -fno-exceptions -fno-rtti -nostdlib -ffreestanding"
 
 CXX="arm-none-eabi-g++"
-CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti"
+CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti -ffreestanding -mthumb"
 
 OBJCOPY="arm-none-eabi-objcopy"
 
@@ -54,7 +57,7 @@ function compile_asm() {
 function compile_cxx() {
     filepath=$1
     keep_or_discard=$2
-    "$CXX" $CXXFLAGS -fno-exceptions  -o "Build/$filepath.o" -c "Sources/$filepath"
+    "$CXX" $CXXFLAGS -o "Build/$filepath.o" -c "Sources/$filepath"
 
     case "$keep_or_discard"
     in
@@ -82,6 +85,8 @@ function step_build_boot() {
     OBJS+=("Build/boot/boot_2_flash.patched.o")
 
     compile_asm "boot/boot_3_vectors.S" keep
+
+    compile_cxx "boot/boot_4_load_kernel.cpp" keep
 }
 step_build_boot
 
@@ -90,7 +95,7 @@ function step_link_system() {
     #        Do we need '-nostdlib' as well?
 
     arm-none-eabi-gcc \
-        -nostdlib -fno-exceptions -fno-rtti \
+        -Wall -Wextra -mcpu=cortex-m0plus -g -mthumb -fno-exceptions -fno-rtti -ffreestanding -nostdlib \
         --specs=nosys.specs -nostartfiles \
         -T Sources/link.ld \
         -o Build/System.elf \

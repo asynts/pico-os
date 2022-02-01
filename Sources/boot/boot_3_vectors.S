@@ -74,7 +74,7 @@ boot_vector_table:
     bkpt #0
 .endm
 
-decl_isr_bkpt isr_reset
+// decl_isr_bkpt isr_reset
 decl_isr_bkpt isr_invalid
 decl_isr_bkpt isr_nmi
 decl_isr_bkpt isr_hardfault
@@ -114,3 +114,14 @@ decl_isr_bkpt isr_irq28
 decl_isr_bkpt isr_irq29
 decl_isr_bkpt isr_irq30
 decl_isr_bkpt isr_irq31
+
+// void boot_4_load_kernel(void);
+.global boot_4_load_kernel
+
+.global isr_reset
+isr_reset:
+    b boot_4_load_kernel
+
+1:
+    wfi
+    b 1b
