@@ -115,9 +115,6 @@ decl_isr_bkpt isr_irq29
 decl_isr_bkpt isr_irq30
 decl_isr_bkpt isr_irq31
 
-// void boot_4_load_kernel(void);
-.global boot_4_load_kernel
-
 .global isr_reset
 .type isr_reset, %function
 .thumb_func
@@ -127,6 +124,7 @@ isr_reset:
     ldr r0, =#0x10000000
     ldr r1, [r0]
 
+    // void boot_4_load_kernel(void);
     b boot_4_load_kernel
 
 1:

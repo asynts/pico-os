@@ -100,6 +100,7 @@ function step_link_system() {
     arm-none-eabi-gcc \
         -Wall -Wextra -mcpu=cortex-m0plus -g -mthumb -fno-exceptions -fno-rtti -ffreestanding -nostdlib \
         --specs=nosys.specs -nostartfiles \
+        -Wl,--orphan-handling=error \
         -T Sources/link.ld \
         -o Build/System.elf \
         ${OBJS[@]}
