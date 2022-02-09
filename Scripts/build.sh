@@ -98,6 +98,7 @@ function step_link_system() {
     #        Do we need '-nostdlib' as well?
 
     arm-none-eabi-gcc \
+        -static \
         -Wall -Wextra -mcpu=cortex-m0plus -g -mthumb -fno-exceptions -fno-rtti -ffreestanding -nostdlib \
         --specs=nosys.specs -nostartfiles \
         -Wl,--orphan-handling=error \

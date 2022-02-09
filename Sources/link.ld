@@ -34,6 +34,16 @@ SECTIONS
         __text_end__ = .;
     } > FLASH AT > FLASH
 
+    /* The following is needed for dynamic linking. */
+    /* Our boot loader and kernel is statically linked, but we still need to provide this for some reason. */
+    .rel.dyn : {
+        *(.rel.iplt)
+    }
+    .got : {
+        *(.igot.plt)
+    }
+    .iplt : { *(.iplt) }
+
     .init_array : {
         __init_array_start__ = .;
         *(.init_array)

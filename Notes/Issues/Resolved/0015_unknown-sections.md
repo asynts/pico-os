@@ -83,15 +83,20 @@ After adding `-Wl,--orphan-handling=error`, the linker is now complaining about 
     This confirms, that the `foo` calls `bar` dynamically.
     However, it should be possible to resolve this at runtime, therefore, the linker is configured incorrectly.
 
+-   I've tried manually adding the sections that it's complaining about.
+    It seems, that they are not used but the linker still expects them to appear.
+
+-   I've verified that the result is statically linked, even if it complains about the missing sections.
+    Linkers are weird.
+
 ### Ideas
 
--   I should put more assertions into the linker script, in particular the `.init_array` seems dangerous.
-
 ### Theories
-
--   Additionally, we appear to do call a function dynamically in `boot_3_vectors.S`.
 
 ### Conclusions
 
 -   The linker links some additional functions that it uses in some cases.
     For example, "veneers" are used if a jump needs to be performed that exceeds the relative jump offset.
+
+-   `boot_3_vectors` calls `boot_4_load_kernel` dynamically and tries to use the procedure lookup table in the process.
+    The solution is to simply define these sections in the linker script, the linker hopefully won't use them.
