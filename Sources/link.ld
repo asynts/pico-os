@@ -78,16 +78,16 @@ SECTIONS
     /* FIXME: This appears to be putting these sections at different addresses. */
     /*        We want the address to stay the same. */
 
-    .ARM.attributes : { *(.ARM.attributes) }
-    .comment : { *(.comment) }
-    .debug_line : { *(.debug_line) }
-    .debug_line_str : { *(.debug_line_str) }
-    .debug_info : { *(.debug_info) }
-    .debug_abbrev : { *(.debug_abbrev) }
-    .debug_aranges : { *(.debug_aranges) }
-    .debug_str : { *(.debug_str) }
-    .debug_frame : { *(.debug_frame) }
-    .symtab : { *(.symtab) }
-    .strtab : { *(.strtab) }
-    .shstrtab : { *(.shstrtab) }
+    .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) }
+    .comment 0 : { *(.comment) }
+    .debug_line 0 : { *(.debug_line) }
+    .debug_line_str 0 : { *(.debug_line_str) }
+    .debug_info 0 : { *(.debug_info) }
+    .debug_abbrev 0 : { *(.debug_abbrev) }
+    .debug_aranges 0 : { *(.debug_aranges) }
+    .debug_str 0 : { *(.debug_str) }
+    .debug_frame 0 : { *(.debug_frame) }
+    .symtab 0 : { *(.symtab) }
+    .strtab 0 : { *(.strtab) }
+    .shstrtab 0 : { *(.shstrtab) }
 }

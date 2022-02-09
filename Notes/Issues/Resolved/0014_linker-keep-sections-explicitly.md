@@ -76,10 +76,26 @@ To avoid issues in the future, we want to explicitly mention all sections in the
     [19] .shstrtab         STRTAB          00000000 0219f3 0000cb 00      0   0  1
     ```
 
-### Ideas
+-   After closer inspection of the linker script used by default, I was missing a zero that indicated that this section should be placed at address zero.
 
--   I should put more assertions into the linker script, in particular the `.init_array` seems dangerous.
+### Ideas
 
 ### Theories
 
 ### Conclusions
+
+-   The linker script was changed from:
+
+    ```none
+    /* ... */
+    .symtab : { *(.symtab) }
+    /* ... */
+    ```
+    to:
+    ```none
+    /* ... */
+    .symtab 0 : { *(.symtab) }
+    /* ... */
+    ```
+
+    Now, the linker no longer modifies the sections.
