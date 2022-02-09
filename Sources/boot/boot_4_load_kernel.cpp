@@ -88,6 +88,10 @@ extern u8 __bss_start__[];
 extern u8 __bss_end__[];
 extern u8 __data_lma__[];
 
+using init_array_fn = void (*)();
+extern init_array_fn __init_array_start__[];
+extern init_array_fn __init_array_end__[];
+
 export extern "C"
 void boot_4_load_kernel() {
     asm volatile("bkpt #0");
@@ -109,7 +113,11 @@ void boot_4_load_kernel() {
     // Clear the '.bss' section.
     memset(__bss_start__, 0, __bss_end__ - __bss_start__);
 
-    // FIXME: .init_array section.
+    // Call all the global constructors.
+    // This should not be used in this codebase, but we'll add support for it anyways.
+    for (auto function = __init_array_start__; function < __init_array_end__; ++function) {
+        (*function)();
+    }
 
     boot_5_kernel_entry();
 }

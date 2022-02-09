@@ -21,12 +21,20 @@ SECTIONS
     .text : {
         __text_start__ = .;
 
-        *(.vectors)
+        KEEP (*(.vectors))
         *(.text*)
         *(.rodata*)
 
         . = ALIGN(4);
         __text_end__ = .;
+    } > FLASH AT > FLASH
+
+    .init_array : {
+        __init_array_start__ = .;
+        *(.init_array)
+        __init_array_end__ = .;
+
+        /* FIXME: Assert that alignment is correct */
     } > FLASH AT > FLASH
 
     .data : {
@@ -60,7 +68,26 @@ SECTIONS
         . += 0x1000;
         . = ALIGN(8);
         boot_stack_top = .;
-    }
+    } > RAM AT > RAM
 
     __end__ = .;
+
+    /* There are tons of other sections, that we explicitly mention here. */
+    /* If the compiler mentions something that isn't in this list, this is usually an error and the section should be added with care. */
+
+    /* FIXME: This appears to be putting these sections at different addresses. */
+    /*        We want the address to stay the same. */
+
+    .ARM.attributes : { *(.ARM.attributes) }
+    .comment : { *(.comment) }
+    .debug_line : { *(.debug_line) }
+    .debug_line_str : { *(.debug_line_str) }
+    .debug_info : { *(.debug_info) }
+    .debug_abbrev : { *(.debug_abbrev) }
+    .debug_aranges : { *(.debug_aranges) }
+    .debug_str : { *(.debug_str) }
+    .debug_frame : { *(.debug_frame) }
+    .symtab : { *(.symtab) }
+    .strtab : { *(.strtab) }
+    .shstrtab : { *(.shstrtab) }
 }
