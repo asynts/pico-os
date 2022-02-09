@@ -20,30 +20,40 @@ using isize = signed long;
 static_assert(sizeof(uptr) == sizeof(int*));
 static_assert(sizeof(uptr) == sizeof(void(*)()));
 
+// Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
+// They should be used with extreme care, but should be safe to use in 'boot_5_kernel_entry'.
+
 [[gnu::section(".noinit")]]
 void* (*memcpy_ptr)(void *destination, const void *source, u32 count) = nullptr;
 
-// Relies on initialization logic in 'boot_4_load_kernel'.
+export extern "C"
+void __aeabi_memcpy(void *destination, const void *source, usize count) {
+    memcpy_ptr(destination, source, count);
+}
+
 export extern "C"
 void* memcpy(void *destination, const void *source, usize count) {
-    return memcpy_ptr(destination, source, count);
+    __aeabi_memcpy(destination, source, count);
+    return destination;
 }
 
 [[gnu::section(".noinit")]]
-void* (*memset_ptr)(u8 *destination, u8 character, u32 count) = nullptr;
+void* (*memset_ptr)(void *destination, u8 fill, u32 count) = nullptr;
 
-// Relies on initialization logic in 'boot_4_load_kernel'.
 export extern "C"
-void* memset(void *destination, int character, usize count) {
-    // FIXME: Is this the correct cast?
-    // FIXME: We hang here for some reason.
-    return memset(destination, static_cast<u8>(character), count);
+void __aeabi_memset(void *destination, usize count, int fill) {
+    memset_ptr(destination, static_cast<u8>(fill), count);
+}
+
+export extern "C"
+void* memset(void *destination, int fill, usize count) {
+    __aeabi_memset(destination, count, fill);
+    return destination;
 }
 
 [[gnu::section(".noinit")]]
 u32 (*rom_table_lookup_ptr)(u16 *table, u32 code);
 
-// Relies on initialization logic in 'boot_4_load_kernel'.
 export
 u32 rom_table_lookup(u16 *table, u32 code) {
     return rom_table_lookup_ptr(table, code);
@@ -66,11 +76,9 @@ u32 rom_data_lookup(char ch1, char ch2) {
 }
 
 // FIXME: Move this into another C++ module.
-namespace kernel
-{
-    void entry() {
-        asm volatile("bkpt #0");
-    }
+export extern "C"
+void boot_5_kernel_entry() {
+    asm volatile("bkpt #0");
 }
 
 // Defined by linker script.
@@ -103,5 +111,5 @@ void boot_4_load_kernel() {
 
     // FIXME: .init_array section.
 
-    kernel::entry();
+    boot_5_kernel_entry();
 }
