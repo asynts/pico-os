@@ -119,9 +119,20 @@ decl_isr_bkpt isr_irq31
 .global boot_4_load_kernel
 
 .global isr_reset
+.type isr_reset, %function
+.thumb_func
 isr_reset:
+    nop
+
+    ldr r0, =#0x10000000
+    ldr r1, [r0]
+
     b boot_4_load_kernel
 
 1:
     wfi
     b 1b
+
+literals:
+.ltorg
+.end

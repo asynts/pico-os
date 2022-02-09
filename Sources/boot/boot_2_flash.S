@@ -281,10 +281,7 @@ configure_ssi:
 #include "boot2_helpers/read_flash_sreg.S"
 #endif
 
-.global literals
 literals:
 .ltorg
-
 .fill 256 - (. - _marker), 1, 0
-
 .end
