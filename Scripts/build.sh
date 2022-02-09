@@ -7,11 +7,14 @@ set -e
 # FIXME: What combination of '-ffreestanding' '-nostdlib', '--specs' and '-nostartfiles' is actually necessary?
 # FIXME: What about '-mthumb'
 
+WARNINGS="-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wsign-conversion \
+-Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wuseless-cast -Wdouble-promotion"
+
 ASM="arm-none-eabi-gcc"
-ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g -Wall -Wextra -I./Sources/boot/include -fno-exceptions -fno-rtti -nostdlib -ffreestanding"
+ASMFLAGS="-mcpu=cortex-m0plus -mthumb -g $WARNINGS -I./Sources/boot/include -fno-exceptions -fno-rtti -nostdlib -ffreestanding"
 
 CXX="arm-none-eabi-g++"
-CXXFLAGS="-std=c++20 -Wall -Wextra -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti -ffreestanding -mthumb"
+CXXFLAGS="-std=c++20 $WARNINGS -mcpu=cortex-m0plus -g -nostdlib -fmodules-ts -fno-exceptions -fno-rtti -ffreestanding -mthumb"
 
 OBJCOPY="arm-none-eabi-objcopy"
 

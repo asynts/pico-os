@@ -64,7 +64,7 @@ u16 *rom_func_table;
 
 export
 u32 rom_func_lookup(char ch1, char ch2) {
-    return rom_table_lookup(rom_func_table, (ch2 << 8) | ch1);
+    return rom_table_lookup(rom_func_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }
 
 [[gnu::section(".noinit")]]
@@ -72,7 +72,7 @@ u16 *rom_data_table;
 
 export
 u32 rom_data_lookup(char ch1, char ch2) {
-    return rom_table_lookup(rom_data_table, (ch2 << 8) | ch1);
+    return rom_table_lookup(rom_data_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }
 
 // FIXME: Move this into another C++ module.
@@ -108,10 +108,10 @@ void boot_4_load_kernel() {
     // Notice, that we placed all the pointers above in a special '.noinit' sections such that we won't override them by accident.
 
     // Load the '.data' section into memory.
-    memcpy(__data_start__, __data_lma__, __data_end__ - __data_start__);
+    memcpy(__data_start__, __data_lma__, reinterpret_cast<uptr>(__data_end__) - reinterpret_cast<uptr>(__data_start__));
 
     // Clear the '.bss' section.
-    memset(__bss_start__, 0, __bss_end__ - __bss_start__);
+    memset(__bss_start__, 0, reinterpret_cast<uptr>(__bss_end__) - reinterpret_cast<uptr>(__bss_start__));
 
     // Call all the global constructors.
     // This should not be used in this codebase, but we'll add support for it anyways.
