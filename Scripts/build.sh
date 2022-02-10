@@ -64,7 +64,7 @@ function compile_asm() {
     compile_cxx "$1" "$2"
 }
 
-. Sources/build.sh
+source Sources/build.sh
 
 function step_link() {
     "$LD" $COMMON_FLAGS $LD_FLAGS \
