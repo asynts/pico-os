@@ -1,26 +1,9 @@
 export module boot;
 
+import kit;
 import kernel;
 
-// FIXME: Setup wrapper types that protect against implicit conversions.
-//        There should be unit test that verify the functionality of that library.
-
-using u8   = unsigned char;
-using u16  = unsigned short;
-using u32  = unsigned int;
-using u64  = unsigned long long;
-using uptr = unsigned long;
-using usize = unsigned long;
-
-using i8   = signed char;
-using i16  = signed short;
-using i32  = signed int;
-using i64  = signed long long;
-using iptr = signed long;
-using isize = signed long;
-
-static_assert(sizeof(uptr) == sizeof(int*));
-static_assert(sizeof(uptr) == sizeof(void(*)()));
+using namespace kit::prelude;
 
 // Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
 // They should be used with extreme care, but should be safe to use in 'boot_5_kernel_entry'.

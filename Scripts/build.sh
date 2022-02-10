@@ -77,10 +77,7 @@ function compile_cxx() {
 
 . Sources/build.sh
 
-step_build_std
-step_build_std_integers
-step_build_kernel
-step_build_boot
+step_build
 
 function step_link_system() {
     # FIXME: What precisely does '--specs=nosys.specs -nostartfiles' do?
