@@ -1,6 +1,6 @@
-. Sources/kernel/build.sh
-. Sources/kit/build.sh
-. Sources/boot/build.sh
+source Sources/kernel/build.sh
+source Sources/kit/build.sh
+source Sources/boot/build.sh
 
 function step_build() {
     step_build_kit
