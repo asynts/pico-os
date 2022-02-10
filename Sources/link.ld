@@ -50,7 +50,7 @@ SECTIONS
     /* It places a pointer to each function in this area, we can iterate it on startup. */
     .init_array : {
         __init_array_start__ = .;
-        *(.init_array)
+        KEEP (*(.init_array))
         __init_array_end__ = .;
     } > FLASH AT > FLASH
 

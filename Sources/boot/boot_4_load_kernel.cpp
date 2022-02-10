@@ -90,6 +90,8 @@ void boot_4_load_kernel() {
     // Call all the global constructors.
     // This is used by C++20 modules, although I do not quite understand why.
     // Each module defines a constructor that sets a single byte in '.bss' from 0 to 1.
+    if (reinterpret_cast<uptr>(__init_array_start__) % 4 != 0 || reinterpret_cast<uptr>(__init_array_end__) % 4 != 0)
+        asm volatile("bkpt #0");
     for (auto function = __init_array_start__; function < __init_array_end__; ++function) {
         (*function)();
     }
