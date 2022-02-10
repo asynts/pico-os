@@ -108,6 +108,8 @@ SECTIONS
     .debug_aranges 0 : { *(.debug_aranges) }
     .debug_str 0 : { *(.debug_str) }
     .debug_frame 0 : { *(.debug_frame) }
+    .debug_rnglists 0 : { *(.debug_rnglists) }
+    .debug_loclists 0 : { *(.debug_loclists) }
     .symtab 0 : { *(.symtab) }
     .strtab 0 : { *(.strtab) }
     .shstrtab 0 : { *(.shstrtab) }
