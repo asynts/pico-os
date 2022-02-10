@@ -1,8 +1,6 @@
 export module kernel;
 
-import kit;
-
-using namespace kit::prelude;
+import kernel.drivers;
 
 namespace kernel {
     // This is the entry point of the kernel.
@@ -10,6 +8,8 @@ namespace kernel {
     // The bootloader loaded the kernel into memory and called the global constructors.
     export
     void entry() {
+        drivers::UartDriver::initialize();
+
         asm volatile("bkpt #0");
     }
 }
