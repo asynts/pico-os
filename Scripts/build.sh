@@ -77,8 +77,8 @@ function compile_cxx() {
 
 . Sources/build.sh
 
-step_build_std
-step_build_std_integers
+step_build_kit
+step_build_kit_integers
 step_build_kernel
 step_build_boot
 
