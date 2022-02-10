@@ -3,7 +3,7 @@ export module boot;
 import kit;
 import kernel;
 
-using namespace kit::prelude;
+using namespace kit;
 
 // Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
 // They should be used with extreme care, but should be safe to use later on.
