@@ -19,5 +19,7 @@ https://github.com/raspberrypi/pico-sdk/tree/2062372d203b372849d573f252cf7c6dc28
     Afterwards, it will put `0x10000100` into the vector table and then sets up the stack according to it.
     Then it jumps to the reset hander defined in the vector table.
 
- 5. Finally, we regain control.
-    Currently, this hasn't been implemented.
+ 5. At this point, we load the kernel into memory.
+    This means that the `.data` section is copied into ram and that the `.bss` section is cleared.
+
+ 6. Now the kernel is started.

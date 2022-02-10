@@ -1,23 +1,25 @@
-/* FIXME: Almost all the comments are outdated. */
-
 MEMORY
 {
     ROM     (r  ) : ORIGIN = 0x00000000, LENGTH = 16K
     FLASH   (rx ) : ORIGIN = 0x10000000, LENGTH = 2M
     RAM     (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
+
+    /* The ROM will load the first 256 bytes from FLASH into RAM into this range. */
     BOOTRAM (rwx) : ORIGIN = 0x20041f00, LENGTH = 256
 }
 
+/* This entry point is not used when we boot correctly, however, if the 'continue' command is used instead of 'run', we will start here. */
+/* In that case we will simply hit a breakpoint. */
 ENTRY(boot_1_debugger);
 
 SECTIONS
 {
-    /* FIXME: There are a ton of other sections that need to stay. */
-
+    /* This is the first 256 bytes that will be loaded from FLASH into RAM by the ROM. */
     .boot_2_flash : {
         KEEP (*(.boot_2_flash))
     } > BOOTRAM AT > FLASH
 
+    /* Everything that can stay in flash, we don't care about code versus data. */
     .text : {
         __text_start__ = .;
 
@@ -44,14 +46,15 @@ SECTIONS
     }
     .iplt : { *(.iplt) }
 
+    /* The C++20 modules all seem to define a global constructor that should run before main. */
+    /* It places a pointer to each function in this area, we can iterate it on startup. */
     .init_array : {
         __init_array_start__ = .;
         *(.init_array)
         __init_array_end__ = .;
-
-        /* FIXME: Assert that alignment is correct */
     } > FLASH AT > FLASH
 
+    /* Anything that needs to be copied into RAM before the kernel starts. */
     .data : {
         __data_start__ = .;
 
@@ -62,6 +65,7 @@ SECTIONS
     } > RAM AT > FLASH
     __data_lma__ = LOADADDR(.data);
 
+    /* Anything that needs to be in RAM but doesn't exist in FLASH. */
     .bss (NOLOAD) : {
         __bss_start__ = .;
 
@@ -71,6 +75,8 @@ SECTIONS
         __bss_end__ = .;
     } > RAM AT > RAM
 
+    /* When we load the kernel, we need some place to store global variables that are used by the loading logic itself. */
+    /* If this were put into '.bss' or '.data' it would be overwritten. */
     .noinit (NOLOAD) : {
         __noinit_start__ = .;
         *(.noinit*)
@@ -79,7 +85,9 @@ SECTIONS
         __noinit_end__ = .;
     } > RAM AT > RAM
 
-    .stack (NOLOAD) : {
+    /* The linker decides where our boot stack is. */
+    /* Later, the kernel will take over memory management and then this won't matter at all. */
+    .bootstack (NOLOAD) : {
         . += 0x1000;
         . = ALIGN(8);
         boot_stack_top = .;
@@ -89,9 +97,7 @@ SECTIONS
 
     /* There are tons of other sections, that we explicitly mention here. */
     /* If the compiler mentions something that isn't in this list, this is usually an error and the section should be added with care. */
-
-    /* FIXME: This appears to be putting these sections at different addresses. */
-    /*        We want the address to stay the same. */
+    /* Note the '0' after the section name, this means that this section is placed at address zero, by default it will continue incrementing addresses. */
 
     .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) }
     .comment 0 : { *(.comment) }

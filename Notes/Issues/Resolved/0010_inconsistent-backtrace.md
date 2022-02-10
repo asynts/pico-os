@@ -34,29 +34,9 @@ When I do a backtrace in some locations, it sometimes includes '0x00000000' or i
 
 ### Ideas
 
--   **I should isolate the issue into a prototype.**
-
--   I could try using LLDB instead.
-
--   Go though the build script and simplify.
-
--   How much of the following is correct and necessary?
-
-    ```assembly
-    .global boot_2_flash
-    .type boot_2_flash, %function
-    .thumb_func
-    boot_2_flash:
-    ```
-
--   I should read this:
-    https://sourceware.org/binutils/docs/as/ARM_002dDependent.html
-
--   What is the difference between `arm-none-eabi-gcc` and `arm-none-eabi-ld` and similarly for `arm-none-eabi-as`?
-
 ### Theories
 
--   Maybe this has nothing to do with the `.ARM.*` sections.
-    This could just be that GDB uses some information like the stack beyond what I know.
-
 ### Conclusions
+
+-   I am not able to pinpoint exactly, which changes made this work but one major one was to use `.Lfoo` instead of `foo` in symbol names.
+    This means that GDB ignores them in backtraces.

@@ -6,7 +6,7 @@ import kernel;
 using namespace kit::prelude;
 
 // Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
-// They should be used with extreme care, but should be safe to use in 'boot_5_kernel_entry'.
+// They should be used with extreme care, but should be safe to use later on.
 
 [[gnu::section(".noinit")]]
 void* (*memcpy_ptr)(void *destination, const void *source, u32 count) = nullptr;
@@ -39,7 +39,6 @@ void* memset(void *destination, int fill, usize count) {
 [[gnu::section(".noinit")]]
 u32 (*rom_table_lookup_ptr)(u16 *table, u32 code);
 
-export
 u32 rom_table_lookup(u16 *table, u32 code) {
     return rom_table_lookup_ptr(table, code);
 }
@@ -47,7 +46,6 @@ u32 rom_table_lookup(u16 *table, u32 code) {
 [[gnu::section(".noinit")]]
 u16 *rom_func_table;
 
-export
 u32 rom_func_lookup(char ch1, char ch2) {
     return rom_table_lookup(rom_func_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }
@@ -55,7 +53,6 @@ u32 rom_func_lookup(char ch1, char ch2) {
 [[gnu::section(".noinit")]]
 u16 *rom_data_table;
 
-export
 u32 rom_data_lookup(char ch1, char ch2) {
     return rom_table_lookup(rom_data_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }

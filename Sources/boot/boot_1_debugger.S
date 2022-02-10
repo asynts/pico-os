@@ -25,3 +25,7 @@
 boot_1_debugger:
     bkpt #0
     b boot_1_debugger
+
+literals:
+.ltorg
+.end
