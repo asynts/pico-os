@@ -75,6 +75,13 @@ function compile_cxx() {
     esac
 }
 
+function step_build_kernel() {
+    [[ -d Build/kernel ]] || mkdir -p Build/kernel
+
+    compile_cxx "kernel/module.cpp" keep
+}
+step_build_kernel
+
 function step_build_boot() {
     [[ -d Build/boot ]] || mkdir -p Build/boot
 

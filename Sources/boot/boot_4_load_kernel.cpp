@@ -1,5 +1,7 @@
 export module boot;
 
+import kernel;
+
 // FIXME: Setup wrapper types that protect against implicit conversions.
 //        There should be unit test that verify the functionality of that library.
 
@@ -75,12 +77,6 @@ u32 rom_data_lookup(char ch1, char ch2) {
     return rom_table_lookup(rom_data_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }
 
-// FIXME: Move this into another C++ module.
-export extern "C"
-void boot_5_kernel_entry() {
-    asm volatile("bkpt #0");
-}
-
 // Defined by linker script.
 extern u8 __data_start__[];
 extern u8 __data_end__[];
@@ -94,8 +90,6 @@ extern init_array_fn __init_array_end__[];
 
 export extern "C"
 void boot_4_load_kernel() {
-    asm volatile("bkpt #0");
-
     // First, we lookup the addresses that are required to use the 'rom_func_lookup' and 'rom_data_lookup' functions.
     rom_table_lookup_ptr = reinterpret_cast<decltype(rom_table_lookup_ptr)>(static_cast<uptr>(*reinterpret_cast<u16*>(0x00000018)));
     rom_func_table = reinterpret_cast<u16*>(*reinterpret_cast<uptr*>(0x00000014) & 0xffff);
@@ -114,10 +108,11 @@ void boot_4_load_kernel() {
     memset(__bss_start__, 0, reinterpret_cast<uptr>(__bss_end__) - reinterpret_cast<uptr>(__bss_start__));
 
     // Call all the global constructors.
-    // This should not be used in this codebase, but we'll add support for it anyways.
+    // This is used by C++20 modules, although I do not quite understand why.
+    // Each module defines a constructor that sets a single byte in '.bss' from 0 to 1.
     for (auto function = __init_array_start__; function < __init_array_end__; ++function) {
         (*function)();
     }
 
-    boot_5_kernel_entry();
+    kernel::entry();
 }
