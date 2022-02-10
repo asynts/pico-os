@@ -119,17 +119,24 @@ decl_isr_bkpt isr_irq31
 .type isr_reset, %function
 .thumb_func
 isr_reset:
-    nop
+    // We do not want 'isr_reset' to show up in a backtrace, just hand over to 'boot_3_vectors'.
+    b boot_3_vectors
 
-    ldr r0, =#0x10000000
-    ldr r1, [r0]
+.global boot_3_vectors
+.type boot_3_vectors, %function
+.thumb_func
+boot_3_vectors:
+    push {lr}
 
     // void boot_4_load_kernel(void);
-    b boot_4_load_kernel
+    bl boot_4_load_kernel
 
 1:
     wfi
     b 1b
+
+    // Not reached.
+    bkpt #0
 
 literals:
 .ltorg

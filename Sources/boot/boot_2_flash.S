@@ -94,7 +94,7 @@
 // The bootrom will load this into memory at the former address and hand over to us.
 .section .boot_2_flash, "ax"
 
-_marker:
+.Lmarker:
 
 // The exit point is passed in lr. If entered from bootrom, this will be the
 // flash address immediately following this second stage (0x10000100).
@@ -143,7 +143,7 @@ boot_2_flash:
 // On QSPI parts we usually need a 01h SR-write command to enable QSPI mode
 // (i.e. turn WPn and HOLDn into IO2/IO3)
 #ifdef PROGRAM_STATUS_REG
-program_sregs:
+.Lprogram_sregs:
 #define CTRL0_SPI_TXRX \
     (7 << SSI_CTRLR0_DFS_32_LSB) | /* 8 bits per data frame */ \
     (SSI_CTRLR0_TMOD_VALUE_TX_AND_RX << SSI_CTRLR0_TMOD_LSB)
@@ -160,7 +160,7 @@ program_sregs:
     bl read_flash_sreg
     movs r2, #SREG_DATA
     cmp r0, r2
-    beq skip_sreg_programming
+    beq .Lskip_sreg_programming
 
     // Send write enable command
     movs r1, #CMD_WRITE_ENABLE
@@ -190,7 +190,7 @@ program_sregs:
     tst r0, r1
     bne 1b
 
-skip_sreg_programming:
+.Lskip_sreg_programming:
 
     // Disable SSI again so that it can be reconfigured
     movs r1, #0
@@ -203,7 +203,7 @@ skip_sreg_programming:
 // command prefix on *subsequent* transfers. We don't care about the results
 // of the read, the important part is the mode bits.
 
-dummy_read:
+.Ldummy_read:
 #define CTRLR0_ENTER_XIP \
     (FRAME_FORMAT                          /* Quad I/O mode */                \
         << SSI_CTRLR0_SPI_FRF_LSB) |                                          \
@@ -251,7 +251,7 @@ dummy_read:
 // the TX FIFO:
 //      INST_L_0_BITS   {ADDR[23:0],XIP_CMD[7:0]}       Load "mode bits" into XIP_CMD
 //      Anything else   {XIP_CMD[7:0],ADDR[23:0]}       Load SPI command into XIP_CMD
-configure_ssi:
+.Lconfigure_ssi:
 #define SPI_CTRLR0_XIP \
     (MODE_CONTINUOUS_READ                      /* Mode bits to keep flash in continuous read mode */ \
         << SSI_SPI_CTRLR0_XIP_CMD_LSB) | \
@@ -283,5 +283,5 @@ configure_ssi:
 
 literals:
 .ltorg
-.fill 256 - (. - _marker), 1, 0
+.fill 256 - (. - .Lmarker), 1, 0
 .end
