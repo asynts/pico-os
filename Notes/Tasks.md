@@ -44,3 +44,5 @@ It is supposed to be ordered.
     https://sourceware.org/binutils/docs/as/ARM_002dDependent.html
 
 -   What is the difference between `arm-none-eabi-gcc` and `arm-none-eabi-ld` and similarly for `arm-none-eabi-as`?
+
+-   There is some weird `__in_chrg` symbol which GCC appears to generate.
