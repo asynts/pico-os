@@ -75,29 +75,11 @@ function compile_cxx() {
     esac
 }
 
-function step_build_kernel() {
-    [[ -d Build/kernel ]] || mkdir -p Build/kernel
+. Sources/build.sh
 
-    compile_cxx "kernel/module.cpp" keep
-}
+step_build_std
+step_build_std_integers
 step_build_kernel
-
-function step_build_boot() {
-    [[ -d Build/boot ]] || mkdir -p Build/boot
-
-    compile_asm "boot/boot_1_debugger.S" keep
-
-    # First, we compile the assembly file.
-    # Then we link it to ensure that all relocations are gone and that we have exactly 256 bytes.
-    # Finally we insert the checksum with a custom python script.
-    compile_asm "boot/boot_2_flash.S" discard
-    python3 Scripts/checksum.py Build/boot/boot_2_flash.S.o Build/boot/boot_2_flash.patched.o
-    OBJS+=("Build/boot/boot_2_flash.patched.o")
-
-    compile_asm "boot/boot_3_vectors.S" keep
-
-    compile_cxx "boot/boot_4_load_kernel.cpp" keep
-}
 step_build_boot
 
 function step_link_system() {
