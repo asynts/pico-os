@@ -1,9 +1,5 @@
 export module kernel;
 
-import kit;
-
-using namespace kit::prelude;
-
 namespace kernel {
     // This is the entry point of the kernel.
     // At this point this is essentially a normal application.

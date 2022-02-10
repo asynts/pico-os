@@ -17,6 +17,8 @@ CXX_FLAGS="-I./Sources/boot/include"
 LD="arm-none-eabi-g++"
 LD_FLAGS="-Wl,--orphan-handling=error -nostartfiles -nodefaultlibs -nolibc -nostdlib -static"
 
+DEBUG="yes"
+
 function trap_exit() {
     retval=$?
     if [[ $retval = 0 ]]
@@ -43,6 +45,11 @@ function compile_cxx() {
     filepath=$1
     keep_or_discard=$2
 
+    if [[ "$DEBUG" = "yes" ]]
+    then
+        echo "CXX Sources/$filepath -> Build/$filepath.o"
+    fi
+
     "$CXX" $COMMON_FLAGS $CXX_FLAGS \
         -o "Build/$filepath.o" \
         -c "Sources/$filepath"
@@ -64,7 +71,7 @@ function compile_asm() {
     compile_cxx "$1" "$2"
 }
 
-. Sources/build.sh
+source Sources/build.sh
 
 function step_link() {
     "$LD" $COMMON_FLAGS $LD_FLAGS \
