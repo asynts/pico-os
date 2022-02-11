@@ -1,5 +1,7 @@
 export module kit;
 
+export import workaround;
+
 namespace kit {
     export using u8    = unsigned char;
     export using u16   = unsigned short;
