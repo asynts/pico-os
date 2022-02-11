@@ -1,5 +1,7 @@
 export module boot;
 
+export import workaround;
+
 import kit;
 import kernel;
 
@@ -96,5 +98,6 @@ void boot_4_load_kernel() {
         (*function)();
     }
 
-    kernel::entry();
+    whatever();
+    // kernel::entry();
 }

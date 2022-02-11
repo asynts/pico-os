@@ -1,5 +1,7 @@
 export module kit;
 
+export import workaround;
+
 namespace kit {
     export using u8    = unsigned char;
     export using u16   = unsigned short;
@@ -48,8 +50,8 @@ namespace kit
     template<typename T>
     struct Singleton {
     private:
-        static inline T m_value;
-        static inline bool m_initialized;
+        static T m_value;
+        static bool m_initialized;
 
     public:
         static void initialize() {
