@@ -1,11 +1,8 @@
-export module boot;
+#include <Kit/Forward.hpp>
 
-export import workaround;
+#include <Kernel/Entry.hpp>
 
-import kit;
-import kernel;
-
-using namespace kit;
+using namespace Kit;
 
 // Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
 // They should be used with extreme care, but should be safe to use later on.
@@ -13,12 +10,12 @@ using namespace kit;
 [[gnu::section(".noinit")]]
 void* (*memcpy_ptr)(void *destination, const void *source, u32 count) = nullptr;
 
-export extern "C"
+extern "C"
 void __aeabi_memcpy(void *destination, const void *source, usize count) {
     memcpy_ptr(destination, source, count);
 }
 
-export extern "C"
+extern "C"
 void* memcpy(void *destination, const void *source, usize count) {
     __aeabi_memcpy(destination, source, count);
     return destination;
@@ -27,12 +24,12 @@ void* memcpy(void *destination, const void *source, usize count) {
 [[gnu::section(".noinit")]]
 void* (*memset_ptr)(void *destination, u8 fill, u32 count) = nullptr;
 
-export extern "C"
+extern "C"
 void __aeabi_memset(void *destination, usize count, int fill) {
     memset_ptr(destination, static_cast<u8>(fill), count);
 }
 
-export extern "C"
+extern "C"
 void* memset(void *destination, int fill, usize count) {
     __aeabi_memset(destination, count, fill);
     return destination;
@@ -70,7 +67,7 @@ using init_array_fn = void (*)();
 extern init_array_fn __init_array_start__[];
 extern init_array_fn __init_array_end__[];
 
-export extern "C"
+extern "C"
 void boot_4_load_kernel() {
     // First, we lookup the addresses that are required to use the 'rom_func_lookup' and 'rom_data_lookup' functions.
     rom_table_lookup_ptr = reinterpret_cast<decltype(rom_table_lookup_ptr)>(static_cast<uptr>(*reinterpret_cast<u16*>(0x00000018)));
@@ -98,6 +95,5 @@ void boot_4_load_kernel() {
         (*function)();
     }
 
-    whatever();
-    // kernel::entry();
+    Kernel::entry();
 }
