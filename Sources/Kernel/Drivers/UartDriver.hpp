@@ -10,6 +10,7 @@ namespace Kernel::Drivers
         friend Singleton<UartDriver>;
         UartDriver();
 
+        void configure_uart();
         void configure_dma();
     };
 }

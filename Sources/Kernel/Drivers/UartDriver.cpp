@@ -46,17 +46,28 @@ namespace Kernel::Drivers
 
     UartDriver::UartDriver()
     {
+        configure_uart();
         configure_dma();
     }
 
+    // FIXME: There is one serious issue with this implementation.
+    //        The DMA simply doesn't know when we drain the buffer, how did I address this in the
+    //        previous implementation?
+
+    // Configure UART0 to emit DREQ0 which will be handled by DMA_CHANNEL0.
+    // The settings here must match with what we configure on the host.
+    void UartDriver::configure_uart()
+    {
+        // FIXME
+    }
+
+    // We want to configure DMA_CHANNEL0 to copy from UART0 into a circular buffer.
+    // The same buffer can be drained by the kernel.
+    //
+    // Obviously, we can only read data when there is some, thus we use the DREQ feature
+    // where the UART chip will tell the DMA chip that data is avaliable.
     void UartDriver::configure_dma()
     {
-        // We want to configure DMA_CHANNEL0 to copy from UART0 into a circular buffer.
-        // The same buffer can be drained by the kernel.
-        //
-        // Obviously, we can only read data when there is some, thus we use the DREQ feature
-        // where the UART chip will tell the DMA chip that data is avaliable.
-
         // First, we verify that the channel isn't enabled at the moment.
         DmaCtrl control = *dma_channel0_ctrl_trigger;
         ASSERT(control.enabled == 0);
