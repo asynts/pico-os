@@ -3,5 +3,7 @@ project('pico-os', 'cpp')
 subdir('Sources/Kit/Tests')
 subdir('Sources/Boot')
 
-# FIXME: Link 'executable' with linker script.
-# link_args : [ '-T', meson.source_root() /  'Sources/link.ld' ]
+# FIXME: This has to depend on 'link.ld' changes.
+executable('System',
+    link_with : [ boot_lib ],
+    link_args : [ '-static', '-T', meson.source_root() / 'Sources/link.ld' ])

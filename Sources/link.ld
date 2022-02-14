@@ -9,11 +9,13 @@ MEMORY
 }
 
 /* This entry point is not used when we boot correctly, however, if the 'continue' command is used instead of 'run', we will start here. */
-/* In that case we will simply hit a breakpoint. */
-ENTRY(boot_1_debugger);
+/* The boot loader can deal with both situations. */
+ENTRY(_entry_point);
 
 SECTIONS
 {
+    /* FIXME: We need to link the boot loader into the boot rom. */
+
     /* This is the first 256 bytes that will be loaded from FLASH into RAM by the ROM. */
     .boot_2_flash : {
         KEEP (*(.boot_2_flash))
