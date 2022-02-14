@@ -1,0 +1,56 @@
+[constants]
+warning_flags = [
+    '-Wall',
+    '-Wextra',
+    '-Wshadow',
+    '-Wnon-virtual-dtor',
+    '-pedantic',
+    '-Wold-style-cast',
+    '-Wcast-align',
+    '-Wunused',
+    '-Woverloaded-virtual',
+    '-Wpedantic',
+    '-Wsign-conversion',
+    '-Wmisleading-indentation',
+    '-Wduplicated-cond',
+    '-Wduplicated-branches',
+    '-Wlogical-op',
+    '-Wnull-dereference',
+    '-Wuseless-cast',
+    '-Wdouble-promotion' ]
+common_flags = warning_flags + [
+    '-fno-exceptions',
+    '-fno-rtti',
+    '-ffreestanding',
+    '-mcpu=cortex-m0plus',
+    '-mthumb',
+    '-g',
+    '--specs=nosys.specs' ]
+
+[binaries]
+c       = 'arm-none-eabi-gcc'
+cpp     = 'arm-none-eabi-g++'
+ld      = 'arm-none-eabi-ld'
+ar      = 'arm-none-eabi-ar'
+as      = 'arm-none-eabi-as'
+size    = 'arm-none-eabi-size'
+objdump = 'arm-none-eabi-objdump'
+objcopy = 'arm-none-eabi-objcopy'
+strip   = 'arm-none-eabi-strip'
+gdb     = 'arm-none-eabi-gdb'
+
+[built-in options]
+cpp_args = common_flags + [
+    '-std=c++20' ]
+cpp_link_args = [
+    '-Wl,--orphan-handling=error',
+    '-nostartfiles',
+    '-nodefaultlibs',
+    '-nolibc',
+    '-nostdlib' ]
+
+[host_machine]
+system     = 'none'
+cpu_family = 'arm'
+cpu        = 'cortex-m0plus'
+endian     = 'little'
