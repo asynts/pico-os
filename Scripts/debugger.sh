@@ -3,7 +3,7 @@ set -e
 
 GDB="arm-none-eabi-gdb"
 
-if [[ "$PWD" != "/home/me/dev/pico-os" ]]
+if [[ "$PWD" != "/home/me/dev/pico-os/Build" ]]
 then
     echo "error: script executed in unknown location"
     exit 1
@@ -21,7 +21,7 @@ set history size unlimited
 set history remove-duplicates 1
 
 target extended-remote localhost:3333
-file Build/System.elf
+file System.elf
 EOD
 
 "$GDB" -q -x "$tmp/init.gdb"

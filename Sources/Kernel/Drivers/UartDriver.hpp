@@ -8,6 +8,8 @@ namespace Kernel::Drivers
     struct UartDriver : Singleton<UartDriver> {
     private:
         friend Singleton<UartDriver>;
-        UartDriver() = default;
+        UartDriver();
+
+        void configure_dma();
     };
 }
