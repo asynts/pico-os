@@ -23,3 +23,7 @@ inline void* operator new(usize, void *pointer) {
 inline void* operator new[](usize, void *pointer) {
     return pointer;
 }
+
+constexpr usize KiB = 1024;
+constexpr usize MiB = 1024 * 1024;
+constexpr usize GiB = 1024 * 1024 * 1024;
