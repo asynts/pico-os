@@ -26,6 +26,11 @@ boot_1_debugger:
     bkpt #0
     b boot_1_debugger
 
+// The linker doesn't understand how the boot process works.
+// It will see that 'boot_2_flash' is never called and simply discard it.
+// We need to reference it from here, because 'boot_1_debugger' is the entry symbol.
+.global boot_2_flash
+
 literals:
 .ltorg
 .end

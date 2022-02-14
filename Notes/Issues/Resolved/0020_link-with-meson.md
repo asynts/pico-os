@@ -47,13 +47,21 @@ However, I am having some trouble after starting to use the boot loader from `pi
     collect2: error: ld returned 1 exit status
     ```
 
-### Ideas
+-   The result was still empty, nothing except `boot_1_debugger` was defined.
 
--   I should copy the assembly file for the boot loader instead of the binary file, then I have full control.
+### Ideas
 
 ### Theories
 
--   I suspect, that the linker can't deal with the `boot.elf` binary and silently discards the library.
-    That would be typical.
-
 ### Conclusions
+
+-   Instead of copying the binary file, I am copying the assembly file.
+    This makes it possible for me to change a few things.
+
+    This also solved an issue where `boot.elf` was condidered an executable.
+    I don't understand why the linker didn't complain here.
+
+-   On top of that, the linker discarded almost everything because from it's perspective only `boot_1_debugger` was the entry point and
+    it didn't reference anything.
+
+    To resolve this issue, I added manual `.global` statements that make the linker aware of these references.

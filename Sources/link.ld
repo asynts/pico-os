@@ -40,8 +40,11 @@ SECTIONS
     /* Our boot loader and kernel is statically linked, but we still need to provide this for some reason. */
     .rel.dyn : {
         *(.rel.iplt)
+        *(.rel.got)
     }
     .got : {
+        *(.got)
+        *(.got.plt)
         *(.igot.plt)
     }
     .iplt : { *(.iplt) }
