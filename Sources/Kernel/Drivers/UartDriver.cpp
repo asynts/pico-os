@@ -2,15 +2,19 @@
 
 #include <Kernel/Drivers/UartDriver.hpp>
 
+// FIXME: Move this into 'Kernel/Hardware/*'.
+
 #define UART0_BASE                  0x40034000
 #define UART_DATA                        0x000
 #define UART_CONTROL                     0x030
 
-#define DMA_BASE                    0x50000000
-#define DMA_CHANNEL0_CTRL_TRIGGER        0x00c
-#define DMA_CHANNEL0_READ_ADDR           0x000
-#define DMA_CHANNEL0_WRITE_ADDR          0x004
-#define DMA_CHANNEL0_TRANSACTION_COUNT   0x008
+#define DMA_BASE                                0x50000000
+#define DMA_CHANNEL0_CTRL                            0x010
+#define DMA_CHANNEL0_CTRL_TRIGGER                    0x00c
+#define DMA_CHANNEL0_READ_ADDR                       0x000
+#define DMA_CHANNEL0_WRITE_ADDR                      0x004
+#define DMA_CHANNEL0_TRANSACTION_COUNT               0x008
+#define DMA_CHANNEL0_TRANSACTION_COUNT_TRIGGER       0x01c
 
 struct DmaCtrl {
     u32 enabled : 1;
@@ -33,66 +37,130 @@ struct DmaCtrl {
 };
 static_assert(sizeof(DmaCtrl) == 4);
 
+DmaCtrl *dma_channel0_ctrl = reinterpret_cast<DmaCtrl*>(DMA_BASE + DMA_CHANNEL0_CTRL);
 DmaCtrl *dma_channel0_ctrl_trigger = reinterpret_cast<DmaCtrl*>(DMA_BASE + DMA_CHANNEL0_CTRL_TRIGGER);
+
+// FIXME: Get rid of many 'reinterpret_cast' calls by changing this to 'u8**'.
 uptr    *dma_channel0_read_addr = reinterpret_cast<uptr*>(DMA_BASE + DMA_CHANNEL0_READ_ADDR);
+// FIXME: Get rid of many 'reinterpret_cast' calls by changing this to 'u8**'.
 uptr    *dma_channel0_write_addr = reinterpret_cast<uptr*>(DMA_BASE + DMA_CHANNEL0_WRITE_ADDR);
+
 usize   *dma_channel0_transaction_count = reinterpret_cast<usize*>(DMA_BASE + DMA_CHANNEL0_TRANSACTION_COUNT);
+usize   *dma_channel0_transaction_count_trigger = reinterpret_cast<usize*>(DMA_BASE + DMA_CHANNEL0_TRANSACTION_COUNT_TRIGGER);
+
+// FIXME: Verify that we don't accidently trigger the channel.
 
 namespace Kernel::Drivers
 {
-    // FIXME: Get this from the page allocator.
-    alignas(1 * KiB)
-    static u8 uart_buffer[1 * KiB];
-
     UartDriver::UartDriver()
     {
-        configure_uart();
-        configure_dma();
+        // The idea is as follows:
+        //
+        // -   We configure UART0 to emit DREQ0 when data is avaliable.
+        //
+        // -   We configure DMA_CHANNEL0 to read from UART0 on DREQ0.
+        //     On start-up, the write address is set to the start of the buffer.
+        //
+        // -   When the buffer is full we get and interrupt and we recalculate the transmission count.
+        //     The hope is, that some of the input has already been consumed and is no longer taking up space.
+        //
+        // -   There is the obvious edge case where the buffer is completely full and we have no way of dealing with the
+        //     interrupt.
+
+        // Invariants:
+        //
+        //  1. The consumer can't be ahead of the producer:
+        //
+        //     m_consumer_offset <= producer_offset()
+        //
+        //  2. The producer can't overflow the buffer:
+        //
+        //     sizeof(buffer) >= producer_offset() - m_consumer_offset
+        //
+        //  3. Only 'interrupt_dma_complete' can only execute once in parallel.
     }
 
-    // FIXME: There is one serious issue with this implementation.
-    //        The DMA simply doesn't know when we drain the buffer, how did I address this in the
-    //        previous implementation?
+    usize UartDriver::producer_offset()
+    {
+        // FIXME: Race: an overflow could occur between the reads.
+        return m_producer_offset_base + (*dma_channel0_write_addr - reinterpret_cast<usize>(m_buffer));
+    }
 
-    // Configure UART0 to emit DREQ0 which will be handled by DMA_CHANNEL0.
+    usize UartDriver::bytes_avaliable_for_read()
+    {
+        // FIXME: Race: more could be produced and consumed between the reads.
+        return producer_offset() - m_consumer_offset;
+    }
+
+    usize UartDriver::bytes_fitting_in_buffer()
+    {
+        return sizeof(m_buffer) - (producer_offset() - m_consumer_offset);
+    }
+
+    // This means, that the DMA channel finished the transaction.
+    // We need to update the transaction count, hopefully somebody read something.
+    void UartDriver::interrupt_dma_complete()
+    {
+        uptr old_write_addr = *dma_channel0_write_addr;
+        uptr new_write_addr = reinterpret_cast<uptr>(m_buffer) + producer_offset() % sizeof(m_buffer);
+
+        // If we wrap around, we need to update 'm_producer_offset_base'.
+        if (new_write_addr < old_write_addr) {
+            m_producer_offset_base += old_write_addr - new_write_addr;
+        }
+
+        // FIXME: Race: If somebody reads 'm_producer_offset_base' here, they won't see new new write address.
+
+        *dma_channel0_write_addr = new_write_addr;
+
+        if (bytes_fitting_in_buffer() == 0) {
+            // To address this issue, we need to be able restart the transaction when we consume data.
+            FIXME();
+        }
+
+        // Trigger.
+        *dma_channel0_transaction_count_trigger = bytes_fitting_in_buffer();
+    }
+
+    void UartDriver::interrupt_uart_full()
+    {
+        // This means that something is broken, or the buffer is simply to small and the kernel
+        // can't keep up.
+        FIXME();
+    }
+
+    // Configure UART0 to emit DREQ0.
     // The settings here must match with what we configure on the host.
     void UartDriver::configure_uart()
     {
         // FIXME
     }
 
-    // We want to configure DMA_CHANNEL0 to copy from UART0 into a circular buffer.
-    // The same buffer can be drained by the kernel.
-    //
-    // Obviously, we can only read data when there is some, thus we use the DREQ feature
-    // where the UART chip will tell the DMA chip that data is avaliable.
+    // Configure DMA_CHANNEL0 to copy from UART0 on DREQ0.
+    // The underlying buffer will be drained by the kernel in parallel.
     void UartDriver::configure_dma()
     {
         // First, we verify that the channel isn't enabled at the moment.
-        DmaCtrl control = *dma_channel0_ctrl_trigger;
-        ASSERT(control.enabled == 0);
+        ASSERT(dma_channel0_ctrl->enabled == 0);
 
-        // This address won't be incremented, we always read from the same location.
+        // Read from UART0.
         *dma_channel0_read_addr = UART0_BASE + UART_DATA;
 
-        // This address will be incremented and wraps around at 1 KiB.
-        *dma_channel0_write_addr = reinterpret_cast<uptr>(uart_buffer);
+        // Write into a buffer in memory.
+        *dma_channel0_write_addr = reinterpret_cast<uptr>(m_buffer);
+        *dma_channel0_transaction_count = sizeof(m_buffer);
 
-        // It doesn't matter what we specify here, but this needs to be large.
-        // For each byte transmitted this value will be decremented and we receive an interrupt when it reaches zero.
-        // In theory, we could then increment the transaction count and go again.
-        *dma_channel0_transaction_count = 2 * GiB;
-
+        DmaCtrl control = *dma_channel0_ctrl;
         control.enabled = 1;                    // This channel is enabled and will be triggered when we write this back.
         control.high_priority = 1;              // This channel has a high priority compared to other channels.
         control.data_size = 0;                  // Copy 1 byte with each transfer.
-        control.increment_read = 0;             // Increment read address.
+        control.increment_read = 0;             // Constant read address.
         control.increment_write = 1;            // Increment write address.
-        control.ring_size = 10;                 // Wrap address at 2^10 = 1 KiB.
-        control.ring_select = 1;                // Apply wrapping to write address.
-        control.chain_to = 0;                   // CHANNEL0
+        control.ring_size = 0;                  // Do not wrap.
+        control.ring_select = 0;                // No effect.
+        control.chain_to = 0;                   // CHANNEL0; Same channel, do not chain.
         control.transfer_request_select = 0;    // DREQ0
-        control.irq_quiet = 0;                  // We would like to get an interrupt when the transaction is "complete".
+        control.irq_quiet = 0;                  // We would like to get an interrupt when the transaction is complete.
         control.byte_swap = 0;                  // No effect.
         control.sniff_enabled = 0;              // We don't want to compute a CRC32 of this transaction.
         control.busy = 0;                       // No effect.
@@ -100,7 +168,7 @@ namespace Kernel::Drivers
         control.read_error = 1;                 // Clear errors.
         control.error = 0;                      // No effect.
 
-        // This will start the transaction.
+        // Trigger.
         *dma_channel0_ctrl_trigger = control;
     }
 }
