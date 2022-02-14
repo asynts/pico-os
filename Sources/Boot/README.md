@@ -1,8 +1,9 @@
-There is a substantial amount of code that was imported from the official SDK.
-All of this code was taken from git revision 2062372d203b372849d573f252cf7c6dc2800c0a:
-https://github.com/raspberrypi/pico-sdk/tree/2062372d203b372849d573f252cf7c6dc2800c0a
-
 ### Boot Procedure
+
+Originally, I wrote the boot loader myself, however, this is simply a waste of time.
+There are so many things that require deep insight and that are very poorly documented.
+
+I do have a pretty good understanding, how the boot loader works:
 
  1. The processor starts up and takes first two words from ROM to setup the stack and to jump to the reset handler.
 
@@ -14,12 +15,69 @@ https://github.com/raspberrypi/pico-sdk/tree/2062372d203b372849d573f252cf7c6dc28
     In my understanding the stack is setup too, but I do not know where exactly.
 
  4. The first sector is responsible to initialize the flash properly.
-    This code is almost entirely copied from the SDK.
+    This is what I am importing from the pico-sdk project.
 
-    Afterwards, it will put `0x10000100` into the vector table and then sets up the stack according to it.
-    Then it jumps to the reset hander defined in the vector table.
+    Afterwards, it will load the vector table from `0x10000100` and then calls the reset vector with the stack pointer
+    that is provided in the vector table.
 
- 5. At this point, we load the kernel into memory.
+ 5. This is where we first gain control in `isr_reset`.
+
+ 6. At this point, we load the kernel into memory.
     This means that the `.data` section is copied into ram and that the `.bss` section is cleared.
 
- 6. Now the kernel is started.
+ 7. Now we hand over control to the kernel with `kernel::entry()`.
+
+### Obtaining the Boot Loader
+
+ 1. Create a new directly to work in:
+
+    ```bash
+    cd $(mktemp -d)
+    ```
+
+ 2. Clone the `pico-sdk` project:
+
+    ```bash
+    git clone ~/src/github.com/raspberrypi/pico-sdk
+    ```
+
+ 3. Create a `CMakeLists.txt` file:
+
+    ```cmake
+    cmake_minimum_required(VERSION 3.13)
+
+    # initialize pico-sdk from submodule
+    # note: this must happen before project()
+    include(pico-sdk/pico_sdk_init.cmake)
+
+    project(my_project)
+
+    # initialize the Raspberry Pi Pico SDK
+    pico_sdk_init()
+
+    # rest of your project
+    ```
+
+ 4. Build the boot loader file:
+
+    ```bash
+    cdm build
+    cmake .. -GNinja
+    ninja pico-sdk/src/rp2_common/boot_stage2/bs2_default_padded_checksummed.S
+    ```
+
+ 5. Extract the boot loader:
+
+    ```bash
+    cp pico-sdk/src/rp2_common/boot_stage2/bs2_default_padded_checksummed.S ~/dev/pico-os/Extern/boot.S
+    ```
+
+ 6. The following copyright header needs to be copied from the original source file:
+
+    ```bash
+    // ----------------------------------------------------------------------------
+    // Second stage boot code
+    // Copyright (c) 2019-2021 Raspberry Pi (Trading) Ltd.
+    // SPDX-License-Identifier: BSD-3-Clause
+    // ----------------------------------------------------------------------------
+    ```
