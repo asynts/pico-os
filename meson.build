@@ -1,4 +1,5 @@
-project('pico-os', 'cpp')
+project('pico-os', 'cpp',
+    default_options : [ 'b_staticpic=false' ])
 
 subdir('Sources/Kit/Tests')
 subdir('Sources/Boot')
