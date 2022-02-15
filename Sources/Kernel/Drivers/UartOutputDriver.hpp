@@ -26,6 +26,34 @@ namespace Kernel::Drivers
     //     This does not hurt, because the interrupt is triggered when the transmission has been completed.
     //
     // -   The kernel always checks the interrupt counter to verify that no interrupt occured and retries if necessary.
+    //
+    // When the kernel starts up, the transmission count will be zero.
+    // Then we write some data into the buffer and update the transmission count.
+    // If we want to write more data before this transmission is completed, we can not update the transmission count atomically.
+    // Instead, we simply increment the producer offset, the interrupt handler will then update the transmission count.
+    //
+    // Assumptions:
+    //
+    // -   At most one thread can interact with this class in parallel.
+    //     Currently, we assume that this thread is scheduled on core0.
+    //
+    // Invariants:
+    //
+    // -   The producer is always ahead of the consumer:
+    //
+    //     m_producer_offset >= consumer_offset()
+    //
+    // -   The producer can not overflow the buffer:
+    //
+    //     m_producer_offset - consumer_offset() <= sizeof(buffer)
+    //
+    // -   The consumer base offset is always a multiple of the buffer size:
+    //
+    //     m_consumer_offset_base % sizeof(buffer) = 0
+    //
+    // Known Bugs:
+    //
+    // -   If 4 GiB are transmitted, then m_producer_offset will roll around and we run into issues.
     struct UartOutputDriver : Singleton<UartOutputDriver> {
     private:
         u8 m_buffer[1 * KiB];
@@ -41,6 +69,8 @@ namespace Kernel::Drivers
 
         friend Singleton<UartOutputDriver>;
         UartOutputDriver();
+
+        usize consumer_offset_snapshot();
 
     public:
         void write(ReadonlyBytes);

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Kit/Forward.hpp>
+#include <Kit/Assertions.hpp>
+#include <Kit/Traits.hpp>
 
 namespace Kit
 {
@@ -14,6 +16,12 @@ namespace Kit
             , m_size(size)
         {
 
+        }
+
+        void copy_to(Span<Traits::RemoveConst<T>> bytes)
+        {
+            ASSERT(bytes.m_size >= m_size);
+            memcpy(bytes.m_data, m_data, m_size);
         }
     };
 

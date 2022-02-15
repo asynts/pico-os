@@ -27,3 +27,6 @@ inline void* operator new[](usize, void *pointer) {
 constexpr usize KiB = 1024;
 constexpr usize MiB = 1024 * 1024;
 constexpr usize GiB = 1024 * 1024 * 1024;
+
+extern "C"
+void* memcpy(void *destination, const void *source, usize count);
