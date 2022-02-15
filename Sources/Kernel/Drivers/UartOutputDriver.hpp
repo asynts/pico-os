@@ -45,11 +45,11 @@ namespace Kernel::Drivers
     //
     // -   The producer can not overflow the buffer:
     //
-    //     m_producer_offset - consumer_offset() <= sizeof(buffer)
+    //     m_producer_offset - consumer_offset() <= sizeof(m_buffer)
     //
     // -   The consumer base offset is always a multiple of the buffer size:
     //
-    //     m_consumer_offset_base % sizeof(buffer) = 0
+    //     m_consumer_offset_base % sizeof(m_buffer) = 0
     //
     // Known Bugs:
     //
@@ -71,10 +71,11 @@ namespace Kernel::Drivers
         UartOutputDriver();
 
         usize consumer_offset_snapshot();
+        usize avaliable_space_snapshot();
 
     public:
-        void write(ReadonlyBytes);
+        usize try_write(ReadonlyBytes);
 
-        void interrupt_end_of_transmission();
+        void interrupt_end_of_transfer();
     };
 }

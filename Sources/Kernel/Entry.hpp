@@ -8,7 +8,7 @@ namespace Kernel
 
     inline void entry() {
         Drivers::UartOutputDriver::initialize();
-        Drivers::UartOutputDriver::the().write("Hello, world!\n"_b);
+        Drivers::UartOutputDriver::the().try_write("Hello, world!\n"_b);
 
         BREAKPOINT();
     }

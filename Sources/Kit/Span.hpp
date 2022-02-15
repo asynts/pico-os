@@ -6,6 +6,15 @@
 
 namespace Kit
 {
+    // FIXME: Move this into another header.
+    template<typename T>
+    T min(T lhs, T rhs)
+    {
+        if (lhs <= rhs)
+            return lhs;
+        return rhs;
+    }
+
     template<typename T>
     struct Span {
         T *m_data;
@@ -18,10 +27,18 @@ namespace Kit
 
         }
 
-        void copy_to(Span<Traits::RemoveConst<T>> bytes)
+        usize copy_to(Span<Traits::RemoveConst<T>> span)
         {
-            ASSERT(bytes.m_size >= m_size);
-            memcpy(bytes.m_data, m_data, m_size);
+            ASSERT(span.m_size >= m_size);
+            memcpy(span.m_data, m_data, m_size);
+            return m_size;
+        }
+
+        usize copy_trimmed_to(Span<Traits::RemoveConst<T>> span)
+        {
+            usize ncopied = min(span.m_size, m_size);
+            memcpy(span.m_data, m_data, ncopied);
+            return ncopied;
         }
     };
 
