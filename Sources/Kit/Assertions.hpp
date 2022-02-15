@@ -26,4 +26,8 @@ namespace Kit
             }
         }
     }
+
+    inline void FIXME() {
+        BREAKPOINT();
+    }
 }
