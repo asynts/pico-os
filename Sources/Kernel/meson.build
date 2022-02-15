@@ -1,5 +1,5 @@
 kernel_lib = static_library('Kernel',
-    'Drivers/UartDriver.cpp',
+    'Drivers/UartOutputDriver.cpp',
     include_directories : [
         '..',
         '../../Extern/include',
