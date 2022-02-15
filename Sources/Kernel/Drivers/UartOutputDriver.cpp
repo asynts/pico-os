@@ -9,21 +9,32 @@
 // FIXME: Consider using 'temporarily_disable_interrupts' more.
 // FIXME: Consistency: transfer, transmission, etc.
 
-// FIXME: Move this somewhere else.
-bool disable_interrupts() {
-    // FIXME
-    return true;
-}
-void restore_interrupts(bool enable) {
-    // FIXME
-    (void)enable;
-}
+// It could happen, that this function is called in a nested context.
+// In that case we need to be careful that we don't re-enable interrupts too early.
+//
+// -   We do not need to syncronize with the other core, because interrupts are enabled or
+//     disabled for each core seperately.
+//
+// -   We do not need to synchronize with other threads, because when we mask interrupts, the scheduler
+//     interrupt is masked as well.
 template<typename T>
-void temporarily_disable_interrupts(T&& callback)
+void ensure_interrupts_are_disabled_in_this_section(T&& callback)
 {
-    bool were_enabled = disable_interrupts();
+    u32 primask;
+
+    // FIXME: Test that this actually works.
+
+    // FIXME: Can we get a scheduler interrupt between these two instructions?
+    asm volatile ("mrs %[primask], primask;"
+                  "cpsid i;"
+        : [primask] "=r"(primask));
+
     callback();
-    restore_interrupts(were_enabled);
+
+    asm volatile ("msr primask, %[primask];"
+                  "isb;"
+        :
+        : [primask] "r"(primask));
 }
 
 namespace Kernel::Drivers
@@ -67,6 +78,23 @@ namespace Kernel::Drivers
         return sizeof(m_buffer) - (m_producer_offset - consumer_offset_snapshot());
     }
 
+    // We can only mess with the transfer count if it's zero.
+    // Otherwise, we can not change it atomically.
+    //
+    // If it is not zero, that is fine because we will receive an interrupt when it reaches zero.
+    // If we are in an interrupt handler this is fine too, because one interrupt will be buffered.
+    void UartOutputDriver::try_update_transfer_count() {
+        if (dma_hw->ch[0].transfer_count == 0) {
+            usize consumer_offset = consumer_offset_snapshot();
+
+            dma_hw->ch[0].read_addr = reinterpret_cast<uptr>(m_buffer) + (consumer_offset % sizeof(m_buffer));
+            dma_hw->ch[0].transfer_count = m_producer_offset - consumer_offset;
+        }
+    }
+
+    // We write as many bytes as we can safely fit into the buffer.
+    // If that isn't what the caller asked for, he should try again later.
+    // It is possible that 'try_write' returns zero.
     usize UartOutputDriver::try_write(ReadonlyBytes bytes) {
         usize nwritten = min(avaliable_space_snapshot(), bytes.m_size);
 
@@ -76,22 +104,15 @@ namespace Kernel::Drivers
         };
         bytes.copy_trimmed_to(buffer);
 
-        temporarily_disable_interrupts([&] {
+        ensure_interrupts_are_disabled_in_this_section([&] {
             m_producer_offset += nwritten;
-
-            // We can only mess with the transfer count if it's zero.
-            // Otherwise, we can not change it atomically.
-            // If it's not zero, that's fine too, because we will receive an interrupt when it reaches zero.
-            if (dma_hw->ch[0].transfer_count == 0)
-                dma_hw->ch[0].transfer_count = m_producer_offset - consumer_offset_snapshot();
+            try_update_transfer_count();
         });
 
         return nwritten;
     }
 
     void UartOutputDriver::interrupt_end_of_transfer() {
-        // FIXME
-
-        // FIXME: We must check if 'transfer_count == 0'.
+        try_update_transfer_count();
     }
 }

@@ -54,6 +54,10 @@ namespace Kernel::Drivers
     // Known Bugs:
     //
     // -   If 4 GiB are transmitted, then m_producer_offset will roll around and we run into issues.
+    //
+    // -   I am not actually sure if it's safe to not update the transfer count in the interrupt handler.
+    //     This assumes, that at least one interrupt is cached and we don't automatically mask when we are
+    //     already handling the interrupt.
     struct UartOutputDriver : Singleton<UartOutputDriver> {
     private:
         u8 m_buffer[1 * KiB];
@@ -72,6 +76,8 @@ namespace Kernel::Drivers
 
         usize consumer_offset_snapshot();
         usize avaliable_space_snapshot();
+
+        void try_update_transfer_count();
 
     public:
         usize try_write(ReadonlyBytes);
