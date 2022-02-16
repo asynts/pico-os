@@ -2,6 +2,8 @@
 
 #include <Kernel/Entry.hpp>
 
+#include <hardware/structs/sio.h>
+
 using namespace Kit;
 
 // Almost all functions defined here rely on initialization logic in 'boot_4_load_kernel'.
@@ -56,6 +58,13 @@ u32 rom_data_lookup(char ch1, char ch2) {
     return rom_table_lookup(rom_data_table, (static_cast<u32>(ch2) << 8) | static_cast<u32>(ch1));
 }
 
+[[gnu::section(".noinit")]]
+void (*wait_for_vector_ptr)();
+
+void wait_for_vector() {
+    return wait_for_vector_ptr();
+}
+
 // Defined by linker script.
 extern u8 __data_start__[];
 extern u8 __data_end__[];
@@ -69,8 +78,6 @@ extern init_array_fn __init_array_end__[];
 
 extern "C"
 void boot_4_load_kernel() {
-    // FIXME: We need to send CORE1 to sleep?
-
     // First, we lookup the addresses that are required to use the 'rom_func_lookup' and 'rom_data_lookup' functions.
     rom_table_lookup_ptr = reinterpret_cast<decltype(rom_table_lookup_ptr)>(static_cast<uptr>(*reinterpret_cast<u16*>(0x00000018)));
     rom_func_table = reinterpret_cast<u16*>(*reinterpret_cast<uptr*>(0x00000014) & 0xffff);
@@ -79,6 +86,13 @@ void boot_4_load_kernel() {
     // Then, we can use these helpers to find all the other functions that are defined in ROM.
     memcpy_ptr = reinterpret_cast<decltype(memcpy_ptr)>(rom_func_lookup('M', 'C'));
     memset_ptr = reinterpret_cast<decltype(memset_ptr)>(rom_func_lookup('M', 'S'));
+    wait_for_vector_ptr = reinterpret_cast<decltype(wait_for_vector_ptr)>(rom_func_lookup('W', 'V'));
+
+    // Send CORE1 to sleep.
+    if (sio_hw->cpuid == 1) {
+        wait_for_vector();
+        ASSERT_NOT_REACHED();
+    }
 
     // Notice, that we placed all the pointers above in a special '.noinit' sections such that we won't override them by accident.
 

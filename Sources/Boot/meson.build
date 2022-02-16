@@ -3,4 +3,4 @@ boot_lib = static_library('Boot',
     'boot_2_flash.S',
     'boot_3_vectors.S',
     'boot_4_load_kernel.cpp',
-    include_directories : [ '..' ])
+    include_directories : [ '..', picosdk_inc, ])
