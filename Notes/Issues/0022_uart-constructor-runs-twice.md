@@ -35,11 +35,24 @@ Somehow, the constructor from `UartOutputDriver` is executed twice.
     When ever I continue it changes the thread IDs around and sometimes it crashes when it tries to generate a backtrace.
     I don't know how to continue.
 
+-   This forum threads points out that `openocd` rarely stops all the CPUs:
+
+    https://forum.sparkfun.com/viewtopic.php?t=13066
+
+    This causes the flashing to fail, and this is a known issue from 2008.
+    I need to find some other tool.
+
+-   It appears that there are no free alternatives for OpenOCD.
+
+-   I could try to write my own OpenOCD alternative, but then I am in the same situation again.
+    That tool will require using a debugger as well and then I need to use OpenOCD.
+
 ### Ideas
 
--   Try adding `volatile` to `m_initialized`.
+-   Exhaustively search for an alternative to OpenOCD in another issue.
 
--   Read the documentation about the boot loader.
+-   How much does it take to replace OpenOCD and PicoProbe with a custom implementation.
+    Maybe allocate some time for this and just try to implement it.
 
 -   I could try using LLDB.
 
@@ -47,5 +60,10 @@ Somehow, the constructor from `UartOutputDriver` is executed twice.
 
 -   Maybe the boot loader also sends CORE1 into `boot_3_vectors`, if they both run at exactly the same pace, it
     would be possible that we have a race condition.
+
+-   Maybe the stack of CORE0 and CORE1 are identical and this causes issues before we are able to do the check.
+
+-   Does OpenOCD have a cache, that might cause some confusion if that cache is global for both cores.
+    Since the CPUID is at the same memory location, this would really break things.
 
 ### Conclusions
