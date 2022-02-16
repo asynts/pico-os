@@ -69,6 +69,8 @@ extern init_array_fn __init_array_end__[];
 
 extern "C"
 void boot_4_load_kernel() {
+    // FIXME: We need to send CORE1 to sleep?
+
     // First, we lookup the addresses that are required to use the 'rom_func_lookup' and 'rom_data_lookup' functions.
     rom_table_lookup_ptr = reinterpret_cast<decltype(rom_table_lookup_ptr)>(static_cast<uptr>(*reinterpret_cast<u16*>(0x00000018)));
     rom_func_table = reinterpret_cast<u16*>(*reinterpret_cast<uptr*>(0x00000014) & 0xffff);

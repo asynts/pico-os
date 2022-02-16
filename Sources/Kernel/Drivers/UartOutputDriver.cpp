@@ -6,43 +6,48 @@
 // CLAIM: UART0
 // CLAIM: DMA_CHANNEL0
 
-// FIXME: Add some interrupt guard helper.
-// FIXME: Consider using 'temporarily_disable_interrupts' more.
-// FIXME: Consistency: transfer, transmission, etc.
-
 namespace Kernel::Drivers
 {
-    UartOutputDriver::UartOutputDriver() {
+    u8 target_buffer[4 * KiB];
 
+    // FIXME: Somehow, we go through this constructor twice.
+    //        I suspect, that this is once visited by CORE0 and then by CORE1.
+    //        However, the 'm_initialized' in Singleton should prevent hat.
+    UartOutputDriver::UartOutputDriver() {
+        // FIXME: Fill the buffer with gibberish to be able to detect it easier.
+        for (usize i = 0; i < sizeof(m_buffer); ++i) {
+            m_buffer[i] = 0b00111100;
+        }
+
+        // Configure DMA_CHANNEL0 to read from the buffer and write to our target buffer.
+        dma_hw->ch[0].read_addr = reinterpret_cast<uptr>(m_buffer);
+        dma_hw->ch[0].write_addr = reinterpret_cast<uptr>(target_buffer);
+        dma_hw->ch[0].transfer_count = 0;
+        dma_hw->ch[0].ctrl_trig = DMA_CH0_CTRL_TRIG_EN_BITS
+                                | DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_RESET     // Low priority.
+                                | (0 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB)    // Transfer individual bytes.
+                                | DMA_CH0_CTRL_TRIG_INCR_READ_BITS          // Increment read address.
+                                | DMA_CH0_CTRL_TRIG_INCR_WRITE_BITS         // FIXME: Increment write address to debug functionality.
+                                | (0 << DMA_CH0_CTRL_TRIG_RING_SIZE_LSB)    // Do not wrap around.
+                                | (0 << DMA_CH0_CTRL_TRIG_CHAIN_TO_LSB)     // Same channel means no chaining.
+                                | (0x3f << DMA_CH0_CTRL_TRIG_TREQ_SEL_LSB)  // FIXME: Permanent transfer, do not wait for peripheral.
+                                | DMA_CH0_CTRL_TRIG_IRQ_QUIET_RESET         // Receive interrupt when transfer complete.
+                                | DMA_CH0_CTRL_TRIG_SNIFF_EN_RESET          // Do not compute a CRC32 from this stream.
+                                | DMA_CH0_CTRL_TRIG_WRITE_ERROR_RESET       // Clear errors.
+                                | DMA_CH0_CTRL_TRIG_READ_ERROR_RESET        // Clear errors.
+                                ;
+
+        // FIXME: Configure UART0.
     }
 
     // If the DMA is currently doing something, this will return a stale value.
     // This is fine, but the caller needs to be aware of this.
     usize UartOutputDriver::consumer_offset_snapshot() {
-        for (usize retry = 0; retry <= 2; ++retry) {
-            usize interrupt_counter = m_interrupt_counter;
-
-            usize result = m_consumer_offset_base + (dma_hw->ch[0].read_addr - reinterpret_cast<usize>(m_buffer));
-
-            if (interrupt_counter == m_interrupt_counter)
-                return result;
-        }
-
-        // In my mind, it should be sufficent to retry twice.
-        // Since only one thread can interact with the 'UartOutputDriver', the worst case should be:
-        //
-        //  1. We start executing 'consumer_offset_snapshot'.
-        //
-        //  2. The UART is done and raises an interrupt.
-        //
-        //  3. The interrupt handler updates the transaction count.
-        //
-        //  4. The UART is done again.
-        //
-        //  5. The interrupt handler leaves the transaction count at zero.
-        //
-        // In this scenario, we can only fail twice.
-        ASSERT_NOT_REACHED();
+        usize result;
+        with_interrupts_disabled([&] {
+            result = m_consumer_offset_base + (dma_hw->ch[0].read_addr - reinterpret_cast<usize>(m_buffer));
+        });
+        return result;
     }
 
     // If the DMA is currently doing something, this will return a stale value.
@@ -86,6 +91,7 @@ namespace Kernel::Drivers
     }
 
     void UartOutputDriver::interrupt_end_of_transfer() {
+        m_interrupt_counter = m_interrupt_counter + 1;
         try_update_transfer_count();
     }
 }
