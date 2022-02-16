@@ -1,5 +1,6 @@
 #include <Kit/Assertions.hpp>
 
+#include <Kernel/Interrupt.hpp>
 #include <Kernel/Drivers/UartOutputDriver.hpp>
 
 namespace Kernel
@@ -9,7 +10,5 @@ namespace Kernel
     inline void entry() {
         Drivers::UartOutputDriver::initialize();
         Drivers::UartOutputDriver::the().try_write("Hello, world!\n"_b);
-
-        BREAKPOINT();
     }
 }

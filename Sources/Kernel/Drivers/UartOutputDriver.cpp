@@ -1,3 +1,4 @@
+#include <Kernel/Interrupt.hpp>
 #include <Kernel/Drivers/UartOutputDriver.hpp>
 
 #include <hardware/structs/dma.h>
@@ -8,34 +9,6 @@
 // FIXME: Add some interrupt guard helper.
 // FIXME: Consider using 'temporarily_disable_interrupts' more.
 // FIXME: Consistency: transfer, transmission, etc.
-
-// It could happen, that this function is called in a nested context.
-// In that case we need to be careful that we don't re-enable interrupts too early.
-//
-// -   We do not need to syncronize with the other core, because interrupts are enabled or
-//     disabled for each core seperately.
-//
-// -   We do not need to synchronize with other threads, because when we mask interrupts, the scheduler
-//     interrupt is masked as well.
-template<typename T>
-void ensure_interrupts_are_disabled_in_this_section(T&& callback)
-{
-    u32 primask;
-
-    // FIXME: Test that this actually works.
-
-    // FIXME: Can we get a scheduler interrupt between these two instructions?
-    asm volatile ("mrs %[primask], primask;"
-                  "cpsid i;"
-        : [primask] "=r"(primask));
-
-    callback();
-
-    asm volatile ("msr primask, %[primask];"
-                  "isb;"
-        :
-        : [primask] "r"(primask));
-}
 
 namespace Kernel::Drivers
 {
@@ -104,7 +77,7 @@ namespace Kernel::Drivers
         };
         bytes.copy_trimmed_to(buffer);
 
-        ensure_interrupts_are_disabled_in_this_section([&] {
+        with_interrupts_disabled([&] {
             m_producer_offset += nwritten;
             try_update_transfer_count();
         });
