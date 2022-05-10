@@ -36,7 +36,7 @@ namespace Kernel
             m_offset += size;
         }
 
-        String m_host_path;
+        ImmutableString m_host_path;
 
     private:
         const u8 *m_base;
@@ -64,7 +64,7 @@ namespace Kernel
         u32 m_stack_base;
         u32 m_stack_size;
 
-        String m_host_path;
+        ImmutableString m_host_path;
     };
 
     LoadedExecutable load_executable_into_memory(ElfWrapper, Thread&);

@@ -53,7 +53,7 @@ namespace Std
         }
     };
     template<>
-    struct Hash<String> : Hash<StringView> {
+    struct Hash<ImmutableString> : Hash<StringView> {
     };
 
     template<typename T>

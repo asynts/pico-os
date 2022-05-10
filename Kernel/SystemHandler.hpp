@@ -12,12 +12,12 @@ namespace Kernel
     public:
         // We are not allowed to allocate the string in an interrupt hander.
         // Therefore, we need to allocate the string in advance.
-        String& get_system_call_thread_name() {
+        ImmutableString& get_system_call_thread_name() {
             return m_system_call_thread_name;
         }
 
     private:
-        String m_system_call_thread_name;
+        ImmutableString m_system_call_thread_name;
 
         friend Singleton<SystemHandler>;
         SystemHandler();

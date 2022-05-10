@@ -17,18 +17,18 @@ namespace Kernel
 
     Process& Process::create(StringView name, ElfWrapper elf)
     {
-        Vector<String> arguments;
+        Vector<ImmutableString> arguments;
         arguments.append(name);
 
-        Vector<String> variables;
+        Vector<ImmutableString> variables;
 
         return Process::create(name, elf, arguments, variables);
     }
-    Process& Process::create(StringView name, ElfWrapper elf, const Vector<String>& arguments, const Vector<String>& variables)
+    Process& Process::create(StringView name, ElfWrapper elf, const Vector<ImmutableString>& arguments, const Vector<ImmutableString>& variables)
     {
         auto process = Process::construct(name);
 
-        auto thread = Thread::construct(String::format("Process: {}", name));
+        auto thread = Thread::construct(ImmutableString::format("Process: {}", name));
 
         thread->m_process = process;
 
@@ -45,7 +45,7 @@ namespace Kernel
 
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
 
-            auto push_cstring_array = [&stack] (const Vector<String>& array) {
+            auto push_cstring_array = [&stack] (const Vector<ImmutableString>& array) {
                 Vector<char*> pointers;
                 for (auto& value : array.iter()) {
                     pointers.append(stack.push_cstring(value.cstring()));

@@ -56,7 +56,7 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         }
 
-        HashMap<String, VirtualFile*> m_entries;
+        HashMap<ImmutableString, VirtualFile*> m_entries;
     };
 
     class VirtualFileHandle {

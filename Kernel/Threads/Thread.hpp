@@ -18,7 +18,7 @@ namespace Kernel
 
     class Thread : public RefCounted<Thread> {
     public:
-        String m_name;
+        ImmutableString m_name;
         volatile bool m_privileged = false;
         volatile bool m_die_at_next_opportunity = false;
         volatile bool m_blocked = false;
@@ -125,7 +125,7 @@ namespace Kernel
 
     private:
         friend RefCounted<Thread>;
-        explicit Thread(String name);
+        explicit Thread(ImmutableString name);
 
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);
     };

@@ -19,7 +19,7 @@ namespace Kernel
         static Process& active();
 
         static Process& create(StringView name, ElfWrapper);
-        static Process& create(StringView name, ElfWrapper, const Vector<String>& arguments, const Vector<String>& variables);
+        static Process& create(StringView name, ElfWrapper, const Vector<ImmutableString>& arguments, const Vector<ImmutableString>& variables);
 
         i32 add_file_handle(VirtualFileHandle& handle)
         {
@@ -35,7 +35,7 @@ namespace Kernel
         }
 
         Path m_working_directory = "/";
-        String m_name;
+        ImmutableString m_name;
         Optional<LoadedExecutable> m_executable;
 
         Process *m_parent = nullptr;
@@ -49,7 +49,7 @@ namespace Kernel
         i32 m_next_handle_id = 0;
 
         friend RefCounted<Process>;
-        explicit Process(String name, Optional<LoadedExecutable> executable = {})
+        explicit Process(ImmutableString name, Optional<LoadedExecutable> executable = {})
             : m_name(move(name))
             , m_executable(move(executable))
         {

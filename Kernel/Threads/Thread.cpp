@@ -8,7 +8,7 @@
 
 namespace Kernel
 {
-    Thread::Thread(String name)
+    Thread::Thread(ImmutableString name)
         : m_name(move(name))
     {
         auto& flash_region = m_regions.append({});
@@ -262,11 +262,11 @@ namespace Kernel
 
         dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
 
-        Vector<String> arguments;
+        Vector<ImmutableString> arguments;
         while (*argv != nullptr)
             arguments.append(*argv++);
 
-        Vector<String> environment;
+        Vector<ImmutableString> environment;
         while (*envp != nullptr)
             arguments.append(*envp++);
 
@@ -275,7 +275,7 @@ namespace Kernel
         if (!path.is_absolute())
             path = m_process->m_working_directory / path;
 
-        HashMap<String, String> system_to_host;
+        HashMap<ImmutableString, ImmutableString> system_to_host;
         system_to_host.set("/bin/Shell.elf", "Userland/Shell.1.elf");
         system_to_host.set("/bin/Example.elf", "Userland/Example.1.elf");
         system_to_host.set("/bin/Editor.elf", "Userland/Editor.1.elf");

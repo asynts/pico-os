@@ -26,7 +26,7 @@ TEST_CASE(hashmap)
 
 TEST_CASE(hashmap_strings)
 {
-    Std::HashMap<Std::String, Std::String> map;
+    Std::HashMap<Std::ImmutableString, Std::ImmutableString> map;
 
     map.set("/redirect/foo", "/etc/foo");
     map.set("/redirect/bar", "/proc/mounts");

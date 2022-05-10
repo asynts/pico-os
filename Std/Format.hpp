@@ -15,7 +15,7 @@
 
 namespace Std {
     class StringBuilder;
-    class String;
+    class ImmutableString;
 
     extern volatile int dbgln_called_in_interrupt;
 
@@ -112,21 +112,21 @@ namespace Std {
     };
 
     // Strings are immutable, that is very important.
-    class String {
+    class ImmutableString {
     public:
-        String()
+        ImmutableString()
             : m_string_instance(ImmutableStringInstance::construct())
         {
 
         }
 
-        String(StringView string)
+        ImmutableString(StringView string)
             : m_string_instance(ImmutableStringInstance::construct(string)) { }
 
-        String(const char *string)
+        ImmutableString(const char *string)
             : m_string_instance(ImmutableStringInstance::construct(StringView{ string })) { }
 
-        String(const String& other)
+        ImmutableString(const ImmutableString& other)
             : m_string_instance(other.m_string_instance) { }
 
         void strcpy_to(Span<char> other) const
@@ -135,7 +135,7 @@ namespace Std {
         }
 
         template<typename... Parameters>
-        static String format(StringView fmtstr, const Parameters&...);
+        static ImmutableString format(StringView fmtstr, const Parameters&...);
 
         const char* data() const { return m_string_instance->data(); }
         usize size() const { return m_string_instance->size(); }
@@ -146,12 +146,12 @@ namespace Std {
 
         operator StringView() const { return view(); }
 
-        int operator<=>(const String& other) const { return view() <=> other.view(); }
+        int operator<=>(const ImmutableString& other) const { return view() <=> other.view(); }
 
         // FIXME: The compile should be able to generate this?
-        bool operator==(const String& other) const { return (*this <=> other) == 0; }
+        bool operator==(const ImmutableString& other) const { return (*this <=> other) == 0; }
 
-        String& operator=(const String& other)
+        ImmutableString& operator=(const ImmutableString& other)
         {
             m_string_instance = other.m_string_instance;
             return *this;
@@ -182,7 +182,7 @@ namespace Std {
         usize size() { return m_data.size(); }
 
         StringView view() const { return m_data.span(); }
-        String string() const { return view(); }
+        ImmutableString string() const { return view(); }
         ReadonlyBytes bytes() const { return view().bytes(); }
 
     private:
@@ -190,7 +190,7 @@ namespace Std {
     };
 
     template<typename... Parameters>
-    String String::format(StringView fmtstr, const Parameters&... parameters)
+    ImmutableString ImmutableString::format(StringView fmtstr, const Parameters&... parameters)
     {
         StringBuilder builder;
         builder.appendf(fmtstr, parameters...);
@@ -304,7 +304,7 @@ namespace Std {
         static void format(StringBuilder&, StringView);
     };
     template<>
-    struct Formatter<String> : Formatter<StringView> {
+    struct Formatter<ImmutableString> : Formatter<StringView> {
     };
     template<>
     struct Formatter<const char*> : Formatter<StringView> {

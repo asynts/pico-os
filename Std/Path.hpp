@@ -54,13 +54,13 @@ namespace Std
             return move(parent);
         }
 
-        String filename() const
+        ImmutableString filename() const
         {
             VERIFY(m_components.size() >= 1);
             return m_components[m_components.size() - 1];
         }
 
-        String string() const
+        ImmutableString string() const
         {
             StringBuilder builder;
 
@@ -103,6 +103,6 @@ namespace Std
 
     private:
         bool m_is_absolute;
-        Vector<String> m_components;
+        Vector<ImmutableString> m_components;
     };
 }
