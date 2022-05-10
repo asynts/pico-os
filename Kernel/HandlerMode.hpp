@@ -40,14 +40,13 @@ namespace Kernel
         return (control & 1) == 0;
     }
 
-    // XXX Verify that these functions work.
     inline bool are_interrupts_enabled()
     {
         u32 primask;
         asm volatile("mrs %0, primask;"
                      "isb;"
             : "=r"(primask));
-        return primask;
+        return primask == 0;
     }
     inline bool disable_interrupts()
     {

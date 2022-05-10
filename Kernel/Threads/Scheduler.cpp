@@ -118,6 +118,8 @@ namespace Kernel
     {
         m_default_thread = Thread::construct("Default Thread (Core 0)");
         m_default_thread->setup_context([] {
+            asm volatile("nop");
+
             for (;;) {
                 VERIFY(are_interrupts_enabled());
                 asm volatile ("wfi");
