@@ -23,7 +23,7 @@ namespace Std
     void dbgln_raw(StringView str)
     {
 #ifdef KERNEL
-        VERIFY(!Kernel::is_executing_in_handler_mode());
+        VERIFY(Kernel::is_executing_in_thread_mode());
 
         if (dbgln_called_in_interrupt >= 1) {
             int dbgln_called_in_interrupt_backup = dbgln_called_in_interrupt;

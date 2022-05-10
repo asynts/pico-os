@@ -20,8 +20,10 @@ namespace Std
         {
             clear();
 
-            operator delete[](m_data);
-            m_data = nullptr;
+            if (m_data != nullptr) {
+                operator delete[](m_data);
+                m_data = nullptr;
+            }
         }
         Vector(const Vector& other)
             : Vector()

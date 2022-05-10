@@ -20,7 +20,7 @@ namespace Kernel
 
     u8* GlobalMemoryAllocator::allocate(usize size, bool debug_override, void *address)
     {
-        VERIFY(!Kernel::is_executing_in_handler_mode());
+        VERIFY(Kernel::is_executing_in_thread_mode());
 
         bool were_interrupts_enabled = disable_interrupts();
         malloc_mutex.lock();

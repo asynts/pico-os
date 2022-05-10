@@ -29,6 +29,8 @@ namespace Kernel
 
         void lock()
         {
+            VERIFY(Kernel::is_executing_in_thread_mode());
+
             // We only have to lock if the scheduler is initialized and if threads are already being scheduled.
 
             if (Scheduler::is_initialized()) {
@@ -51,6 +53,8 @@ namespace Kernel
 
         void unlock()
         {
+            VERIFY(Kernel::is_executing_in_thread_mode());
+
             if (Scheduler::is_initialized()) {
                 m_holding_thread.clear();
 
