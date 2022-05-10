@@ -1,84 +1,46 @@
-### TODO
+# PicoOS
 
-#### Next Version
+This is a simple operating system for the Raspberry Pi Pico micro-controller.
+The code structure is strongly inspired by SerenityOS, however, no code is taken from that source directly.
 
--   Group `PageRange`s together in `PageAllocator::deallocate`.
+My goal was to write a simple operating system because I was interested in operating systems.
+The code base is a huge mess and I later tried to rewrite everything, however, I never completed the rewrite.
 
--   Add passive locking primitives
+Currently the system has the following capabilities:
 
--   Add active locking primitives
+-   The system runs on a Raspberry Pi Pico microcontroller (actual hardware!).
+    It uses a UART connection to communicate with a terminal window of the host machine.
 
-#### Bugs
+    Instead of connecting the device directly, it is connected indirectly with another Raspberry Pi Pico which has the PicoProbe
+    software instealled.
+    This makes it possible to debug what is happening on the chip and the UART connection is exposed via USB.
 
--   We have a ton of memory leaks in the filesystem, e.g. `VirtualFile::create_handle_impl`.
+-   There is a very fragile file system implementation that supports most common operations.
+    Some programs are embedded into the flash memory of the device and they are accessible in this file system.
 
-  - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
-    returns `ConsoleFile` instead of the actual file.
+-   The system itself has an extremely simple shell program which is loaded on startup and which is accessible with the UART connection.
 
-  - Sometimes we seem to mess something up, this is visible when `ConsoleFileHandle` has an invalid
-    `this` pointer. I reproduced this by running:
+    There are some builtin shell commands, but it can also use `posix_spawn` to start a new process.
+    This can be used to load any ELF file, but the system makes a ton of assumptions about the application.
 
-    ~~~none
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    ~~~
+The kernel has the following capabilities:
 
-#### Future features
+-   There is a bare bone memory allocation algorithm.
 
--   Keep track of 'used' page ranges. There is an excelent algorithm that can be used to store these bits
-    in a very compact tree structure.
+-   There is a scheduler that must run on a single core.
+    It can switch between several threads that belong either to the kernel or to userland.
 
--   Maybe I could port the Minix filesystem when I add an IDE driver?
+    I tried adding multi-core support later on, however, the debugging tools I was using were not sophisticated enough to debug what went wrong.
 
--   Keep documentation about interrupt safe functions and which functions can be called in which boot stage
+-   There is some bare bone isolation between kernel and userland.
 
--   Add `MemoryAllocator::allocate_eternal` which doesn't create MTRACE logs
+    Sadly, this microcontroller does not have a Memory Management Unit (MMU), therefore, proper isolation isn't possible.
+    However, the Memory Protection Unit (MPU) is used to at least prevent accesses to kernel space.
 
-  - Run inside QEMU
+-   The following system calls are partially supported: `read`, `write`, `open`, `close`, `fstat`, `wait`, `exit`,
+    `chdir`, `get_working_directory`, `posix_spawn`.
 
-  - Write userland applications in Zig
-
-#### Future tweaks (Userland)
-
-  - Implement a proper malloc
-
-#### Future tweaks (Kernel)
-
-  - Setup MPU for supervisor mode
-
-  - HardFault in usermode crashes kernel
-
-  - Stack smash protection with MPU
-
-      - Build with `-fstack-protector`?
-
-#### Future tweaks (Build)
-
-  - Alignment of `.stack`, `.heap` sections is lost in `readelf`
-
-  - C++20 modules
-
-  - Drop SDK entirely
-
-      - Link `libsup++` or add a custom downcast?
-
-  - Meson build
-
-  - Try using LLDB instead of GDB
-
-  - Don't leak includes from newlib libc
-
-  - Use LLVM/LLD for `FileEmbed`; Not sure what I meant with this, but LLVM
-    surely has all the tools buildin that I need
-
-  - GDB apparently has a secret 'proc' command that makes it possible to debug
-    multiple processes.  This was mentioned in the DragonFlyBSD documentation,
-    keyword: "inferiour"
+    Notice, that `fork` is not on that list since it requires an MMU, however, `posix_spawn` can do most of the things that `fork` can do.
 
 ### Development Environment
 
@@ -142,23 +104,3 @@
 
  2. `run` will start the system.  The shell is accessible in the `inv tty`
     terminal.
-
-### Helpful Documentation
-
-#### Stuff that I already looked at:
-
-  - ARM ABI (https://github.com/ARM-software/abi-aa/releases)
-  - ELF(5) man page (https://man7.org/linux/man-pages/man5/elf.5.html)
-  - Ian Lance Taylor: Linkers (https://www.airs.com/blog/archives/38)
-
-### Software
-
-Installed via `pacman`:
-
-~~~none
-pacman -S --needed python-invoke arm-none-eabi-gcc
-~~~
-
-Some packages have to be manually build from AUR:
-
-- TIO to connect to serial device (http://tio.github.io/)
