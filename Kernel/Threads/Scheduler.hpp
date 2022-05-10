@@ -40,6 +40,7 @@ namespace Kernel
         bool m_enabled = false;
 
         CircularQueue<RefPtr<Thread>, 16> m_queued_threads;
+        CircularQueue<RefPtr<Thread>, 16> m_dangling_threads;
 
     private:
         RefPtr<Thread> m_default_thread;

@@ -28,7 +28,31 @@ namespace Kernel
 
         dbgln("[SystemHandler] Dealing with system call for '{}'", thread->m_name);
 
-        // FIXME
+        auto new_worker_thread_name = ImmutableString::format("Worker: '{}' (PID {})",
+            thread->m_process->m_name,
+            thread->m_process->m_process_id);
+
+        auto new_worker_thread = Thread::construct(new_worker_thread_name);
+        new_worker_thread->m_privileged = true;
+
+        new_worker_thread->setup_context([thread = move(thread)] () mutable {
+            // We can not consume the register context here, since it is needed to continue execution.
+            FullRegisterContext& context = *thread->m_stashed_context.must();
+
+            i32 return_value = thread->syscall(context.r0.syscall(), context.r1, context.r2, context.r3);
+
+            if (context.r0.syscall() == _SC_exit) {
+                VERIFY(thread->m_die_at_next_opportunity);
+            }
+
+            // System calls return values by magically tweaking the value of the 'r0' register when returning.
+            context.r0.m_storage = bit_cast<u32>(return_value);
+
+            thread->m_blocked = false;
+            Scheduler::the().add_thread(move(thread));
+        });
+
+        Scheduler::the().add_thread(move(new_worker_thread));
     }
 
     SystemHandler::SystemHandler()
@@ -64,48 +88,6 @@ namespace Kernel
                 // Now, we know that another thread is in the list and we can take it.
                 handle_next_waiting_thread();
             }
-
-            /*
-                // FIXME: We need some way of looping over all blocked threads.
-                for (Thread& thread : Scheduler::the().m_blocked_threads) {
-                    if (thread.m_requested_system_call) {
-                        thread.m_requested_system_call = false;
-
-                        auto new_worker_thread_name = ImmutableString::format("Worker: {} ({})",
-                            thread.m_process->m_name,
-                            thread.m_process->m_process_id);
-
-                        auto new_worker_thread = Thread::construct(new_worker_thread_name);
-                        new_worker_thread->m_privileged = true;
-
-                        new_worker_thread->setup_context([] {
-                            // FIXME: Somehow, we need to get hold of the register context that was passed to 'syscall'.
-                        });
-                    }
-                }
-
-                // We are not allowed to allocate here and must use a constant string.
-                auto worker_thread = Thread::construct(SystemHandler::the().get_system_call_thread_name());
-
-                worker_thread->m_privileged = true;
-                worker_thread->setup_context([&thread, context] {
-                    i32 return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);
-
-                    if (context->r0.syscall() == _SC_exit)
-                        VERIFY(thread.m_die_at_next_opportunity);
-
-                    thread.m_stashed_context.must()->r0.m_storage = bit_cast<u32>(return_value);
-
-                    thread.mark_unblocked();
-                });
-                Scheduler::the().add_thread(worker_thread);
-
-                Thread& next_thread = Scheduler::the().schedule();
-                context = &next_thread.unstash_context();
-
-                return context;
-
-            */
         });
     }
 

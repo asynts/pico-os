@@ -74,4 +74,12 @@ namespace Kernel
     {
         (object.*Method)();
     }
+
+    inline void enable_interrupts_and_wait_for_interrupt()
+    {
+        // I seem to recall, that this was some magical instruction sequence that avoids a lost-wakeup problem.
+        // If something seems fishy, I should verify that claim.
+        asm volatile("cpsie i;"
+                     "wfi;");
+    }
 }

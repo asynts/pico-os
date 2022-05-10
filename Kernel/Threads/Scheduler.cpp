@@ -86,7 +86,14 @@ namespace Kernel
         if (debug_scheduler)
             dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
 
-        m_active_thread = next;
+        // We are in a system call handler and can not clean up the thread here.
+        // The default thread is responsible for cleaning up dangling threads.
+        if (m_active_thread->refcount() == 1) {
+            m_dangling_threads.enqueue(move(m_active_thread));
+            m_active_thread = m_default_thread;
+        } else {
+            m_active_thread = next;
+        }
 
         if (m_active_thread->m_privileged) {
             asm volatile("msr control, %0;"
@@ -117,12 +124,32 @@ namespace Kernel
     void Scheduler::loop()
     {
         m_default_thread = Thread::construct("Default Thread (Core 0)");
-        m_default_thread->setup_context([] {
-            asm volatile("nop");
-
+        m_default_thread->m_privileged = true;
+        m_default_thread->setup_context([&] {
             for (;;) {
+                dbgln("[Scheduler] Running default thread.");
+
+                bool were_enabled = disable_interrupts();
+                VERIFY(were_enabled);
+
+                // We don't want to constantly disable interrupts, otherwise, we can easily miss the next SysTick.
+                if (m_dangling_threads.size() == 0) {
+                    VERIFY(were_enabled);
+                    enable_interrupts_and_wait_for_interrupt();
+                    continue;
+                }
+
+                RefPtr<Thread> thread = m_dangling_threads.dequeue();
+
+                // At this point, we no longer need to synchronize, the cleanup can happen in parallel.
+                restore_interrupts(were_enabled);
                 VERIFY(are_interrupts_enabled());
-                asm volatile ("wfi");
+
+                // FIXME: If we block on the allocator mutex, we are in trouble, we need some sort of backup default thread.
+
+                // Remove the last reference to this thread and thus kill it.
+                VERIFY(thread->refcount() == 1);
+                thread.clear();
             }
         });
 
