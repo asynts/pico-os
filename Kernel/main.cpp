@@ -42,8 +42,8 @@ namespace Kernel
 
         dbgln("\e[0;1mBOOT\e[0m");
 
-        Kernel::GlobalMemoryAllocator::the().dump();
-        GlobalMemoryAllocator::the().m_debug = true;
+        // Kernel::GlobalMemoryAllocator::the().dump();
+        // GlobalMemoryAllocator::the().m_debug = true;
 
         Kernel::Scheduler::initialize();
 
