@@ -58,7 +58,7 @@ namespace Kernel
 
     void Thread::wakeup()
     {
-        VERIFY(Scheduler::the().active_thread_if_avaliable() != this);
+        VERIFY(Scheduler::the().get_active_thread_if_avaliable() != this);
 
         if (m_blocked) {
             m_blocked = false;
@@ -68,7 +68,7 @@ namespace Kernel
 
     Thread& Thread::active()
     {
-        return Scheduler::the().active();
+        return Scheduler::the().get_active_thread();
     }
 
     i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)

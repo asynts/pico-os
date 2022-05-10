@@ -16,12 +16,12 @@ namespace Kernel
 
     class Scheduler : public Singleton<Scheduler> {
     public:
-        Thread* active_thread_if_avaliable()
+        Thread* get_active_thread_if_avaliable()
         {
             return m_active_thread;
         }
 
-        Thread& active()
+        Thread& get_active_thread()
         {
             VERIFY(m_active_thread != nullptr);
             return *m_active_thread;

@@ -31,7 +31,7 @@ namespace Kernel
                 dbgln("[SystemHandler] Checking if system calls need to be dispatched.");
 
                 // FIXME: This is a lost wakeup problem, what if other threads want to make system calls.
-                Scheduler::the().active().m_blocked = true;
+                Scheduler::the().get_active_thread().m_blocked = true;
                 Scheduler::the().trigger();
 
                 /*
@@ -82,7 +82,7 @@ namespace Kernel
     extern "C"
     FullRegisterContext& syscall(FullRegisterContext& context)
     {
-        RefPtr<Thread> thread = Scheduler::the().active();
+        RefPtr<Thread> thread = Scheduler::the().get_active_thread();
         thread->stash_context(context);
 
         SystemHandler::the().notify_worker_thread(move(thread));

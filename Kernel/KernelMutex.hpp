@@ -36,7 +36,7 @@ namespace Kernel
             if (Scheduler::is_initialized()) {
                 // We must not hold a strong reference here, otherwise, this thread could not be
                 // terminated without being rescheduled. Not that this should happen, but...
-                Thread *active_thread = Scheduler::the().active_thread_if_avaliable();
+                Thread *active_thread = Scheduler::the().get_active_thread_if_avaliable();
 
                 if (active_thread != nullptr) {
                     if (m_holding_thread.is_null()) {

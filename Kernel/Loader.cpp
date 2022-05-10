@@ -153,7 +153,7 @@ namespace Kernel
 
         setup_mpu(regions);
 
-        Scheduler::the().active().m_privileged = false;
+        Scheduler::the().get_active_thread().m_privileged = false;
 
         // FIXME: Free old stack?!
         // FIXME: Make sure to drop the corresponding region as well
