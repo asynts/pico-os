@@ -19,6 +19,8 @@ namespace Kernel
 
         friend Singleton<SystemHandler>;
         SystemHandler();
+
+        void handle_next_waiting_thread();
     };
 
     // FIXME: Most of this stuff should go to different places

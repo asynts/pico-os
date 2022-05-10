@@ -45,7 +45,8 @@ namespace Kernel
         VERIFY(is_executing_in_handler_mode());
 
         if (m_active_thread) {
-            if (m_active_thread->m_die_at_next_opportunity) {
+            // FIXME: Now, we have a redundancy between 'die' and 'block'.
+            if (m_active_thread->m_die_at_next_opportunity || m_active_thread->m_blocked) {
                 if (debug_scheduler)
                     dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
             } else {
@@ -59,7 +60,7 @@ namespace Kernel
         bool all_threads_blocking = true;
         for (size_t i = 0; i < m_queued_threads.size(); ++i) {
             auto& thread = m_queued_threads[i];
-            if (!thread->m_blocked && !thread->m_die_at_next_opportunity) {
+            if (!thread->m_die_at_next_opportunity) {
                 all_threads_blocking = false;
                 break;
             }
@@ -72,10 +73,9 @@ namespace Kernel
         } else {
             for (;;) {
                 next = m_queued_threads.dequeue();
+                VERIFY(!next->m_blocked);
 
-                if (next->m_blocked) {
-                    m_queued_threads.enqueue(next);
-                } else if (next->m_die_at_next_opportunity) {
+                if (next->m_die_at_next_opportunity) {
                     continue;
                 } else {
                     break;
