@@ -53,7 +53,30 @@ Somehow, we end up switching to the dummy thread with interrupts disabled.
     #7  0x100100e8 in isr_svcall () at /home/me/dev/pico-os/Kernel/cpu.S:78
     ```
 
+-   The next problem showed, up:
+
+    ```none
+    #0  Std::crash (format=0x10014af8 "VERIFY(%condition)\n%file:%line\n", condition=0x10014b8c "!Kernel::is_executing_in_handler_mode()", file=0x10014b54 "/home/me/dev/pico-os/Kernel/GlobalMemoryAllocator.cpp", line=23) at /home/me/dev/pico-os/Std/Forward.cpp:81
+    #1  0x1000532a in Kernel::GlobalMemoryAllocator::allocate (this=0x200012a8 <Std::SingletonContainer<Kernel::GlobalMemoryAllocator>::m_instance>, size=60, debug_override=true, address=0x1000ba6d <Std::RefCounted<Kernel::Thread>::construct<Std::String&>(Std::String&)+16>) at /home/me/dev/pico-os/Kernel/GlobalMemoryAllocator.cpp:23
+    #2  0x1000544e in operator new (size=60) at /home/me/dev/pico-os/Kernel/GlobalMemoryAllocator.cpp:64
+    #3  0x1000ba6c in Std::RefCounted<Kernel::Thread>::construct<Std::String&> () at /home/me/dev/pico-os/Std/RefPtr.hpp:114
+    #4  0x1000b88a in Kernel::syscall (context=0x20018ef8) at /home/me/dev/pico-os/Kernel/SystemHandler.cpp:29
+    #5  0x1000fdf4 in isr_svcall () at /home/me/dev/pico-os/Kernel/cpu.S:78
+    ```
+
+    In other words, creating a thread allocates, which I can not do.
+    This will require a nasty workaround.
+
+### Ideas
+
+-   I should add some `m_requested_system_call` flag to threads.
+
+    Then I can have a thread that just creates the thread for us, outside the interrupt hander.
+    In other words, the interrupt handler would only set a flag which would be much nicer.
+
 ### Theory
+
+-   I suspect, that the `String` is copied instead of referencing the same one.
 
 -   I suspect, that the `KernelMutex` is keeping the thread alive somehow.
 
@@ -61,3 +84,8 @@ Somehow, we end up switching to the dummy thread with interrupts disabled.
 
 -   I am no longer constructing the string in `dbgln` if we are in handler mode.
     That avoids the inevitiable memory allocation.
+
+-   I am now using a constant string when creating the worker thread in `SystemHandler`.
+    It is allocated in advance.
+
+-   I made strings immutable and make them trivially copyable, thus, I can create threads on the fly.

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Std/Forward.hpp>
-#include <Std/Format.hpp>
 
 namespace Std
 {
@@ -139,9 +138,5 @@ namespace Std
     private:
         usize m_refcount = 0;
         bool m_in_cleanup = false;
-    };
-
-    template<typename T>
-    struct Formatter<RefPtr<T>> : Formatter<T*> {
     };
 }

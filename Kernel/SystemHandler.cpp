@@ -11,22 +11,23 @@
 
 namespace Kernel
 {
-    constexpr bool debug_syscall = true;
+    SystemHandler::SystemHandler()
+        : m_system_call_thread_name("Kernel: SystemHandler")
+    {
+
+    }
 
     extern "C"
     FullRegisterContext* syscall(FullRegisterContext *context)
     {
-        if (debug_syscall) {
-            dbgln("[syscall] syscall={}", context->r0.syscall());
-            GlobalMemoryAllocator::the().dump();
-        }
-
         auto& thread = Scheduler::the().active();
 
         thread.mark_blocked();
         thread.stash_context(*context);
 
-        auto worker_thread = Thread::construct(String::format("Worker: '{}' ({}): syscall={}", thread.m_name, &thread, context->r0.syscall()));
+        // We are not allowed to allocate here and must use a constant string.
+        auto worker_thread = Thread::construct(SystemHandler::the().get_system_call_thread_name());
+
         worker_thread->m_privileged = true;
         worker_thread->setup_context([&thread, context] {
             i32 return_value = thread.syscall(context->r0.syscall(), context->r1, context->r2, context->r3);

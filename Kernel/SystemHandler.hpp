@@ -1,12 +1,28 @@
 #pragma once
 
 #include <Std/Forward.hpp>
+#include <Std/Singleton.hpp>
 
 #include <Kernel/Forward.hpp>
 #include <Kernel/Result.hpp>
 
 namespace Kernel
 {
+    class SystemHandler : public Singleton<SystemHandler> {
+    public:
+        // We are not allowed to allocate the string in an interrupt hander.
+        // Therefore, we need to allocate the string in advance.
+        String& get_system_call_thread_name() {
+            return m_system_call_thread_name;
+        }
+
+    private:
+        String m_system_call_thread_name;
+
+        friend Singleton<SystemHandler>;
+        SystemHandler();
+    };
+
     // FIXME: Most of this stuff should go to different places
 
     struct TypeErasedValue {

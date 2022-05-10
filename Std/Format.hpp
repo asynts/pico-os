@@ -7,6 +7,7 @@
 #include <Std/Concepts.hpp>
 #include <Std/String.hpp>
 #include <Std/Lexer.hpp>
+#include <Std/RefPtr.hpp>
 
 #ifdef KERNEL
 # include <Kernel/HandlerMode.hpp>
@@ -78,40 +79,55 @@ namespace Std {
 
     void vformat(StringBuilder&, StringView fmtstr, TypeErasedFormatParams);
 
-    // Strings are immutable, that is very important.
-    class String {
+    class ImmutableStringInstance : public RefCounted<ImmutableStringInstance> {
     public:
-        String()
+        ImmutableStringInstance()
         {
             m_buffer_size = 1;
             m_buffer = new char[m_buffer_size];
             m_buffer[0] = 0;
         }
-        String(StringView view)
+        explicit ImmutableStringInstance(StringView string)
         {
-            m_buffer_size = view.size() + 1;
+            m_buffer_size = string.size() + 1;
             m_buffer = new char[m_buffer_size];
-            view.strcpy_to({ m_buffer, m_buffer_size });
+            string.strcpy_to({ m_buffer, m_buffer_size });
         }
-        String(const char *str)
-            : String(StringView { str })
+        ImmutableStringInstance(const ImmutableStringInstance& other)
         {
+            m_buffer = other.m_buffer;
+            m_buffer_size = other.m_buffer_size;
         }
-        String(const String& other)
-        {
-            m_buffer = nullptr;
-            m_buffer_size = 0;
-
-            *this = other;
-        }
-        String(String&& other)
-        {
-            *this = move(other);
-        }
-        ~String()
+        ~ImmutableStringInstance()
         {
             delete[] m_buffer;
         }
+
+        const char* data() const { return m_buffer; }
+        usize size() const { return m_buffer_size; }
+
+    private:
+        char *m_buffer;
+        usize m_buffer_size;
+    };
+
+    // Strings are immutable, that is very important.
+    class String {
+    public:
+        String()
+            : m_string_instance(ImmutableStringInstance::construct())
+        {
+
+        }
+
+        String(StringView string)
+            : m_string_instance(ImmutableStringInstance::construct(string)) { }
+
+        String(const char *string)
+            : m_string_instance(ImmutableStringInstance::construct(StringView{ string })) { }
+
+        String(const String& other)
+            : m_string_instance(other.m_string_instance) { }
 
         void strcpy_to(Span<char> other) const
         {
@@ -121,44 +137,28 @@ namespace Std {
         template<typename... Parameters>
         static String format(StringView fmtstr, const Parameters&...);
 
-        const char* data() const { return m_buffer; }
-        usize size() const { return m_buffer_size - 1; }
-
-        const char* cstring() const { return m_buffer; }
+        const char* data() const { return m_string_instance->data(); }
+        usize size() const { return m_string_instance->size(); }
+        const char* cstring() const { return data(); }
 
         Span<const char> span() const { return { data(), size() }; }
-
         StringView view() const { return { data(), size() }; }
 
         operator StringView() const { return view(); }
-
-        String& operator=(String&& other)
-        {
-            delete[] m_buffer;
-
-            m_buffer = exchange(other.m_buffer, nullptr);
-            m_buffer_size = exchange(other.m_buffer_size, 0);
-            return *this;
-        }
-        String& operator=(const String& other)
-        {
-            delete[] m_buffer;
-
-            m_buffer = new char[other.m_buffer_size];
-            m_buffer_size = other.m_buffer_size;
-
-            memcpy(m_buffer, other.m_buffer, m_buffer_size);
-            return *this;
-        }
 
         int operator<=>(const String& other) const { return view() <=> other.view(); }
 
         // FIXME: The compile should be able to generate this?
         bool operator==(const String& other) const { return (*this <=> other) == 0; }
 
+        String& operator=(const String& other)
+        {
+            m_string_instance = other.m_string_instance;
+            return *this;
+        }
+
     private:
-        char *m_buffer = nullptr;
-        usize m_buffer_size;
+        RefPtr<ImmutableStringInstance> m_string_instance;
     };
 
     class StringBuilder {
@@ -351,6 +351,10 @@ namespace Std {
             else
                 builder.append("nil");
         }
+    };
+
+    template<typename T>
+    struct Formatter<RefPtr<T>> : Formatter<T*> {
     };
 }
 
