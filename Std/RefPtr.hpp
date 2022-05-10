@@ -130,13 +130,15 @@ namespace Std
             VERIFY(m_refcount > 0);
             --m_refcount;
 
-            if (m_refcount == 0) {
+            if (m_refcount == 0 && !m_in_cleanup) {
+                m_in_cleanup = true;
                 delete static_cast<T*>(this);
             }
         }
 
     private:
         usize m_refcount = 0;
+        bool m_in_cleanup = false;
     };
 
     template<typename T>
