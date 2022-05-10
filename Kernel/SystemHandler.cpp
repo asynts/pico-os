@@ -12,8 +12,12 @@
 
 namespace Kernel
 {
-    void SystemHandler::notify_worker_thread()
+    void SystemHandler::notify_worker_thread(RefPtr<Thread> thread)
     {
+        thread->m_blocked = true;
+        m_waiting_threads.enqueue(move(thread));
+
+        // Notify the SystemHandler thread that is will spawn the system call worker.
         m_thread->wakeup();
     }
 
@@ -24,10 +28,11 @@ namespace Kernel
         m_thread->m_blocked = true;
         m_thread->setup_context([] {
             for (;;) {
-                // FIXME: Somehow, this doesn't work:
-                // dbgln("[SystemHandler] Checking if system calls need to be dispatched.");
-                // Scheduler::the().active().block();
-                // Scheduler::the().trigger();
+                dbgln("[SystemHandler] Checking if system calls need to be dispatched.");
+
+                // FIXME: This is a lost wakeup problem, what if other threads want to make system calls.
+                Scheduler::the().active().m_blocked = true;
+                Scheduler::the().trigger();
 
                 /*
                     // FIXME: We need some way of looping over all blocked threads.
@@ -77,14 +82,10 @@ namespace Kernel
     extern "C"
     FullRegisterContext& syscall(FullRegisterContext& context)
     {
-        auto& thread = Scheduler::the().active();
+        RefPtr<Thread> thread = Scheduler::the().active();
+        thread->stash_context(context);
 
-        thread.m_requested_system_call = true;
-
-        thread.mark_blocked();
-        thread.stash_context(context);
-
-        SystemHandler::the().notify_worker_thread();
+        SystemHandler::the().notify_worker_thread(move(thread));
 
         Thread& next_thread = Scheduler::the().schedule();
         return next_thread.unstash_context();

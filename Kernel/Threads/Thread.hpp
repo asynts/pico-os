@@ -23,11 +23,6 @@ namespace Kernel
         volatile bool m_die_at_next_opportunity = false;
         volatile bool m_blocked = false;
 
-        // If a thread wants to make a system call, we can not handle this directly.
-        // Instead, we set this flag and notify the SystemHandler kernel thread.
-        // The SystemHandler will then spawn a worker thread that completes the system call.
-        volatile bool m_requested_system_call = false;
-
         Optional<FullRegisterContext*> m_stashed_context;
         RefPtr<Process> m_process;
 
@@ -101,11 +96,6 @@ namespace Kernel
             return context;
         }
 
-        // FIXME: Get rid of this?
-        void mark_blocked();
-        void mark_unblocked();
-
-        void block();
         void wakeup();
 
         i32 syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);

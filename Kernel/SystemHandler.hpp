@@ -2,6 +2,7 @@
 
 #include <Std/Forward.hpp>
 #include <Std/Singleton.hpp>
+#include <Std/CircularQueue.hpp>
 
 #include <Kernel/Forward.hpp>
 #include <Kernel/Result.hpp>
@@ -10,10 +11,11 @@ namespace Kernel
 {
     class SystemHandler : public Singleton<SystemHandler> {
     public:
-        void notify_worker_thread();
+        void notify_worker_thread(RefPtr<Thread> thread);
 
     private:
         RefPtr<Thread> m_thread;
+        CircularQueue<RefPtr<Thread>, 16> m_waiting_threads;
 
         friend Singleton<SystemHandler>;
         SystemHandler();

@@ -9,18 +9,16 @@ namespace Kernel
 {
     extern "C"
     {
-        FullRegisterContext* scheduler_next(FullRegisterContext *context)
+        FullRegisterContext& scheduler_next(FullRegisterContext& context)
         {
             if (debug_scheduler)
                 dbgln("[scheduler_next]");
 
             Thread& active_thread = Scheduler::the().active();
-            active_thread.stash_context(*context);
+            active_thread.stash_context(context);
 
             Thread& next_thread = Scheduler::the().schedule();
-            context = &next_thread.unstash_context();
-
-            return context;
+            return next_thread.unstash_context();
         }
 
         void isr_systick()
@@ -46,12 +44,14 @@ namespace Kernel
     {
         VERIFY(is_executing_in_handler_mode());
 
-        if (!m_active_thread->m_die_at_next_opportunity) {
-            m_queued_threads.enqueue(m_active_thread);
-            m_active_thread = nullptr;
-        } else {
-            if (debug_scheduler)
-                dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
+        if (m_active_thread) {
+            if (m_active_thread->m_die_at_next_opportunity) {
+                if (debug_scheduler)
+                    dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
+            } else {
+                m_queued_threads.enqueue(m_active_thread);
+                m_active_thread = nullptr;
+            }
         }
 
         // FIXME: This algorithm is a bit fishy
