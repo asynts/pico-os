@@ -10,14 +10,10 @@ namespace Kernel
 {
     class SystemHandler : public Singleton<SystemHandler> {
     public:
-        // We are not allowed to allocate the string in an interrupt hander.
-        // Therefore, we need to allocate the string in advance.
-        ImmutableString& get_system_call_thread_name() {
-            return m_system_call_thread_name;
-        }
+        void notify_worker_thread();
 
     private:
-        ImmutableString m_system_call_thread_name;
+        RefPtr<Thread> m_thread;
 
         friend Singleton<SystemHandler>;
         SystemHandler();

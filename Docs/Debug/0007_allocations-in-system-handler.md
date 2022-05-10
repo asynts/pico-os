@@ -13,6 +13,9 @@ commitid a0049d081678b4376cd65d12b9fb8ad3156725bd
     #5  0x1000f9f4 in isr_svcall () at /home/me/dev/pico-os/Kernel/cpu.S:78
     ```
 
+-   I had some difficulties, convincing the system handler to block until more requests come through.
+    Currently, I have that code commented out.
+
 ### Ideas
 
 -   I could add an `m_requested_system_call` flag and then handle that flag in another thread.

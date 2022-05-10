@@ -78,8 +78,10 @@ namespace Kernel
     {
         VERIFY(&Scheduler::the().active() != this);
 
-        m_blocked = false;
-        Scheduler::the().add_thread(*this);
+        if (m_blocked) {
+            m_blocked = false;
+            Scheduler::the().add_thread(*this);
+        }
     }
 
     Thread& Thread::active()
