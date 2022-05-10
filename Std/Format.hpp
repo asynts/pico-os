@@ -8,9 +8,15 @@
 #include <Std/String.hpp>
 #include <Std/Lexer.hpp>
 
+#ifdef KERNEL
+# include <Kernel/HandlerMode.hpp>
+#endif
+
 namespace Std {
     class StringBuilder;
     class String;
+
+    extern volatile int dbgln_called_in_interrupt;
 
     template<typename T>
     struct Formatter {
@@ -72,6 +78,7 @@ namespace Std {
 
     void vformat(StringBuilder&, StringView fmtstr, TypeErasedFormatParams);
 
+    // Strings are immutable, that is very important.
     class String {
     public:
         String()
@@ -113,9 +120,6 @@ namespace Std {
 
         template<typename... Parameters>
         static String format(StringView fmtstr, const Parameters&...);
-
-        // FIXME: Do we want to provide this overload?
-        char* data() { return m_buffer; }
 
         const char* data() const { return m_buffer; }
         usize size() const { return m_buffer_size - 1; }
@@ -246,6 +250,14 @@ namespace Std {
     template<typename... Parameters>
     void dbgln(StringView fmtstr, const Parameters&... parameters)
     {
+#ifdef KERNEL
+        // In handler mode, we can not ensure syncronization.
+        if (Kernel::is_executing_in_handler_mode()) {
+            dbgln_called_in_interrupt = dbgln_called_in_interrupt + 1;
+            return;
+        }
+#endif
+
         StringBuilder builder;
         vformat(builder, fmtstr, VariadicFormatParams { parameters... });
         dbgln_raw(builder.view());

@@ -45,6 +45,7 @@ namespace Kernel
     {
         u32 primask;
         asm volatile("mrs %0, primask;"
+                     "isb;"
             : "=r"(primask));
         return primask;
     }
