@@ -104,7 +104,10 @@ namespace Std {
         }
 
         const char* data() const { return m_buffer; }
-        usize size() const { return m_buffer_size; }
+        usize size() const {
+            VERIFY(m_buffer_size >= 1);
+            return m_buffer_size - 1;
+        }
 
     private:
         char *m_buffer;

@@ -8,6 +8,7 @@ struct A : Std::RefCounted<A> {
 TEST_CASE(refptr)
 {
     Std::RefPtr<A> refptr = A::construct();
+    ASSERT(refptr->refcount() == 1);
 }
 
 struct B : Tests::Tracker, Std::RefCounted<B> {
@@ -101,6 +102,54 @@ TEST_CASE(refptr_assign)
     refptr2 = refptr1;
 
     Tests::Tracker::assert(2, 0, 0, 1);
+}
+
+static void foo(Std::RefPtr<B>) {
+    // Let parameter go out of scope.
+}
+
+TEST_CASE(refptr_move_into_function)
+{
+    Tests::Tracker::clear();
+
+    {
+        auto refptr_1 = B::construct();
+
+        Tests::Tracker::assert(1, 0, 0, 0);
+
+        foo(refptr_1);
+
+        Tests::Tracker::assert(1, 0, 0, 0);
+
+        foo(std::move(refptr_1));
+
+        Tests::Tracker::assert(1, 0, 0, 1);
+    }
+
+    Tests::Tracker::assert(1, 0, 0, 1);
+}
+
+static Std::RefPtr<B> bar() {
+    return B::construct();
+}
+
+TEST_CASE(refptr_return_from_function)
+{
+    Tests::Tracker::clear();
+
+    {
+        auto refptr_1 = bar();
+
+        Tests::Tracker::assert(1, 0, 0, 0);
+    }
+
+    Tests::Tracker::assert(1, 0, 0, 1);
+
+    {
+        bar();
+
+        Tests::Tracker::assert(2, 0, 0, 2);
+    }
 }
 
 TEST_MAIN();

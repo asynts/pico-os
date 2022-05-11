@@ -7,6 +7,9 @@ namespace Std
     template<typename T>
     class RefCounted;
 
+    struct DanglingObjectMarker {
+    };
+
     template<typename T>
     class RefPtr {
     public:
@@ -22,6 +25,12 @@ namespace Std
             : m_pointer(&other)
         {
             m_pointer->ref();
+        }
+        RefPtr(T& other, DanglingObjectMarker)
+            : m_pointer(&other)
+        {
+            // We do not reference here since dangling objects have an initial reference count of one.
+            VERIFY(m_pointer->refcount() == 1);
         }
         RefPtr(const RefPtr& other)
         {
@@ -111,7 +120,7 @@ namespace Std
         template<typename... Parameters>
         static RefPtr<T> construct(Parameters&&... parameters)
         {
-            return RefPtr<T> { new T { forward<Parameters>(parameters)... } };
+            return RefPtr<T> { *new T { forward<Parameters>(parameters)... }, DanglingObjectMarker{} };
         }
 
         usize refcount() const
@@ -121,6 +130,7 @@ namespace Std
 
         void ref()
         {
+            VERIFY(m_refcount >= 1);
             ++m_refcount;
         }
 
@@ -129,14 +139,12 @@ namespace Std
             VERIFY(m_refcount > 0);
             --m_refcount;
 
-            if (m_refcount == 0 && !m_in_cleanup) {
-                m_in_cleanup = true;
+            if (m_refcount == 0) {
                 delete static_cast<T*>(this);
             }
         }
 
     private:
-        usize m_refcount = 0;
-        bool m_in_cleanup = false;
+        usize m_refcount = 1;
     };
 }

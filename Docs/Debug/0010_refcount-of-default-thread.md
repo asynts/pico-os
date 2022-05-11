@@ -24,14 +24,9 @@ We hit an assertion because the default thread doesn't have `refcount() == 2` wh
 
 -   We do have the correct reference count while the default thread runs.
 
--   Something goes wrong with comparisons after I added `ImmutableStringInstance`.
-    This seems to be related to the spaceship operator.
-
--   The `TestPath` and `TestStringBuilder` tests fail, but the failure doesn't make any sense to me.
-
 ### Ideas
 
--   I should unit test the `RefPtr` implementation.
+-   I should trace every time that I am adding or removing a reference, maybe by making it virtual?
 
 ### Theories
 

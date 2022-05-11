@@ -2,6 +2,24 @@
 
 #include <Std/StringBuilder.hpp>
 
+template<>
+struct Std::Formatter<std::strong_ordering> {
+    static void format(StringBuilder& builder, std::strong_ordering value)
+    {
+        if (value == std::strong_ordering::equal) {
+            builder.append("equal");
+        } else if (value == std::strong_ordering::less) {
+            builder.append("less");
+        } else if (value == std::strong_ordering::greater) {
+            builder.append("greater");
+        } else if (value == std::strong_ordering::equivalent) {
+            builder.append("equivalent");
+        } else {
+            VERIFY_NOT_REACHED();
+        }
+    }
+};
+
 TEST_CASE(stringbuilder)
 {
     Std::StringBuilder builder;
@@ -10,6 +28,8 @@ TEST_CASE(stringbuilder)
     builder.append("bar");
     builder.append(' ');
     builder.appendf("b{}z", "a");
+
+    ASSERT(string_1.size() == string_1.view().size());
 
     ASSERT(builder.view() == "foo bar baz");
     ASSERT(builder.string().view() == "foo bar baz");
