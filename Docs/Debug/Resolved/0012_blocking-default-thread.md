@@ -32,10 +32,10 @@ It seems that the default thread is blocking on a `KernelMutex`.
 
 ### Ideas
 
--   I should not print out the state of the scheduler, that is no longer necessary.
-
 ### Theories
 
 ### Actions
 
 -   I added a fallback thread that can be scheduled if the default thread is blocked.
+
+-   I ensured that `m_enabled` isn't disabled if we could block on a mutex.

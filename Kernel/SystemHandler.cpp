@@ -51,13 +51,7 @@ namespace Kernel
             thread->set_masked_from_scheduler(false);
 
             Scheduler::the().m_enabled = false;
-            dbgln("[SystemHandler] Before:");
-            Scheduler::the().dump();
-
             Scheduler::the().add_thread(move(thread));
-
-            dbgln("[SystemHandler] After:");
-            Scheduler::the().dump();
             Scheduler::the().m_enabled = true;
         });
 
