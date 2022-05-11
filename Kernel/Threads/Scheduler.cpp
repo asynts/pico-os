@@ -112,9 +112,10 @@ namespace Kernel
         m_default_thread = Thread::construct("Default Thread (Core 0)");
         m_default_thread->m_privileged = true;
         m_default_thread->m_is_default_thread = true;
+
         m_default_thread->setup_context([&] {
             for (;;) {
-                dbgln("[Scheduler] Running default thread.");
+                dbgln("[Scheduler] Running default thread. (refcount={})", m_default_thread->refcount());
 
                 bool were_enabled = disable_interrupts();
                 VERIFY(were_enabled);
@@ -123,8 +124,8 @@ namespace Kernel
                     VERIFY(were_enabled);
                     restore_interrupts(were_enabled);
 
-                    // There is nothing sensible we can do, just wait for the next interrupt.
-                    asm volatile("wfi;");
+                    // There is nothing sensible we can do, give the scheduler another opportunity.
+                    Scheduler::the().trigger();
                     continue;
                 }
 
@@ -134,7 +135,7 @@ namespace Kernel
                 restore_interrupts(were_enabled);
                 VERIFY(are_interrupts_enabled());
 
-                // FIXME: If we block on the allocator mutex, we are in trouble, we need some sort of backup default thread.
+                dbgln("[Scheduler] We are about to kill thread '{}' (refcount={})", thread->m_name, thread->refcount());
 
                 // Remove the last reference to this thread and thus kill it.
                 VERIFY(thread->refcount() == 1);

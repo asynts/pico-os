@@ -146,10 +146,12 @@ namespace Std {
 
         operator StringView() const { return view(); }
 
-        int operator<=>(const ImmutableString& other) const { return view() <=> other.view(); }
+        std::strong_ordering operator<=>(const ImmutableString& other) const { return view() <=> other.view(); }
 
-        // FIXME: The compile should be able to generate this?
-        bool operator==(const ImmutableString& other) const { return (*this <=> other) == 0; }
+        bool operator==(const ImmutableString& other) const
+        {
+            return view() == other.view();
+        }
 
         ImmutableString& operator=(const ImmutableString& other)
         {

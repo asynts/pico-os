@@ -22,8 +22,19 @@ We hit an assertion because the default thread doesn't have `refcount() == 2` wh
     /home/me/dev/pico-os/Kernel/Threads/Scheduler.cpp:0x0000003e
     ```
 
+-   We do have the correct reference count while the default thread runs.
+
+-   Something goes wrong with comparisons after I added `ImmutableStringInstance`.
+    This seems to be related to the spaceship operator.
+
+-   The `TestPath` and `TestStringBuilder` tests fail, but the failure doesn't make any sense to me.
+
 ### Ideas
 
+-   I should unit test the `RefPtr` implementation.
+
 ### Theories
+
+-   I suspect, that the `RefPtr` implementation is broken somehow.
 
 ### Actions

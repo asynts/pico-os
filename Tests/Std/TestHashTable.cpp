@@ -2,6 +2,8 @@
 
 #include <Std/HashTable.hpp>
 
+#include <utility>
+
 TEST_CASE(hashtable_int)
 {
     Std::HashTable<u32> hash;

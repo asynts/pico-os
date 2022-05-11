@@ -5,6 +5,12 @@
 #include <string_view>
 #include <span>
 
+TEST_CASE(stringview_trivial)
+{
+    ASSERT(Std::StringView{ "abc" } == Std::StringView{ "abc" });
+    ASSERT(Std::StringView{ "abc" } != Std::StringView{ "abcd" });
+}
+
 TEST_CASE(stringview_cstring)
 {
     Std::StringView sv { "Hello, world!" };

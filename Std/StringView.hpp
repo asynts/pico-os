@@ -3,6 +3,8 @@
 #include <Std/Span.hpp>
 #include <Std/Optional.hpp>
 
+#include <compare>
+
 namespace Std {
 
 class StringView : public Span<const char> {
@@ -64,21 +66,28 @@ public:
         return size() >= 1 && data()[0] == ch;
     }
 
-    int operator<=>(StringView rhs) const
+    std::strong_ordering operator<=>(StringView rhs) const
     {
         if (size() < rhs.size())
-            return -1;
+            return std::strong_ordering::less;
 
         if (size() > rhs.size())
-            return 1;
+            return std::strong_ordering::greater;
 
-        return __builtin_memcmp(data(), rhs.data(), size());
+        int retval = __builtin_memcmp(data(), rhs.data(), size());
+
+        if (retval < 0) {
+            return std::strong_ordering::less;
+        } else if (retval > 0) {
+            return std::strong_ordering::greater;
+        } else {
+            return std::strong_ordering::equal;
+        }
     }
 
-    // FIXME: The compiler should be able to deduce this?
     bool operator==(StringView rhs) const
     {
-        return (*this <=> rhs) == 0;
+        return operator<=>(rhs) == std::strong_ordering::equal;
     }
 
     ReadonlyBytes bytes() const { return { reinterpret_cast<const u8*>(data()), size() }; }
