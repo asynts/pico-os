@@ -52,10 +52,13 @@ namespace Kernel
 
     private:
         RefPtr<Thread> m_default_thread;
+        RefPtr<Thread> m_fallback_thread;
 
         RefPtr<Thread> m_active_thread = nullptr;
 
         friend Singleton<Scheduler>;
         Scheduler();
+
+        RefPtr<Thread> choose_default_thread();
     };
 }

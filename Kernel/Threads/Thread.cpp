@@ -72,12 +72,6 @@ namespace Kernel
 
     void Thread::set_masked_from_scheduler(bool masked)
     {
-        // It doesn't make any sense to mask the default thread, it is tracked separately.
-        // If that happens, that is likely a deadlock.
-        if (masked && m_is_default_thread) {
-            VERIFY_NOT_REACHED();
-        }
-
         m_masked_from_scheduler = masked;
     }
 

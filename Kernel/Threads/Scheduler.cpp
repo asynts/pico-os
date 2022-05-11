@@ -71,10 +71,10 @@ namespace Kernel
         VERIFY(m_active_thread.is_null());
         if (m_dangling_threads.size() >= 1) {
             // We need to drop the reference to a dangling thread.
-            m_active_thread = m_default_thread;
+            m_active_thread = choose_default_thread();
         } else if (m_queued_threads.size() == 0) {
             // We have no normal threads that should be scheduled.
-            m_active_thread = m_default_thread;
+            m_active_thread = choose_default_thread();
         } else {
             m_active_thread = m_queued_threads.dequeue();
         }
@@ -109,7 +109,8 @@ namespace Kernel
 
     void Scheduler::loop()
     {
-        m_default_thread = Thread::construct("Default Thread (Core 0)");
+        // This is a special thread that will be scheduled, if nothing else can be scheduled.
+        m_default_thread = Thread::construct("Kernel: Default Thread");
         m_default_thread->m_privileged = true;
         m_default_thread->m_is_default_thread = true;
 
@@ -143,12 +144,27 @@ namespace Kernel
             }
         });
 
+        // This is a special thread that will be scheduled if the default thread is blocking.
+        // That can happen when it is trying to create debug output.
+        m_fallback_thread = Thread::construct("Kernel: Fallback Thread");
+        m_fallback_thread->m_privileged = true;
+        m_fallback_thread->m_is_default_thread = true;
+
+        m_fallback_thread->setup_context([] {
+            for (;;) {
+                // Give the scheduler another chance.
+                Scheduler::the().trigger();
+            }
+        });
+
         // This is a special thread that should die immediately.
         // We simply need some way of entering the scheduler.
         auto dummy_thread = Thread::construct("Dummy");
         dummy_thread->m_masked_from_scheduler = true;
 
         dummy_thread->setup_context([] {
+            dbgln("[Scheduler] Dummy thread is running.");
+
             Scheduler::the().m_enabled = true;
             Scheduler::the().trigger();
             VERIFY_NOT_REACHED();
@@ -190,4 +206,15 @@ namespace Kernel
             dbgln("  {} @{}", thread.m_name, &thread);
         }
     }
+
+    RefPtr<Thread> Scheduler::choose_default_thread()
+    {
+        if (m_default_thread->m_masked_from_scheduler) {
+            VERIFY(!m_fallback_thread->m_masked_from_scheduler);
+            return m_fallback_thread;
+        } else {
+            return m_default_thread;
+        }
+    }
+
 }
