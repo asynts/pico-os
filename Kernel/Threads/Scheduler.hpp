@@ -27,12 +27,20 @@ namespace Kernel
             return *m_active_thread;
         }
 
+        void clear_active_thread()
+        {
+            VERIFY(!m_active_thread.is_null());
+            m_active_thread.clear();
+        }
+
         Thread& schedule();
 
         void add_thread(RefPtr<Thread> thread)
         {
             m_queued_threads.enqueue(thread);
         }
+
+        void dump();
 
         void loop();
         void trigger();

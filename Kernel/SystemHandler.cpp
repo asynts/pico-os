@@ -49,7 +49,18 @@ namespace Kernel
             context.r0.m_storage = bit_cast<u32>(return_value);
 
             thread->m_blocked = false;
+
+            Scheduler::the().m_enabled = false;
+
+            dbgln("[SystemHandler] Before:");
+            Scheduler::the().dump();
+
             Scheduler::the().add_thread(move(thread));
+
+            dbgln("[SystemHandler] After:");
+            Scheduler::the().dump();
+
+            Scheduler::the().m_enabled = true;
         });
 
         Scheduler::the().add_thread(move(new_worker_thread));
@@ -95,10 +106,13 @@ namespace Kernel
     FullRegisterContext& syscall(FullRegisterContext& context)
     {
         RefPtr<Thread> thread = Scheduler::the().get_active_thread();
+
         thread->stash_context(context);
+        Scheduler::the().clear_active_thread();
 
         SystemHandler::the().notify_worker_thread(move(thread));
 
+        // Since the active thread has been cleared, we will not save any context here.
         Thread& next_thread = Scheduler::the().schedule();
         return next_thread.unstash_context();
     }

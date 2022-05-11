@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/stat.h>
@@ -56,7 +58,7 @@ namespace Elf
         size_t offset = other.offset();
 
         other.seek(0);
-        
+
         char buffer[0x1000];
         while (!feof(other.m_file)) {
             size_t nread = fread(buffer, 1, sizeof(buffer), other.m_file);

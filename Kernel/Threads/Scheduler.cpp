@@ -178,4 +178,25 @@ namespace Kernel
 
         VERIFY_NOT_REACHED();
     }
+
+    void Scheduler::dump()
+    {
+        dbgln("[Scheduler] m_queued_threads:");
+        for (size_t i = 0; i < m_queued_threads.size(); ++i) {
+            Thread& thread = *m_queued_threads[i];
+            dbgln("  {} @{}", thread.m_name, &thread);
+        }
+
+        dbgln("[Scheduler] m_danging_threads:");
+        for (size_t i = 0; i < m_dangling_threads.size(); ++i) {
+            Thread& thread = *m_dangling_threads[i];
+            dbgln("  {} @{}", thread.m_name, &thread);
+        }
+
+        dbgln("[Scheduler] m_default_thread:");
+        {
+            Thread& thread = m_default_thread.must();
+            dbgln("  {} @{}", thread.m_name, &thread);
+        }
+    }
 }
