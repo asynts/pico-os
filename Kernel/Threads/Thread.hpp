@@ -37,7 +37,7 @@ namespace Kernel
         Vector<MPU::Region> m_regions;
         Vector<OwnedPageRange> m_owned_page_ranges;
 
-        ~Thread()
+        virtual ~Thread()
         {
             if (debug_thread)
                 dbgln("[Thread::~Thread] m_name='{}'", m_name);

@@ -59,7 +59,7 @@ namespace Kernel
                 }
             } else if (m_active_thread->m_is_default_thread) {
                 // The default thread should not be queued.
-                VERIFY(m_active_thread->refcount() == 2);
+                VERIFY(m_active_thread->refcount() >= 2);
                 m_active_thread.clear();
             } else {
                 // Schedule this thread again at a later point.

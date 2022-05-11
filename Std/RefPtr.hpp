@@ -116,6 +116,7 @@ namespace Std
         RefCounted() = default;
         RefCounted(const RefCounted&) = delete;
         RefCounted(RefCounted&&) = delete;
+        virtual ~RefCounted() = default;
 
         template<typename... Parameters>
         static RefPtr<T> construct(Parameters&&... parameters)
@@ -128,13 +129,13 @@ namespace Std
             return m_refcount;
         }
 
-        void ref()
+        virtual void ref()
         {
             VERIFY(m_refcount >= 1);
             ++m_refcount;
         }
 
-        void unref()
+        virtual void unref()
         {
             VERIFY(m_refcount > 0);
             --m_refcount;
