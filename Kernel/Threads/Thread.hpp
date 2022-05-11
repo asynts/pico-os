@@ -23,6 +23,8 @@ namespace Kernel
         volatile bool m_die_at_next_opportunity = false;
         volatile bool m_blocked = false;
 
+        bool m_block_means_deadlock = false;
+
         Optional<FullRegisterContext*> m_stashed_context;
         RefPtr<Process> m_process;
 
@@ -95,6 +97,8 @@ namespace Kernel
 
             return context;
         }
+
+        void set_blocked(bool blocked);
 
         void wakeup();
 

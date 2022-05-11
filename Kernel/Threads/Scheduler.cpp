@@ -125,6 +125,7 @@ namespace Kernel
     {
         m_default_thread = Thread::construct("Default Thread (Core 0)");
         m_default_thread->m_privileged = true;
+        m_default_thread->m_block_means_deadlock = true;
         m_default_thread->setup_context([&] {
             for (;;) {
                 dbgln("[Scheduler] Running default thread.");
@@ -132,10 +133,12 @@ namespace Kernel
                 bool were_enabled = disable_interrupts();
                 VERIFY(were_enabled);
 
-                // We don't want to constantly disable interrupts, otherwise, we can easily miss the next SysTick.
                 if (m_dangling_threads.size() == 0) {
                     VERIFY(were_enabled);
-                    enable_interrupts_and_wait_for_interrupt();
+                    restore_interrupts(were_enabled);
+
+                    // There is nothing sensible we can do, just wait for the next interrupt.
+                    asm volatile("wfi;");
                     continue;
                 }
 

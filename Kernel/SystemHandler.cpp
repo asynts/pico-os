@@ -48,10 +48,9 @@ namespace Kernel
             // System calls return values by magically tweaking the value of the 'r0' register when returning.
             context.r0.m_storage = bit_cast<u32>(return_value);
 
-            thread->m_blocked = false;
+            thread->set_blocked(false);
 
             Scheduler::the().m_enabled = false;
-
             dbgln("[SystemHandler] Before:");
             Scheduler::the().dump();
 
@@ -59,7 +58,6 @@ namespace Kernel
 
             dbgln("[SystemHandler] After:");
             Scheduler::the().dump();
-
             Scheduler::the().m_enabled = true;
         });
 
@@ -70,7 +68,7 @@ namespace Kernel
     {
         m_thread = Thread::construct("Kernel: SystemHandler");
         m_thread->m_privileged = true;
-        m_thread->m_blocked = true;
+        m_thread->set_blocked(true);
         m_thread->setup_context([&] {
             while (true) {
                 bool were_interrupts_enabled = disable_interrupts();

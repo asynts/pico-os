@@ -63,23 +63,61 @@ Making a single system call appears to work, however, the second call raises an 
     [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
     ```
 
+-   Somewhere, we are calling `Kernel::enable_interrupts` and then we are immediately in `PendSV`.
+    We can tell by inspecting the `context` passed to `scheduler_next`.
+
+    However, the rest of the context doesn't really make any sense.
+
+-   I was not able to stop at a breakpoint in the default thread, it seems, that it never runs and it doesn't produce any output either.
+
+-   If I never return from the worker thread, then the crash doesn't occur and the output looks correct:
+
+    ```none
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+    >[SystemHandler] Before:
+    [Scheduler] m_queued_threads:
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [SystemHandler] After:
+    [Scheduler] m_queued_threads:
+      Process: /bin/Shell.elf @0x20010acc
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+     [SystemHandler] Before:
+    [Scheduler] m_queued_threads:
+      Worker: '/bin/Shell.elf' (PID 0x00000000) @0x20010bd4
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [SystemHandler] After:
+    [Scheduler] m_queued_threads:
+      Worker: '/bin/Shell.elf' (PID 0x00000000) @0x20010bd4
+      Process: /bin/Shell.elf @0x20010acc
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+    ```
+
+    Notice that the worker thread still remains queued.
+
+-   I tried setting up some deadlock protection logic, however, this did not help, we do not appear to deadlock,
+    the default thread never runs.
+
 ### Ideas
-
--   I should add the backup default thread just for safety.
-
-    It can simply be choosen, when the default thread has `m_blocked=true`.
-
--   Debug print the state of the scheduler.
-
--   Am I adding the default thread into the scheduler list?
 
 -   Print out the context before and after.
 
+-   Rewrite the scheduler logic.
+
 ### Theories
 
--   I suspect, that the default thread blocks on the allocator and thus we don't have a default thread to schedule.
+-   I suspect, that the scheduler logic is broken after the recent changes.
 
--   I suspect that the scheduler is in some fucked up state.
+-   I suspect, that we forget to update the active thread somewhere.
 
 -   I suspect, that we save the context again and thus repeat the whole system call cycle in some
     fucked up way.

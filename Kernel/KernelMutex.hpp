@@ -42,8 +42,8 @@ namespace Kernel
                     if (m_holding_thread.is_null()) {
                         m_holding_thread = *active_thread;
                     } else {
+                        active_thread->set_blocked(true);
                         m_waiting_threads.enqueue(*active_thread);
-                        active_thread->m_blocked = true;
                         Scheduler::the().trigger();
                     }
                 }

@@ -56,6 +56,15 @@ namespace Kernel
         m_stashed_context = stack_wrapper.push_value(context);
     }
 
+    void Thread::set_blocked(bool blocked)
+    {
+        if (blocked && m_block_means_deadlock) {
+            VERIFY_NOT_REACHED();
+        }
+
+        m_blocked = blocked;
+    }
+
     void Thread::wakeup()
     {
         VERIFY(Scheduler::the().get_active_thread_if_avaliable() != this);
