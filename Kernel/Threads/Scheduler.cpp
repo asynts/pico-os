@@ -44,57 +44,42 @@ namespace Kernel
     {
         VERIFY(is_executing_in_handler_mode());
 
-        if (m_active_thread) {
-            // FIXME: Now, we have a redundancy between 'die' and 'block'.
-            if (m_active_thread->m_die_at_next_opportunity || m_active_thread->m_blocked) {
-                if (debug_scheduler)
-                    dbgln("[Scheduler::schedule] Dropping thread '{}' ({})", m_active_thread->m_name, m_active_thread);
-            } else {
-                m_queued_threads.enqueue(m_active_thread);
-                m_active_thread = nullptr;
-            }
-        }
-
-        // FIXME: This algorithm is a bit fishy
-
-        bool all_threads_blocking = true;
-        for (size_t i = 0; i < m_queued_threads.size(); ++i) {
-            auto& thread = m_queued_threads[i];
-            if (!thread->m_die_at_next_opportunity) {
-                all_threads_blocking = false;
-                break;
-            }
-        }
-
-        RefPtr<Thread> next;
-
-        if (all_threads_blocking) {
-            next = m_default_thread;
+        // First, we need to save the previous active thread somehow.
+        if (m_active_thread.is_null()) {
+            // There are situations where we do not have an active thread.
+            // This can happen when we are in a system call for example.
         } else {
-            for (;;) {
-                next = m_queued_threads.dequeue();
-                VERIFY(!next->m_blocked);
-
-                if (next->m_die_at_next_opportunity) {
-                    continue;
+            if (m_active_thread->m_masked_from_scheduler) {
+                // We are not allowed to drop the last reference here, because we are in handler mode.
+                // If this is the last reference, then we need to clean it up elsewhere.
+                if (m_active_thread->refcount() >= 2) {
+                    m_active_thread.clear();
                 } else {
-                    break;
+                    m_dangling_threads.enqueue(move(m_active_thread));
                 }
+            } else if (m_active_thread->m_is_default_thread) {
+                // The default thread should not be queued.
+                VERIFY(m_active_thread->refcount() == 2);
+                m_active_thread.clear();
+            } else {
+                // Schedule this thread again at a later point.
+                m_queued_threads.enqueue(move(m_active_thread));
             }
         }
 
-        if (debug_scheduler)
-            dbgln("[Scheduler::schedule] Switching to '{}' ({})", next->m_name, next);
-
-        // We are in a system call handler and can not clean up the thread here.
-        // The default thread is responsible for cleaning up dangling threads.
-        if (m_active_thread->refcount() == 1) {
-            m_dangling_threads.enqueue(move(m_active_thread));
+        // Next, we need to choose a new thread to schedule.
+        VERIFY(m_active_thread.is_null());
+        if (m_dangling_threads.size() >= 1) {
+            // We need to drop the reference to a dangling thread.
+            m_active_thread = m_default_thread;
+        } else if (m_queued_threads.size() == 0) {
+            // We have no normal threads that should be scheduled.
             m_active_thread = m_default_thread;
         } else {
-            m_active_thread = next;
+            m_active_thread = m_queued_threads.dequeue();
         }
 
+        // Setup control register for privileged/unprivileged execution.
         if (m_active_thread->m_privileged) {
             asm volatile("msr control, %0;"
                          "isb;"
@@ -107,10 +92,11 @@ namespace Kernel
                 : "r"(0b11));
         }
 
+        // Setup the memory protection unit.
+        // Since we are in an interrupt handler, this will only apply after we return.
         setup_mpu(m_active_thread->m_regions);
 
-        VERIFY(next != nullptr);
-        return *next;
+        return m_active_thread.must();
     }
 
     void Scheduler::trigger()
@@ -125,7 +111,7 @@ namespace Kernel
     {
         m_default_thread = Thread::construct("Default Thread (Core 0)");
         m_default_thread->m_privileged = true;
-        m_default_thread->m_block_means_deadlock = true;
+        m_default_thread->m_is_default_thread = true;
         m_default_thread->setup_context([&] {
             for (;;) {
                 dbgln("[Scheduler] Running default thread.");
@@ -156,13 +142,14 @@ namespace Kernel
             }
         });
 
+        // This is a special thread that should die immediately.
+        // We simply need some way of entering the scheduler.
         auto dummy_thread = Thread::construct("Dummy");
+        dummy_thread->m_masked_from_scheduler = true;
 
         dummy_thread->setup_context([] {
-            Scheduler::the().get_active_thread().m_die_at_next_opportunity = true;
             Scheduler::the().m_enabled = true;
             Scheduler::the().trigger();
-
             VERIFY_NOT_REACHED();
         });
 

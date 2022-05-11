@@ -14,7 +14,7 @@ namespace Kernel
 {
     void SystemHandler::notify_worker_thread(RefPtr<Thread> thread)
     {
-        thread->m_blocked = true;
+        thread->set_masked_from_scheduler(true);
         m_waiting_threads.enqueue(move(thread));
 
         // Notify the SystemHandler thread that is will spawn the system call worker.
@@ -42,13 +42,13 @@ namespace Kernel
             i32 return_value = thread->syscall(context.r0.syscall(), context.r1, context.r2, context.r3);
 
             if (context.r0.syscall() == _SC_exit) {
-                VERIFY(thread->m_die_at_next_opportunity);
+                VERIFY(thread->m_masked_from_scheduler);
             }
 
             // System calls return values by magically tweaking the value of the 'r0' register when returning.
             context.r0.m_storage = bit_cast<u32>(return_value);
 
-            thread->set_blocked(false);
+            thread->set_masked_from_scheduler(false);
 
             Scheduler::the().m_enabled = false;
             dbgln("[SystemHandler] Before:");
@@ -68,7 +68,7 @@ namespace Kernel
     {
         m_thread = Thread::construct("Kernel: SystemHandler");
         m_thread->m_privileged = true;
-        m_thread->set_blocked(true);
+        m_thread->set_masked_from_scheduler(true);
         m_thread->setup_context([&] {
             while (true) {
                 bool were_interrupts_enabled = disable_interrupts();
@@ -79,7 +79,7 @@ namespace Kernel
                 VERIFY(not are_interrupts_enabled());
                 if (m_waiting_threads.size() == 0) {
                     // If another thread tries to make a system call, it will call 'Thread::wakeup()' which will schedule us again.
-                    Thread::active().m_blocked = true;
+                    Thread::active().set_masked_from_scheduler(true);
 
                     // Since this thread is blocking, we will not be requeued until another system call occurs.
                     Scheduler::the().trigger();

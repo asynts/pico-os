@@ -26,6 +26,20 @@ namespace Kernel
         flash_region.rasr.attrs_xn = 0;
     }
 
+    void Thread::die()
+    {
+        if (debug_thread)
+            dbgln("[Thread::setup_context::lambda] Thread '{}' is about to die.", this->m_name, this);
+
+        // This will prevent us from being scheduled again.
+        // The destructor will run when the last reference is dropped.
+        // Often, the scheduler will hold the last reference.
+        m_masked_from_scheduler = true;
+        Scheduler::the().trigger();
+
+        VERIFY_NOT_REACHED();
+    }
+
     void Thread::setup_context_impl(StackWrapper stack_wrapper, void (*callback)(void*), void* argument)
     {
         constexpr u32 xpsr_thumb_mode = 1 << 24;
@@ -56,21 +70,23 @@ namespace Kernel
         m_stashed_context = stack_wrapper.push_value(context);
     }
 
-    void Thread::set_blocked(bool blocked)
+    void Thread::set_masked_from_scheduler(bool masked)
     {
-        if (blocked && m_block_means_deadlock) {
+        // It doesn't make any sense to mask the default thread, it is tracked separately.
+        // If that happens, that is likely a deadlock.
+        if (masked && m_is_default_thread) {
             VERIFY_NOT_REACHED();
         }
 
-        m_blocked = blocked;
+        m_masked_from_scheduler = masked;
     }
 
     void Thread::wakeup()
     {
         VERIFY(Scheduler::the().get_active_thread_if_avaliable() != this);
 
-        if (m_blocked) {
-            m_blocked = false;
+        if (m_masked_from_scheduler) {
+            m_masked_from_scheduler = false;
             Scheduler::the().add_thread(*this);
         }
     }
@@ -308,7 +324,7 @@ namespace Kernel
             ASSERT(m_process->m_parent->m_terminated_children.size() > 0);
         }
 
-        m_die_at_next_opportunity = true;
+        m_masked_from_scheduler = true;
 
         // We are currently executing in the worker thread. When the worker is done, it will unblock
         // the thread causing it to terminate and then terminate as well.

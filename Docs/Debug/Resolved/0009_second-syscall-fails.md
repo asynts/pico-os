@@ -107,6 +107,30 @@ Making a single system call appears to work, however, the second call raises an 
 -   I tried setting up some deadlock protection logic, however, this did not help, we do not appear to deadlock,
     the default thread never runs.
 
+-   It seems I found the issue, we did not clear `m_active_thread` when `m_blocked` was true.
+
+-   It seems that the issue is resolved now, however, I introduced another issue:
+
+    ```none
+    [SystemHandler] Before:
+    [Scheduler] m_queued_threads:
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [SystemHandler] After:
+    [Scheduler] m_queued_threads:
+      Process: /bin/Shell.elf @0x20010acc
+    [Scheduler] m_danging_threads:
+    [Scheduler] m_default_thread:
+      Default Thread (Core 0) @0x20010178
+    [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' is about to die.
+    [Scheduler] Running default thread.
+    [Thread::~Thread] m_name='Worker: '/biVERIFY(m_active_thread->refcount() == 2)
+    /home/me/dev/pico-os/Kernel/Threads/Scheduler.cpp:0x0000003e
+    ```
+
+    It seems, that my assumption that the default thread has `refcount() == 2` when being schedule away is wrong.
+
 ### Ideas
 
 -   Print out the context before and after.
@@ -115,9 +139,15 @@ Making a single system call appears to work, however, the second call raises an 
 
 ### Theories
 
+-   I think, we are killing threads, when they block.
+
 -   I suspect, that the scheduler logic is broken after the recent changes.
 
 -   I suspect, that we forget to update the active thread somewhere.
 
 -   I suspect, that we save the context again and thus repeat the whole system call cycle in some
     fucked up way.
+
+### Actions
+
+-   The main thing here was that I rewrote the scheduler logic.

@@ -20,10 +20,16 @@ namespace Kernel
     public:
         ImmutableString m_name;
         volatile bool m_privileged = false;
-        volatile bool m_die_at_next_opportunity = false;
-        volatile bool m_blocked = false;
 
-        bool m_block_means_deadlock = false;
+        // There are two situations where this could be true:
+        //
+        //  1. We want the last reference to this thread to be dropped.
+        //     The scheduler is holding the last reference in it's queue.
+        //
+        //  2. The thread blocked and something else is keeping the reference.
+        volatile bool m_masked_from_scheduler = false;
+
+        volatile bool m_is_default_thread = false;
 
         Optional<FullRegisterContext*> m_stashed_context;
         RefPtr<Process> m_process;
@@ -63,14 +69,7 @@ namespace Kernel
             auto callback_container = [this, callback_ = move(callback)]() mutable {
                 callback_();
 
-                if (debug_thread)
-                    dbgln("[Thread::setup_context::lambda] Thread '{}' ({}) returned", this->m_name, this);
-
-                // FIXME: This is suboptimal
-                this->m_die_at_next_opportunity = true;
-                for (;;) {
-                    asm volatile("wfi");
-                }
+                die();
             };
             using CallbackContainer = decltype(callback_container);
 
@@ -98,8 +97,7 @@ namespace Kernel
             return context;
         }
 
-        void set_blocked(bool blocked);
-
+        void set_masked_from_scheduler(bool masked);
         void wakeup();
 
         i32 syscall(u32 syscall, TypeErasedValue, TypeErasedValue, TypeErasedValue);
@@ -127,5 +125,6 @@ namespace Kernel
         explicit Thread(ImmutableString name);
 
         void setup_context_impl(StackWrapper, void (*callback)(void*), void* argument);
+        void die();
     };
 }
