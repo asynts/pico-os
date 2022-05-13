@@ -73,6 +73,8 @@ namespace Kernel
             }
         }
 
+        void set_mutex_enabled(bool enabled);
+
     private:
         friend Singleton<PageAllocator>;
         PageAllocator();

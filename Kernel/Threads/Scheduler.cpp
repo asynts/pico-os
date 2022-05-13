@@ -1,6 +1,7 @@
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Loader.hpp>
 #include <Kernel/HandlerMode.hpp>
+#include <Kernel/GlobalMemoryAllocator.hpp>
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
@@ -28,7 +29,7 @@ namespace Kernel
         }
     }
 
-    Scheduler::Scheduler()
+    Scheduler::Scheduler(RefPtr<Thread> startup_thread)
     {
         if (scheduler_slow)
             systick_hw->rvr = 0x00f00000;
@@ -38,6 +39,8 @@ namespace Kernel
         systick_hw->csr = 1 << M0PLUS_SYST_CSR_CLKSOURCE_LSB
                         | 1 << M0PLUS_SYST_CSR_TICKINT_LSB
                         | 1 << M0PLUS_SYST_CSR_ENABLE_LSB;
+
+        m_queued_threads.enqueue(move(startup_thread));
     }
 
     Thread& Scheduler::schedule()
@@ -159,6 +162,10 @@ namespace Kernel
 
         dummy_thread->setup_context([] {
             dbgln("[Scheduler] Dummy thread is running.");
+
+            // From now on, we need to be careful with synchronization.
+            GlobalMemoryAllocator::the().set_mutex_enabled(true);
+            PageAllocator::the().set_mutex_enabled(true);
 
             Scheduler::the().m_enabled = true;
             Scheduler::the().trigger();

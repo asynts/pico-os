@@ -36,25 +36,21 @@ namespace Kernel
     void boot()
     {
         Kernel::PageAllocator::initialize();
+        Kernel::PageAllocator::the().set_mutex_enabled(false);
+
         Kernel::GlobalMemoryAllocator::initialize();
+        Kernel::GlobalMemoryAllocator::the().set_mutex_enabled(false);
 
         Kernel::Interrupt::UART::initialize();
         Kernel::ConsoleFile::initialize();
 
         dbgln("\e[0;1mBOOT\e[0m");
 
-        // Kernel::GlobalMemoryAllocator::the().dump();
-        // GlobalMemoryAllocator::the().m_debug = true;
-
-        Kernel::Scheduler::initialize();
-
         auto thread = Kernel::Thread::construct("Kernel (boot_with_scheduler)");
         thread->setup_context(boot_with_scheduler);
         thread->m_privileged = true;
 
-        Kernel::SystemHandler::initialize();
-
-        Kernel::Scheduler::the().add_thread(thread);
+        Kernel::Scheduler::initialize(move(thread));
         Kernel::Scheduler::the().loop();
     }
 
@@ -71,6 +67,8 @@ namespace Kernel
 
         auto& root_file = Kernel::FileSystem::lookup("/");
         dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
+
+        Kernel::SystemHandler::initialize();
 
         create_shell_process();
     }

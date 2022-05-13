@@ -29,6 +29,9 @@ namespace Kernel
 
         void lock()
         {
+            if (!m_enabled)
+                return;
+
             VERIFY(Kernel::is_executing_in_thread_mode());
 
             // We only have to lock if the scheduler is initialized and if threads are already being scheduled.
@@ -56,6 +59,9 @@ namespace Kernel
 
         void unlock()
         {
+            if (!m_enabled)
+                return;
+
             VERIFY(Kernel::is_executing_in_thread_mode());
 
             if (Scheduler::is_initialized()) {
@@ -76,7 +82,16 @@ namespace Kernel
             }
         }
 
+        void set_enabled(bool enabled)
+        {
+            m_enabled = enabled;
+        }
+
     private:
+        // During the boot procedure it's not always possible to aquire a mutex.
+        // Since the scheduler isn't running at that point, we can safely access the resource without a lock.
+        volatile bool m_enabled = true;
+
         RefPtr<Thread> m_holding_thread;
         CircularQueue<RefPtr<Thread>, 16> m_waiting_threads;
     };

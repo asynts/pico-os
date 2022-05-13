@@ -62,7 +62,7 @@ namespace Kernel
         RefPtr<Thread> m_fallback_thread;
 
         friend Singleton<Scheduler>;
-        Scheduler();
+        Scheduler(RefPtr<Thread> startup_thread);
 
         RefPtr<Thread> choose_default_thread();
     };

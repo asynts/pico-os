@@ -17,6 +17,11 @@ namespace Kernel
             PageAllocator::the().deallocate(*this);
     }
 
+    void PageAllocator::set_mutex_enabled(bool enabled)
+    {
+        page_allocator_mutex.set_enabled(enabled);
+    }
+
     PageAllocator::PageAllocator()
     {
         for (auto& block : m_blocks.span().iter()) {

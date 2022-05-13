@@ -12,6 +12,11 @@ namespace Kernel
     {
     }
 
+    void GlobalMemoryAllocator::set_mutex_enabled(bool enabled)
+    {
+        malloc_mutex.set_enabled(enabled);
+    }
+
     Bytes GlobalMemoryAllocator::allocate_heap()
     {
         m_heap = PageAllocator::the().allocate(power_of_two(0x4000)).must();
