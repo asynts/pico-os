@@ -15,6 +15,8 @@ namespace Kernel
     void SystemHandler::notify_worker_thread(RefPtr<Thread> thread)
     {
         thread->set_masked_from_scheduler(true);
+
+        VERIFY(is_executing_in_handler_mode());
         m_waiting_threads.enqueue(move(thread));
 
         // Notify the SystemHandler thread that is will spawn the system call worker.
@@ -23,8 +25,11 @@ namespace Kernel
 
     void SystemHandler::handle_next_waiting_thread()
     {
-        // FIXME: Disable interrupts.
-        RefPtr<Thread> thread = m_waiting_threads.dequeue();
+        RefPtr<Thread> thread;
+        {
+            MaskedInterruptGuard interrupt_guard;
+            thread = m_waiting_threads.dequeue();
+        }
 
         dbgln("[SystemHandler] Dealing with system call for '{}'", thread->m_name);
 
@@ -50,12 +55,16 @@ namespace Kernel
 
             thread->set_masked_from_scheduler(false);
 
-            Scheduler::the().m_enabled = false;
-            Scheduler::the().add_thread(move(thread));
-            Scheduler::the().m_enabled = true;
+            {
+                MaskedInterruptGuard scheduler_guard;
+                Scheduler::the().add_thread(move(thread));
+            }
         });
 
-        Scheduler::the().add_thread(move(new_worker_thread));
+        {
+            MaskedInterruptGuard scheduler_guard;
+            Scheduler::the().add_thread(move(new_worker_thread));
+        }
     }
 
     SystemHandler::SystemHandler()
@@ -73,7 +82,10 @@ namespace Kernel
                 VERIFY(not are_interrupts_enabled());
                 if (m_waiting_threads.size() == 0) {
                     // If another thread tries to make a system call, it will call 'Thread::wakeup()' which will schedule us again.
-                    Thread::active().set_masked_from_scheduler(true);
+                    {
+                        MaskedInterruptGuard interrupt_guard;
+                        Scheduler::the().get_active_thread().set_masked_from_scheduler(true);
+                    }
 
                     // Since this thread is blocking, we will not be requeued until another system call occurs.
                     Scheduler::the().trigger();

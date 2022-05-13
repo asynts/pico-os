@@ -118,13 +118,9 @@ namespace Kernel
             for (;;) {
                 dbgln("[Scheduler] Running default thread. (refcount={})", m_default_thread->refcount());
 
-                bool were_enabled = disable_interrupts();
-                VERIFY(were_enabled);
+                MaskedInterruptGuard interrupt_guard;
 
                 if (m_dangling_threads.size() == 0) {
-                    VERIFY(were_enabled);
-                    restore_interrupts(were_enabled);
-
                     // There is nothing sensible we can do, give the scheduler another opportunity.
                     Scheduler::the().trigger();
                     continue;
@@ -133,8 +129,7 @@ namespace Kernel
                 RefPtr<Thread> thread = m_dangling_threads.dequeue();
 
                 // At this point, we no longer need to synchronize, the cleanup can happen in parallel.
-                restore_interrupts(were_enabled);
-                VERIFY(are_interrupts_enabled());
+                interrupt_guard.release();
 
                 dbgln("[Scheduler] We are about to kill thread '{}' (refcount={})", thread->m_name, thread->refcount());
 
@@ -170,7 +165,10 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         });
 
-        m_active_thread = dummy_thread;
+        {
+            MaskedInterruptGuard interrupt_guard;
+            m_active_thread = dummy_thread;
+        }
 
         FullRegisterContext& context = dummy_thread->unstash_context();
 
@@ -188,6 +186,8 @@ namespace Kernel
 
     void Scheduler::dump()
     {
+        VERIFY(is_executing_in_handler_mode() || !are_interrupts_enabled());
+
         dbgln("[Scheduler] m_queued_threads:");
         for (size_t i = 0; i < m_queued_threads.size(); ++i) {
             Thread& thread = *m_queued_threads[i];

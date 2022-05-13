@@ -43,8 +43,6 @@ namespace Kernel
                 dbgln("[Thread::~Thread] m_name='{}'", m_name);
         }
 
-        static Thread& active();
-
         template<typename Callback>
         void setup_context(Callback&& callback)
         {

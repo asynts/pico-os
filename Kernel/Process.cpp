@@ -38,10 +38,16 @@ namespace Kernel
         thread->setup_context([arguments, variables, name, elf]() mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
-            auto& process = Process::active();
+            Process *process = nullptr;
+            Thread *thread = nullptr;
+            {
+                MaskedInterruptGuard interrupt_guard;
+                process = &Process::active();
+                thread = &Scheduler::the().get_active_thread();
+            }
 
-            process.m_executable = load_executable_into_memory(elf, Thread::active());
-            auto& executable = process.m_executable.must();
+            process->m_executable = load_executable_into_memory(elf, *thread);
+            auto& executable = process->m_executable.must();
 
             StackWrapper stack { { (u8*)executable.m_stack_base, executable.m_stack_size } };
 
@@ -74,11 +80,9 @@ namespace Kernel
                 dbgln("  {}: {}", *value, StringView { *value });
             }
 
-            auto& thread = Scheduler::the().get_active_thread();
-
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
             VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
-            auto& ram_region = thread.m_regions.append({});
+            auto& ram_region = thread->m_regions.append({});
             ram_region.rbar.region = 0;
             ram_region.rbar.valid = 0;
             ram_region.rbar.addr = executable.m_writable_base >> 5;
@@ -94,7 +98,7 @@ namespace Kernel
 
             dbgln("[Process::create] ram_region.rbar={}", ram_region.rbar.raw);
 
-            auto& rom_region = thread.m_regions.append({});
+            auto& rom_region = thread->m_regions.append({});
             rom_region.rbar.region = 0;
             rom_region.rbar.valid = 0;
             rom_region.rbar.addr = 0x00000000 >> 5;
@@ -110,10 +114,10 @@ namespace Kernel
 
             dbgln("[Process::create] rom_region.rbar={}", rom_region.rbar.raw);
 
-            dbgln("Handing over execution to process '{}' at {}", name, process.m_executable.must().m_entry);
+            dbgln("Handing over execution to process '{}' at {}", name, process->m_executable.must().m_entry);
             dbgln("  Got argv={} and envp={}", argv, envp);
 
-            hand_over_to_loaded_executable(process.m_executable.must(), stack, thread.m_regions, argc, argv, envp);
+            hand_over_to_loaded_executable(process->m_executable.must(), stack, thread->m_regions, argc, argv, envp);
 
             VERIFY_NOT_REACHED();
         });

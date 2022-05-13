@@ -85,11 +85,6 @@ namespace Kernel
         }
     }
 
-    Thread& Thread::active()
-    {
-        return Scheduler::the().get_active_thread();
-    }
-
     i32 Thread::syscall(u32 syscall, TypeErasedValue arg1, TypeErasedValue arg2, TypeErasedValue arg3)
     {
         auto *eargs = arg3.pointer<ExtendedSystemCallArguments>();

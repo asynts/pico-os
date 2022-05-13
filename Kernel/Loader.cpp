@@ -153,7 +153,10 @@ namespace Kernel
 
         setup_mpu(regions);
 
-        Scheduler::the().get_active_thread().m_privileged = false;
+        {
+            MaskedInterruptGuard interrupt_guard;
+            Scheduler::the().get_active_thread().m_privileged = false;
+        }
 
         // FIXME: Free old stack?!
         // FIXME: Make sure to drop the corresponding region as well

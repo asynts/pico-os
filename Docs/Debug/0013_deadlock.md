@@ -410,7 +410,25 @@ We appear to have a deadlock.
 -   It seems that `Kernel::SystemHandler::handle_next_waiting_thread` is fighting with `Kernel::Thread::~Thread`.
     The latter seems to come from the default thread.
 
+-   I got this result, where we clearly write some output mixed with the debug output:
+
+    ```none
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+    [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' is about to die.
+    [Scheduler] We are about to kill thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' (refcount=0x00000001)
+    [Thread::~Thread] m_name='Worker: '/bin/Shell.elf' (PID 0x00000000)'
+    [Scheduler] Running default thread. (refcount=0x00000002)
+    [Scheduler] We are about to kill thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' (refcount=0x00000001)
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+    [Thread::~Thread] m_name='Worker: '/bin/eShell.elf' (PID 0x00000000)'
+    [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' is about to die.
+    ```
+
 ### Ideas
+
+-   Add guards to `KernelMutex`.
+
+-   Look if there are other places that need to be guarded.
 
 -   I should add `m_enabled` protection in other places maybe.
 
@@ -426,3 +444,5 @@ We appear to have a deadlock.
     Is that thing even thread safe?
 
 ### Actions
+
+-   I added tons of protection to ensure that we don't run into synchronization issues that often.

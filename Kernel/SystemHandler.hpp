@@ -15,6 +15,9 @@ namespace Kernel
 
     private:
         RefPtr<Thread> m_thread;
+
+        // In thread mode, we must disable interrupts to interact with this.
+        // For multi-core support, we would need some sort of mutex here.
         CircularQueue<RefPtr<Thread>, 16> m_waiting_threads;
 
         friend Singleton<SystemHandler>;

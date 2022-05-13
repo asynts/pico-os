@@ -74,4 +74,41 @@ namespace Kernel
     {
         (object.*Method)();
     }
+
+    class MaskedInterruptGuard {
+    public:
+        MaskedInterruptGuard()
+        {
+            bool were_enabled = disable_interrupts();
+            VERIFY(were_enabled);
+
+            m_should_reenable_interrupts = true;
+        }
+
+        MaskedInterruptGuard(const MaskedInterruptGuard&) = delete;
+
+        MaskedInterruptGuard(MaskedInterruptGuard&& other)
+        {
+            m_should_reenable_interrupts = exchange(other.m_should_reenable_interrupts, false);
+        }
+
+        ~MaskedInterruptGuard()
+        {
+            if (m_should_reenable_interrupts) {
+                release();
+            }
+        }
+
+        void release()
+        {
+            VERIFY(m_should_reenable_interrupts);
+            m_should_reenable_interrupts = false;
+
+            VERIFY(!are_interrupts_enabled());
+            enable_interrupts();
+        }
+
+    private:
+        bool m_should_reenable_interrupts = false;
+    };
 }

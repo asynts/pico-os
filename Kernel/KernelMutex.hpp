@@ -34,6 +34,8 @@ namespace Kernel
             // We only have to lock if the scheduler is initialized and if threads are already being scheduled.
 
             if (Scheduler::is_initialized()) {
+                MaskedInterruptGuard interrupt_guard;
+
                 // We must not hold a strong reference here, otherwise, this thread could not be
                 // terminated without being rescheduled. Not that this should happen, but...
                 Thread *active_thread = Scheduler::the().get_active_thread_if_avaliable();
