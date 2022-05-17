@@ -8,6 +8,7 @@
 #include <Kernel/Threads/Thread.hpp>
 #include <Kernel/SystemHandler.hpp>
 #include <Kernel/PageAllocator.hpp>
+#include <Kernel/HandlerMode.hpp>
 
 namespace Kernel
 {

@@ -1,4 +1,5 @@
 #include <Kernel/Interrupt/UART.hpp>
+#include <Kernel/HandlerMode.hpp>
 
 #include <hardware/irq.h>
 #include <hardware/uart.h>

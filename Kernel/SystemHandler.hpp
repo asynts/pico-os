@@ -9,6 +9,8 @@
 
 namespace Kernel
 {
+    constexpr bool debug_system_handler = false;
+
     class SystemHandler : public Singleton<SystemHandler> {
     public:
         void notify_worker_thread(RefPtr<Thread> thread);

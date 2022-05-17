@@ -120,7 +120,8 @@ namespace Kernel
 
         m_default_thread->setup_context([&] {
             for (;;) {
-                dbgln("[Scheduler] Running default thread. (refcount={})", m_default_thread->refcount());
+                if (debug_scheduler)
+                    dbgln("[Scheduler] Running default thread. (refcount={})", m_default_thread->refcount());
 
                 MaskedInterruptGuard interrupt_guard;
 
@@ -138,7 +139,8 @@ namespace Kernel
                 // I do not know, if this can happen, better check for it.
                 VERIFY(!dbgln_mutex.is_locked());
 
-                dbgln("[Scheduler] We are about to kill thread '{}' (refcount={})", thread->m_name, thread->refcount());
+                if (debug_scheduler)
+                    dbgln("[Scheduler] We are about to kill thread '{}' (refcount={})", thread->m_name, thread->refcount());
 
                 // Remove the last reference to this thread and thus kill it.
                 VERIFY(thread->refcount() == 1);

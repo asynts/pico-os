@@ -15,34 +15,26 @@
 
 namespace Std
 {
-#ifdef KERNEL
-    volatile int dbgln_called_in_interrupt = 0;
-#endif
-
     void dbgln_raw(StringView str)
     {
+        if (Kernel::is_executing_in_handler_mode())
+            return;
+
 #ifdef KERNEL
-        VERIFY(Kernel::is_executing_in_thread_mode());
+        // FIXME: For multi-core support, we will need a mutex here.
+        //        We would need to mask interrupts and then get the mutex.
+        //        However, that will be quite involved, because of the deadlock risk.
+        {
+            Kernel::MaskedInterruptGuard interrupt_guard;
 
-        if (dbgln_called_in_interrupt >= 1) {
-            int dbgln_called_in_interrupt_backup = dbgln_called_in_interrupt;
-            dbgln_called_in_interrupt = 0;
+            StringView prefix = "\e[36m";
+            StringView suffix = "\e[0m\n";
 
-            // This has some risk of triggering a cascade, if the 'dbgln' call causes more 'dbgln' calls in interrupts.
-            dbgln("[dbgln] dropped {} messages from handler mode", dbgln_called_in_interrupt_backup);
+            Kernel::ConsoleFileHandle handle;
+            handle.write(prefix.bytes());
+            handle.write(str.bytes());
+            handle.write(suffix.bytes());
         }
-
-        StringBuilder builder;
-        builder.append("\e[36m");
-        builder.append(str);
-        builder.append("\e[0m\n");
-
-        Kernel::dbgln_mutex.lock();
-
-        Kernel::ConsoleFileHandle handle;
-        handle.write(builder.view().bytes());
-
-        Kernel::dbgln_mutex.unlock();
 #else
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #endif

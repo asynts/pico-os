@@ -9,10 +9,6 @@
 #include <Std/Lexer.hpp>
 #include <Std/RefPtr.hpp>
 
-#ifdef KERNEL
-# include <Kernel/HandlerMode.hpp>
-#endif
-
 namespace Std
 {
     class StringBuilder;
@@ -256,14 +252,6 @@ namespace Std
     template<typename... Parameters>
     void dbgln(StringView fmtstr, const Parameters&... parameters)
     {
-#ifdef KERNEL
-        // In handler mode, we can not ensure syncronization.
-        if (Kernel::is_executing_in_handler_mode()) {
-            dbgln_called_in_interrupt = dbgln_called_in_interrupt + 1;
-            return;
-        }
-#endif
-
         StringBuilder builder;
         vformat(builder, fmtstr, VariadicFormatParams { parameters... });
         dbgln_raw(builder.view());

@@ -8,7 +8,7 @@
 
 namespace Kernel
 {
-    constexpr bool debug_syscall = true;
+    constexpr bool debug_syscall = false;
 
     Thread::Thread(ImmutableString name)
         : m_name(move(name))
@@ -160,8 +160,6 @@ namespace Kernel
         if (debug_syscall)
             dbgln("Thread::sys$open");
 
-        dbgln("[Process::sys$open] pathname={} flags={} mode={}", pathname, flags, mode);
-
         Path path = pathname;
 
         if (!path.is_absolute())
@@ -217,8 +215,6 @@ namespace Kernel
         if (debug_syscall)
             dbgln("Thread::sys$close");
 
-        dbgln("[Process::sys$close] fd={}", fd);
-
         // FIXME
 
         return 0;
@@ -228,8 +224,6 @@ namespace Kernel
     {
         if (debug_syscall)
             dbgln("Thread::sys$fstat");
-
-        dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
 
         auto& handle = m_process->get_file_handle(fd);
 

@@ -79,10 +79,7 @@ namespace Kernel
     public:
         MaskedInterruptGuard()
         {
-            bool were_enabled = disable_interrupts();
-            VERIFY(were_enabled);
-
-            m_should_reenable_interrupts = true;
+            m_should_reenable_interrupts = disable_interrupts();
         }
 
         MaskedInterruptGuard(const MaskedInterruptGuard&) = delete;
@@ -101,11 +98,12 @@ namespace Kernel
 
         void release()
         {
-            VERIFY(m_should_reenable_interrupts);
-            m_should_reenable_interrupts = false;
+            if (m_should_reenable_interrupts) {
+                m_should_reenable_interrupts = false;
 
-            VERIFY(!are_interrupts_enabled());
-            enable_interrupts();
+                VERIFY(!are_interrupts_enabled());
+                enable_interrupts();
+            }
         }
 
     private:

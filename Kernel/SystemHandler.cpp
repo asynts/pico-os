@@ -31,7 +31,8 @@ namespace Kernel
             thread = m_waiting_threads.dequeue();
         }
 
-        dbgln("[SystemHandler] Dealing with system call for '{}'", thread->m_name);
+        if (debug_system_handler)
+            dbgln("[SystemHandler] Dealing with system call for '{}'", thread->m_name);
 
         // We can not consume the register context here, since it is needed to continue execution.
         FullRegisterContext& context = *thread->m_stashed_context.must();

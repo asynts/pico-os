@@ -14,7 +14,7 @@
 
 namespace Kernel
 {
-    constexpr bool debug_thread = true;
+    constexpr bool debug_thread = false;
 
     class Thread : public RefCounted<Thread> {
     public:

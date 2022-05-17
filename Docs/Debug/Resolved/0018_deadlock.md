@@ -74,3 +74,7 @@ We appear to deadlock after using `sys$write`.
 ### Actions
 
 -   Added interrupt guards to `UART`.
+
+-   I removed the `KernelMutex` usage from `dbgln`.
+
+    In the future, I need to figure this out, but for now, I can just mask interrupts and write to UART.
