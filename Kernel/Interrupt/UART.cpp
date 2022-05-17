@@ -59,6 +59,8 @@ namespace Kernel::Interrupt
 
     KernelResult<usize> UART::read(Bytes bytes)
     {
+        MaskedInterruptGuard interrupt_guard;
+
         usize index;
         for (index = 0; index < min(input_buffer_size(), bytes.size()); ++index) {
             bytes[index] = m_input_buffer->bytes()[input_buffer_consume_offset()];
@@ -70,6 +72,8 @@ namespace Kernel::Interrupt
 
     KernelResult<usize> UART::write(ReadonlyBytes bytes)
     {
+        MaskedInterruptGuard interrupt_guard;
+
         for (usize index = 0; index < bytes.size(); ++index) {
             if (uart_is_writable(uart0)) {
                 uart_putc_raw(uart0, static_cast<char>(bytes[index]));

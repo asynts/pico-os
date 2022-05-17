@@ -16,7 +16,6 @@
 namespace Std
 {
 #ifdef KERNEL
-    static Kernel::KernelMutex dbgln_mutex;
     volatile int dbgln_called_in_interrupt = 0;
 #endif
 
@@ -38,12 +37,12 @@ namespace Std
         builder.append(str);
         builder.append("\e[0m\n");
 
-        dbgln_mutex.lock();
+        Kernel::dbgln_mutex.lock();
 
         Kernel::ConsoleFileHandle handle;
         handle.write(builder.view().bytes());
 
-        dbgln_mutex.unlock();
+        Kernel::dbgln_mutex.unlock();
 #else
         std::cout << "\e[36m" << std::string_view { str.data(), str.size() } << "\e[0m\n";
 #endif

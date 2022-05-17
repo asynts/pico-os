@@ -20,16 +20,57 @@ We appear to deadlock after using `sys$write`.
 
     Notice the `Worke r`.
 
+-   There seems to be some race, another time I was able to get the `> ` without interference, and then, the next system call worked.
+
+-   It seems, we block when cleaning up.
+
+    ```none
+    [SystemHandler] Dealing with system call for 'Process: /bin/Shell.elf'
+    Thread::sys$read
+    [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000, SYSCALL 0x00000001)' is about to die.
+    ```
+
+    We are stuck with this backtrace:
+
+    ```none
+    #0  0x1000720c in Kernel::setup_mpu (regions=...) at /home/me/dev/pico-os/Kernel/Loader.cpp:112
+    #1  0x1000c92e in Kernel::Scheduler::schedule (this=0x20001328 <Std::SingletonContainer<Kernel::Scheduler>::m_instance>) at /home/me/dev/pico-os/Kernel/Threads/Scheduler.cpp:100
+    #2  0x1000c6a0 in Kernel::scheduler_next (context=...) at /home/me/dev/pico-os/Kernel/Threads/Scheduler.cpp:21
+    #3  0x10010f5c in isr_pendsv () at /home/me/dev/pico-os/Kernel/cpu.S:59
+    ```
+
+    Seems there is nothing sensible to schedule.
+
+-   In `ConsoleDevice.cpp`, we loop indefinitively until we are able to read something.
+    Maybe, we get stuck there?
+
+-   I did manage to reproduce this with `sys$write`, this is clearly a race and probably closely related with `dbgln`.
+
+    ```none
+    Scheduling old thread again.
+    Scheduling old thread again. (DONE)
+    [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000, SYSCALL 0x00000002)' is about to die.
+    ```
+
+    We never see the `Thread::~Thread` message for that, we block before that happens.
+
+-   Actually, the message is produced from `Thread::die` and not from the default thread like I originally thought.
+    For some reason, we do not schedule the default thread then.
+
 ### Ideas
-
--   Do we block in the kernel or in userspace?
-
--   How do we wake up a thread that is waiting to read with blocking?
-
--   Is the `sys$read` call ever made?
 
 ### Theories
 
--   The wakeup logic is broken and a thread keeps waiting for input and doesn't wake up.
+-   I suspect, that the scheduling logic is broken and that we do not schedule the default thread when we should.
+    Maybe there is another thread always around that...
+
+    Oops, the thread reading input is always around.
+    It needs to block, otherwise the default thread might not get a turn if it blocked.
+
+    That would make this a livelock.
+
+-   I suspect, that I am allocating in an interrupt handler somewhere.
 
 ### Actions
+
+-   Added interrupt guards to `UART`.

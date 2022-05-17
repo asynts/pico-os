@@ -7,10 +7,6 @@ extern "C" u8 __HeapLimit[];
 
 namespace Kernel
 {
-    // Hack:    Defined here to prevent circular depencency:
-    //          `Thread` -> `PageAllocator` -> `KernelMutex` -> `Thread`
-    static KernelMutex page_allocator_mutex;
-
     OwnedPageRange::~OwnedPageRange()
     {
         if (m_range.is_valid())

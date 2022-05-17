@@ -8,6 +8,8 @@
 
 namespace Kernel
 {
+    constexpr bool debug_syscall = true;
+
     Thread::Thread(ImmutableString name)
         : m_name(move(name))
     {
@@ -123,6 +125,9 @@ namespace Kernel
 
     i32 Thread::sys$read(i32 fd, u8 *buffer, usize count)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$read");
+
         auto& handle = m_process->get_file_handle(fd);
 
         auto result = handle.read({ buffer, count });
@@ -136,6 +141,9 @@ namespace Kernel
 
     i32 Thread::sys$write(i32 fd, const u8 *buffer, usize count)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$write");
+
         auto& handle = m_process->get_file_handle(fd);
 
         auto result = handle.write({ buffer, count });
@@ -149,6 +157,9 @@ namespace Kernel
 
     i32 Thread::sys$open(const char *pathname, u32 flags, u32 mode)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$open");
+
         dbgln("[Process::sys$open] pathname={} flags={} mode={}", pathname, flags, mode);
 
         Path path = pathname;
@@ -203,6 +214,9 @@ namespace Kernel
 
     i32 Thread::sys$close(i32 fd)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$close");
+
         dbgln("[Process::sys$close] fd={}", fd);
 
         // FIXME
@@ -212,6 +226,9 @@ namespace Kernel
 
     i32 Thread::sys$fstat(i32 fd, UserlandFileInfo *statbuf)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$fstat");
+
         dbgln("[Process::sys$fstat] fd={} statbuf={}", fd, statbuf);
 
         auto& handle = m_process->get_file_handle(fd);
@@ -235,6 +252,9 @@ namespace Kernel
 
     i32 Thread::sys$get_working_directory(u8 *buffer, usize *buffer_size)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$get_working_directory");
+
         auto string = m_process->m_working_directory.string();
 
         if (string.size() + 1 > *buffer_size) {
@@ -255,6 +275,9 @@ namespace Kernel
         char **argv,
         char **envp)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$posix_spawn");
+
         FIXME_ASSERT(file_actions == nullptr);
         FIXME_ASSERT(attrp == nullptr);
 
@@ -293,6 +316,9 @@ namespace Kernel
 
     i32 Thread::sys$wait(i32 *status)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$wait");
+
         // FIXME: Syncronization
         for (;;) {
             if (m_process->m_terminated_children.size() > 0) {
@@ -306,7 +332,8 @@ namespace Kernel
 
     i32 Thread::sys$exit(i32 status)
     {
-        dbgln("sys$exit({})", status);
+        if (debug_syscall)
+            dbgln("Thread::sys$exit");
 
         if (m_process->m_parent) {
             m_process->m_parent->m_terminated_children.enqueue({ m_process->m_process_id, status });
@@ -322,6 +349,9 @@ namespace Kernel
 
     i32 Thread::sys$chdir(const char *pathname)
     {
+        if (debug_syscall)
+            dbgln("Thread::sys$chdir");
+
         Path path { pathname };
 
         if (!path.is_absolute())

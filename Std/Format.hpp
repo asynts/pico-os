@@ -13,7 +13,8 @@
 # include <Kernel/HandlerMode.hpp>
 #endif
 
-namespace Std {
+namespace Std
+{
     class StringBuilder;
     class ImmutableString;
 

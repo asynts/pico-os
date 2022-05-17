@@ -89,6 +89,12 @@ namespace Kernel
             m_enabled = enabled;
         }
 
+        bool is_locked()
+        {
+            MaskedInterruptGuard interrupt_guard;
+            return !m_holding_thread.is_null();
+        }
+
     private:
         // During the boot procedure it's not always possible to aquire a mutex.
         // Since the scheduler isn't running at that point, we can safely access the resource without a lock.
@@ -97,4 +103,8 @@ namespace Kernel
         RefPtr<Thread> m_holding_thread;
         CircularQueue<RefPtr<Thread>, 16> m_waiting_threads;
     };
+
+    extern KernelMutex dbgln_mutex;
+    extern KernelMutex malloc_mutex;
+    extern KernelMutex page_allocator_mutex;
 }

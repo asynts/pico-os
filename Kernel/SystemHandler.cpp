@@ -33,17 +33,18 @@ namespace Kernel
 
         dbgln("[SystemHandler] Dealing with system call for '{}'", thread->m_name);
 
-        auto new_worker_thread_name = ImmutableString::format("Worker: '{}' (PID {})",
+        // We can not consume the register context here, since it is needed to continue execution.
+        FullRegisterContext& context = *thread->m_stashed_context.must();
+
+        auto new_worker_thread_name = ImmutableString::format("Worker: '{}' (PID {}, SYSCALL {})",
             thread->m_process->m_name,
-            thread->m_process->m_process_id);
+            thread->m_process->m_process_id,
+            context.r0.syscall());
 
         auto new_worker_thread = Thread::construct(new_worker_thread_name);
         new_worker_thread->m_privileged = true;
 
-        new_worker_thread->setup_context([thread = move(thread)] () mutable {
-            // We can not consume the register context here, since it is needed to continue execution.
-            FullRegisterContext& context = *thread->m_stashed_context.must();
-
+        new_worker_thread->setup_context([thread = move(thread), &context] () mutable {
             i32 return_value = thread->syscall(context.r0.syscall(), context.r1, context.r2, context.r3);
 
             if (context.r0.syscall() == _SC_exit) {

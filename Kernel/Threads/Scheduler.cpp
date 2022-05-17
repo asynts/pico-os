@@ -2,6 +2,7 @@
 #include <Kernel/Loader.hpp>
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
+#include <Kernel/KernelMutex.hpp>
 
 #include <hardware/structs/scb.h>
 #include <hardware/structs/systick.h>
@@ -133,6 +134,9 @@ namespace Kernel
 
                 // At this point, we no longer need to synchronize, the cleanup can happen in parallel.
                 interrupt_guard.release();
+
+                // I do not know, if this can happen, better check for it.
+                VERIFY(!dbgln_mutex.is_locked());
 
                 dbgln("[Scheduler] We are about to kill thread '{}' (refcount={})", thread->m_name, thread->refcount());
 

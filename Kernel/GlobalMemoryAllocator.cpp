@@ -5,8 +5,6 @@
 
 namespace Kernel
 {
-    static KernelMutex malloc_mutex;
-
     GlobalMemoryAllocator::GlobalMemoryAllocator()
         : MemoryAllocator(allocate_heap())
     {
