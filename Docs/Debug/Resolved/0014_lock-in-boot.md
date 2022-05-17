@@ -39,8 +39,6 @@ We aquire a `KernelMutex` during the boot process, that seems dangerous.
 
 ### Ideas
 
--   Verify that we do not allocate in an interrupt handler.
-
 ### Actions
 
 -   We are now creating the `SystemHandler` thread later, when the scheduler is already running.

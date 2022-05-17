@@ -65,6 +65,8 @@ namespace Kernel
             VERIFY(Kernel::is_executing_in_thread_mode());
 
             if (Scheduler::is_initialized()) {
+                MaskedInterruptGuard interrupt_guard;
+
                 m_holding_thread.clear();
 
                 if (m_waiting_threads.size() > 0) {

@@ -426,16 +426,6 @@ We appear to have a deadlock.
 
 ### Ideas
 
--   Add guards to `KernelMutex`.
-
--   Look if there are other places that need to be guarded.
-
--   I should add `m_enabled` protection in other places maybe.
-
--   I should add an assertion that checks that if we schedule away from something, it can't be holding any locks.
-
--   I should use the builtin mutex things from the processor.
-
 ### Theories
 
 -   It seems that `Kernel::SystemHandler::handle_next_waiting_thread` isn't able to be scheduled while it holds a lock.
@@ -446,3 +436,5 @@ We appear to have a deadlock.
 ### Actions
 
 -   I added tons of protection to ensure that we don't run into synchronization issues that often.
+
+-   Added interrupt guards in `KernelMutex`.
