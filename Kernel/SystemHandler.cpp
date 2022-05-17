@@ -82,10 +82,7 @@ namespace Kernel
                 VERIFY(not are_interrupts_enabled());
                 if (m_waiting_threads.size() == 0) {
                     // If another thread tries to make a system call, it will call 'Thread::wakeup()' which will schedule us again.
-                    {
-                        MaskedInterruptGuard interrupt_guard;
-                        Scheduler::the().get_active_thread().set_masked_from_scheduler(true);
-                    }
+                    Scheduler::the().get_active_thread().set_masked_from_scheduler(true);
 
                     // Since this thread is blocking, we will not be requeued until another system call occurs.
                     Scheduler::the().trigger();
