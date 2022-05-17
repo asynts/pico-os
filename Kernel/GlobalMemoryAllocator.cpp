@@ -10,6 +10,7 @@ namespace Kernel
     GlobalMemoryAllocator::GlobalMemoryAllocator()
         : MemoryAllocator(allocate_heap())
     {
+
     }
 
     void GlobalMemoryAllocator::set_mutex_enabled(bool enabled)
@@ -27,37 +28,29 @@ namespace Kernel
     {
         VERIFY(Kernel::is_executing_in_thread_mode());
 
-        bool were_interrupts_enabled = disable_interrupts();
         malloc_mutex.lock();
-
         u8 *retval = MemoryAllocator::allocate(size, debug_override, address);
-
         malloc_mutex.unlock();
-        restore_interrupts(were_interrupts_enabled);
 
         return retval;
     }
 
     void GlobalMemoryAllocator::deallocate(u8 *pointer, bool debug_override, void *address)
     {
-        bool were_interrupts_enabled = disable_interrupts();
+        VERIFY(Kernel::is_executing_in_thread_mode());
+
         malloc_mutex.lock();
-
         MemoryAllocator::deallocate(pointer, debug_override, address);
-
         malloc_mutex.unlock();
-        restore_interrupts(were_interrupts_enabled);
     }
 
     u8* GlobalMemoryAllocator::reallocate(u8 *pointer, usize size, bool debug_override, void *address)
     {
-        bool were_interrupts_enabled = disable_interrupts();
+        VERIFY(Kernel::is_executing_in_thread_mode());
+
         malloc_mutex.lock();
-
         u8 *retval = MemoryAllocator::reallocate(pointer, size, debug_override, address);
-
         malloc_mutex.unlock();
-        restore_interrupts(were_interrupts_enabled);
 
         return retval;
     }

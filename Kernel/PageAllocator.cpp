@@ -56,13 +56,11 @@ namespace Kernel
 
     Optional<OwnedPageRange> PageAllocator::allocate(usize power)
     {
-        bool were_interrupts_enabled = disable_interrupts();
+        VERIFY(is_executing_in_thread_mode());
+
         page_allocator_mutex.lock();
-
         Optional<PageRange> range_opt = allocate_locked(power);
-
         page_allocator_mutex.unlock();
-        restore_interrupts(were_interrupts_enabled);
 
         if (range_opt.is_valid()) {
             return OwnedPageRange { range_opt.value() };
@@ -105,16 +103,14 @@ namespace Kernel
 
     void PageAllocator::deallocate(OwnedPageRange& owned_range)
     {
+        VERIFY(is_executing_in_thread_mode());
+
         PageRange range = owned_range.m_range.must();
         owned_range.m_range.clear();
 
-        bool were_interrupts_enabled = disable_interrupts();
         page_allocator_mutex.lock();
-
         deallocate_locked(range);
-
         page_allocator_mutex.unlock();
-        restore_interrupts(were_interrupts_enabled);
     }
 
     void PageAllocator::deallocate_locked(PageRange range)

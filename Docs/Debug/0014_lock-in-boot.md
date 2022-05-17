@@ -25,7 +25,21 @@ We aquire a `KernelMutex` during the boot process, that seems dangerous.
     #10 0x00000000 in ?? ()
     ```
 
+-   In `Kernel::boot_with_scheduler`, we do enter with `PRIMASK=0` and `IPSR=0` which means thread mode with interrupts enabled.
+    That is the expected behaviour.
+
+-   In `GlobalMemoryAllocator::allocate`, we disable interrupts before taking the mutex.
+
+-   For whatever reason, stupid me thought, that I should allocate from interrupts.
+    That is a bad idea.
+
+    ba6e1db0f80de09ff23d48f8a87ba7dea6957cae
+
+    I hope that there isn't code that does that.
+
 ### Ideas
+
+-   Verify that we do not allocate in an interrupt handler.
 
 ### Actions
 
