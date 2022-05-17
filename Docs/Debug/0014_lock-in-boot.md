@@ -46,3 +46,5 @@ We aquire a `KernelMutex` during the boot process, that seems dangerous.
 -   We are now creating the `SystemHandler` thread later, when the scheduler is already running.
 
 -   I made it possible to disable a `KernelMutex` during startup.
+
+-   I removed the interrupt guards from the memory allocation logic.

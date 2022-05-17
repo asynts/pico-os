@@ -122,7 +122,10 @@ namespace Kernel
             VERIFY_NOT_REACHED();
         });
 
-        Scheduler::the().add_thread(thread);
+        {
+            MaskedInterruptGuard scheduler_guard;
+            Scheduler::the().add_thread(move(thread));
+        }
 
         return *process;
     }

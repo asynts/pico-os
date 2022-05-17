@@ -424,8 +424,6 @@ We appear to have a deadlock.
     [Thread::setup_context::lambda] Thread 'Worker: '/bin/Shell.elf' (PID 0x00000000)' is about to die.
     ```
 
--   Now, we crash when creating a process, because I am calling `add_thread` without masking interrupts.
-
 ### Ideas
 
 -   Add guards to `KernelMutex`.
@@ -448,5 +446,3 @@ We appear to have a deadlock.
 ### Actions
 
 -   I added tons of protection to ensure that we don't run into synchronization issues that often.
-
--   I removed the interrupt guards from the memory allocation logic.
