@@ -9,7 +9,7 @@
 
 namespace Kernel
 {
-    inline bool debug_page_allocator = false;
+    volatile inline bool debug_page_allocator = false;
 
     struct PageRange {
         usize m_power;
@@ -58,7 +58,7 @@ namespace Kernel
 
     class PageAllocator : public Singleton<PageAllocator> {
     public:
-        static constexpr usize max_power = 18;
+        static constexpr usize max_power = 19;
         static constexpr usize stack_power = power_of_two(0x800);
 
         Optional<OwnedPageRange> allocate(usize power);

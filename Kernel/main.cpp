@@ -20,6 +20,9 @@
 
 // FIXME: Remove 'Kernel::' prefixes
 
+extern "C" u8 __end__[];
+extern "C" u8 __HeapLimit[];
+
 namespace Kernel
 {
     // FIXME: Clean this up
@@ -60,6 +63,8 @@ namespace Kernel
         Kernel::MemoryFileSystem::initialize();
         Kernel::DeviceFileSystem::initialize();
 
+        dbgln("__HeapLimit={} __end__={}", __HeapLimit, __end__);
+
         dbgln("[main] Creating /example.txt");
         auto& example_file = *new Kernel::MemoryFile;
         auto& example_handle = example_file.create_handle();
@@ -69,6 +74,8 @@ namespace Kernel
         dynamic_cast<Kernel::VirtualDirectory&>(root_file).m_entries.set("example.txt", &example_file);
 
         Kernel::SystemHandler::initialize();
+
+        debug_page_allocator = true;
 
         create_shell_process();
     }

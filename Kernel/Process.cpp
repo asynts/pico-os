@@ -38,6 +38,8 @@ namespace Kernel
         thread->setup_context([arguments, variables, name, elf]() mutable {
             dbgln("Loading executable for process '{}' from {}", name, elf.base());
 
+            PageAllocator::the().dump();
+
             Process *process = nullptr;
             Thread *thread = nullptr;
             {

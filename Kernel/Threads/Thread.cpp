@@ -275,8 +275,6 @@ namespace Kernel
         FIXME_ASSERT(file_actions == nullptr);
         FIXME_ASSERT(attrp == nullptr);
 
-        dbgln("sys$posix_spawn(%p, %s, %p, %p, %p, %p)", pid, pathname, file_actions, attrp, argv, envp);
-
         Vector<ImmutableString> arguments;
         while (*argv != nullptr)
             arguments.append(*argv++);

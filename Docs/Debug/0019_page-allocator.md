@@ -28,6 +28,26 @@ We appear to run out of memory in the page allocator.
     #14 0x1000c27e in type_erased_member_function_wrapper<Kernel::Thread::setup_context<Kernel::SystemHandler::SystemHandler()::<lambda()> >(Kernel::SystemHandler::SystemHandler()::<lambda()>&&)::<lambda()>, &Kernel::Thread::setup_context<Kernel::SystemHandler::SystemHandler()::<lambda()> >(Kernel::SystemHandler::SystemHandler()::<lambda()>&&)::<lambda()>::operator()>(void *) (object=0x20016ff8) at /home/me/dev/pico-os/Std/Forward.hpp:101
     ```
 
+-   We only start of with 32KiB out of 128KiB and then we use 16KiB for each process, if I understand things correctly.
+
+-   I seem to recall, that the Pico SDK thing didn't use all the avaliable memory?
+
 ### Ideas
 
 -   Verify that we are only scheduling on a single core.
+
+-   I should verify that the split logic adds the other page correctly.
+
+-   I could get rid of the Pico SDK setup.
+
+### Theories
+
+-   I suspect, that we are creating so many threads, that we eventually run out of memory.
+
+-   I suspect, that we try to allocate a huge chunk of memory which is simply too large to deal with.
+
+-   I suspect, that the page allocator logic is broken somehow.
+
+### Actions
+
+-   Tell the Pico SDK go allocate significantly more memory for the heap.
