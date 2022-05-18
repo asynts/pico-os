@@ -332,10 +332,9 @@ namespace Kernel
             ASSERT(m_process->m_parent->m_terminated_children.size() > 0);
         }
 
-        m_masked_from_scheduler = true;
-
-        // We are currently executing in the worker thread. When the worker is done, it will unblock
-        // the thread causing it to terminate and then terminate as well.
+        // We are executing in the worker thread.
+        // This worker thread will return soon after.
+        // The calling thread (userspace) will not be scheduled again, because the worker won't unmask it from the scheduler.
         return -1;
     }
 

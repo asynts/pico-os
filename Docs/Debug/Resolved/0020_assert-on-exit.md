@@ -23,3 +23,9 @@ We appear to return from the kernel after `sys$exit`.
         abort();
     }
     ```
+
+-   When I fixed the `SystemHandler` code, I forgot about `exit` and that it needs special treatment.
+
+### Actions
+
+-   Do not add the thread back into the scheduler, on `_SC_exit`.

@@ -48,18 +48,20 @@ namespace Kernel
         new_worker_thread->setup_context([thread = move(thread), &context] () mutable {
             i32 return_value = thread->syscall(context.r0.syscall(), context.r1, context.r2, context.r3);
 
-            if (context.r0.syscall() == _SC_exit) {
-                VERIFY(thread->m_masked_from_scheduler);
-            }
+            bool b_should_return = (context.r0.syscall() != _SC_exit);
 
             // System calls return values by magically tweaking the value of the 'r0' register when returning.
             context.r0.m_storage = bit_cast<u32>(return_value);
 
-            thread->set_masked_from_scheduler(false);
+            if (b_should_return) {
+                thread->set_masked_from_scheduler(false);
 
-            {
-                MaskedInterruptGuard scheduler_guard;
-                Scheduler::the().add_thread(move(thread));
+                {
+                    MaskedInterruptGuard scheduler_guard;
+                    Scheduler::the().add_thread(move(thread));
+                }
+            } else {
+                VERIFY(thread->m_masked_from_scheduler);
             }
         });
 
