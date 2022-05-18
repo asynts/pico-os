@@ -37,16 +37,6 @@ We appear to run out of memory in the page allocator.
 
 ### Ideas
 
--   I could try setting a breakpoint after writing the `m_blocks`, possibly I am simply missing the breakpoint.
-
--   I should find the exact instruction that causes issues.
-
--   I should verify that the split logic adds the other page correctly.
-
--   **I should add an assertion to verify that we are not overflowing the RAM.**
-
--   I think there are parts of the RAM that require special treatment even with the modified linker script.
-
 ### Theories
 
 -   I suspect, that we are creating so many threads, that we eventually run out of memory.
@@ -59,3 +49,6 @@ We appear to run out of memory in the page allocator.
 
 -   Instead of trying to somehow fit my things into the heap, I did modify the linker script.
     Now, everything is put into the first 8 KiB of RAM and the rest can be managed by the page allocator.
+
+-   After that, I ran into some trouble, because I was dereferencing a null pointer.
+    Everything appears to be working now though.

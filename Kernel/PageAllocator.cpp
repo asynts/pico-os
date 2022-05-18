@@ -37,6 +37,9 @@ namespace Kernel
         m_blocks[power_of_two(8 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 8 * KiB);
 
         for (auto& block : m_blocks.span().iter()) {
+            if (block == nullptr)
+                continue;
+
             VERIFY(bit_cast<uptr>(block) >= bit_cast<uptr>(__pico_boot_ram_end));
             VERIFY(bit_cast<uptr>(block) < bit_cast<uptr>(__pico_ram_end));
 

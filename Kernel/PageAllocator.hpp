@@ -9,6 +9,8 @@
 
 namespace Kernel
 {
+    // This must not be turned on in early boot.
+    // We need to allocate some memory before we are able to produce output.
     volatile inline bool debug_page_allocator = false;
 
     struct PageRange {

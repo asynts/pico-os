@@ -75,7 +75,7 @@ namespace Kernel
 
         Kernel::SystemHandler::initialize();
 
-        debug_page_allocator = true;
+        // debug_page_allocator = true;
 
         create_shell_process();
     }

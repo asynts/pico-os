@@ -12,3 +12,8 @@ There are tons of open problems that need to be resolved.
 
 -   I really need to cut out the Pico SDK thing entirely.
     The whole memory allocation thing is a mess.
+
+-   Essentially, the `KernelMutex` was my attempt at multi-core support, however, they don't really do anything,
+    other than to cause trouble.
+
+    I need more sophisticated debugging tools to be able to deal with the whole multi-core ordeal.
