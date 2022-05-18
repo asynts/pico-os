@@ -2,8 +2,11 @@
 #include <Kernel/KernelMutex.hpp>
 #include <Kernel/HandlerMode.hpp>
 
-extern "C" u8 __end__[];
-extern "C" u8 __HeapLimit[];
+
+extern "C" u8 __pico_ram_start[];
+extern "C" u8 __pico_ram_end[];
+extern "C" u8 __pico_boot_ram_start[];
+extern "C" u8 __pico_boot_ram_end[];
 
 namespace Kernel
 {
@@ -24,30 +27,22 @@ namespace Kernel
             block = nullptr;
         }
 
-        // FIXME: We should be able to manage the entire 32 KiB RAM in the page allocator
-        // FIXME: Wait, I thought we had 256 KiB RAM?
+        // My custom linker script will allocate the first 8 KiB of RAM for statup.
+        // The rest can be managed by this page allocator.
 
-        // Try to grab as much memory as possible
-        for (usize power = max_power; power > 0; --power) {
-            if (__HeapLimit - __end__ >= 1 << (power + 1)) {
-                usize size = 1 << power;
+        m_blocks[power_of_two(128 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 128 * KiB);
+        m_blocks[power_of_two(64 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 64 * KiB);
+        m_blocks[power_of_two(32 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 32 * KiB);
+        m_blocks[power_of_two(16 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 16 * KiB);
+        m_blocks[power_of_two(8 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 8 * KiB);
 
-                uptr end = reinterpret_cast<uptr>(__HeapLimit);
-                end -= end % size;
+        for (auto& block : m_blocks.span().iter()) {
+            VERIFY(bit_cast<uptr>(block) >= bit_cast<uptr>(__pico_boot_ram_end));
+            VERIFY(bit_cast<uptr>(block) < bit_cast<uptr>(__pico_ram_end));
 
-                uptr start = end - size;
-
-                VERIFY(start % size == 0);
-                VERIFY(start >= reinterpret_cast<uptr>(__end__));
-                VERIFY(end <= reinterpret_cast<uptr>(__HeapLimit));
-
-                deallocate_locked(PageRange { power, start });
-
-                return;
-            }
+            // FIXME: We appear to assert when we dereference this pointer.
+            block->m_next = nullptr;
         }
-
-        VERIFY_NOT_REACHED();
     }
 
     Optional<OwnedPageRange> PageAllocator::allocate(usize power)

@@ -32,13 +32,20 @@ We appear to run out of memory in the page allocator.
 
 -   I seem to recall, that the Pico SDK thing didn't use all the avaliable memory?
 
+-   I was able to manually write to the blocks with the debugger, in other words, the memory is accessible.
+    However, we still crash when we are setting `nullptr` to `Block::m_next` in `PageAllocater::PageAllocator`.
+
 ### Ideas
 
--   Verify that we are only scheduling on a single core.
+-   I could try setting a breakpoint after writing the `m_blocks`, possibly I am simply missing the breakpoint.
+
+-   I should find the exact instruction that causes issues.
 
 -   I should verify that the split logic adds the other page correctly.
 
--   I could get rid of the Pico SDK setup.
+-   **I should add an assertion to verify that we are not overflowing the RAM.**
+
+-   I think there are parts of the RAM that require special treatment even with the modified linker script.
 
 ### Theories
 
@@ -50,4 +57,5 @@ We appear to run out of memory in the page allocator.
 
 ### Actions
 
--   Tell the Pico SDK go allocate significantly more memory for the heap.
+-   Instead of trying to somehow fit my things into the heap, I did modify the linker script.
+    Now, everything is put into the first 8 KiB of RAM and the rest can be managed by the page allocator.
