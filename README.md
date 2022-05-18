@@ -6,6 +6,8 @@ The code structure is strongly inspired by SerenityOS, however, no code is taken
 My goal was to write a simple operating system because I was interested in operating systems.
 The code base is a huge mess and I later tried to rewrite everything, however, I never completed the rewrite.
 
+![Screen Capture of Terminal Connected to System](Docs/demo.gif)
+
 Currently the system has the following capabilities:
 
 -   The system runs on a Raspberry Pi Pico microcontroller (actual hardware!).
