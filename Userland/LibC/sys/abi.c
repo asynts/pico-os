@@ -52,52 +52,64 @@ void __aeabi_memclr(void *dest, size_t n)
 
 // FIXME: This is completely untested.
 
-static uint8_t unaligned_read(uint8_t *source)
+static uint8_t unaligned_read_u8(uintptr_t source)
 {
-    uintptr_t source_ = (uintptr_t)source;
+    // Address of the word in which this byte is contained.
+    uint32_t *source_aligned = (uint32_t*)(source - source % 4);
 
-    uint32_t *source_aligned = (uint32_t*)(source_ - source_ % 4);
+    // Read the entire word.
+    uint32_t value = *source_aligned;
 
-    return (*source_aligned >> (8 * (source_ % 4))) & 0xff;
+    // This is a little endian system.
+    // If we think of the decimal representation, the first bytes we read are on the right.
+    // We shift to the right by eight bits for each byte we want to skip.
+    value = value >> (8 * (source % 4));
+
+    // The value is in the lowest byte, return that.
+    return value & 0xff;
 }
 
-static void unaligned_write(uint8_t *dest, uint8_t value)
+static void unaligned_write_u8(uintptr_t destination, uint8_t new_value)
 {
-    uintptr_t dest_ = (uintptr_t)dest;
+    // Address of the word in which this byte is contained.
+    uint32_t *destination_aligned = (uint32_t*)(destination - destination % 4);
 
-    uint32_t *dest_aligned = (uint32_t*)(dest_ - dest_ % 4);
+    // Read the entire word.
+    uint32_t value = *destination_aligned;
 
-    if (dest_ % 4 == 0) {
-        *dest_aligned = *dest_aligned & 0xffffff00 | value;
-    } else if (dest_ % 4 == 1) {
-        *dest_aligned = *dest_aligned & 0xffff00ff | value << 8;
-    } else if (dest_ % 4 == 2) {
-        *dest_aligned = *dest_aligned & 0xff00ffff | value << 16;
-    } else if (dest_ % 4 == 2) {
-        *dest_aligned = *dest_aligned & 0x00ffffff | value << 24;
+    // Modify the byte we want to change.
+    if (destination % 4 == 0) {
+        value = value & 0xffffff00 | ((uint32_t)new_value <<  0);
+    } else if (destination % 4 == 1) {
+        value = value & 0xffff00ff | ((uint32_t)new_value <<  8);
+    } else if (destination % 4 == 2) {
+        value = value & 0xff00ffff | ((uint32_t)new_value << 16);
+    } else if (destination % 4 == 3) {
+        value = value & 0x00ffffff | ((uint32_t)new_value << 24);
     }
+
+    // Write the entire word back.
+    *destination_aligned = value;
 }
 
-void __aeabi_memmove(void *dest, void *src, size_t n)
+void __aeabi_memmove(void *destination, void *source, size_t count)
 {
-    uint8_t *dest_ = dest;
-    uint8_t *src_ = src;
+    // The danger is, that we overwride some of the source, before we copy it to the destination.
 
-    if (dest <= src) {
+    uintptr_t destination_address = (uintptr_t)destination;
+    uintptr_t source_address = (uintptr_t)source;
+
+    if (destination_address <= source_address) {
         // We can safely copy from left-to-right.
 
-        for (int i = 0; i < n; ++i) {
-            unaligned_write(dest_, unaligned_read(src_ + i));
+        for (int i = 0; i < count; ++i) {
+            unaligned_write_u8(destination_address + i, unaligned_read_u8(source_address + i));
         }
     } else {
         // We can safely copy from right-to-left.
 
-        if (n == 0) {
-            return;
-        }
-
-        for (int i = n - 1; i >= 0; --i) {
-            unaligned_write(dest_, unaligned_read(src_ + i));
+        for (int i = 0; i < count; ++i) {
+            unaligned_write_u8(destination_address + count - i - 1, unaligned_read_u8(source_address + count - i - 1));
         }
     }
 }

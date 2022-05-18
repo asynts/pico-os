@@ -19,3 +19,5 @@ There are tons of open problems that need to be resolved.
     I need more sophisticated debugging tools to be able to deal with the whole multi-core ordeal.
 
 -   I should verify that my `memmove` implementations are working correctly.
+
+-   I need to implement a proper malloc.
