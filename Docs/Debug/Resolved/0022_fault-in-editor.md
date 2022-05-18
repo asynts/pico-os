@@ -12,7 +12,13 @@ When we use the `a` command in `Editor.elf`, we hang and then overflow the stack
     #525 0x1001c950 in ?? () at /home/me/dev/pico-os/Userland/LibC/sys/crt0.S:19
     ```
 
+### Ideas
+
 ### Theories
 
 -   I suspect, that the compiler recognized my `memmove` implementation and replaced it with a call to itself.
     That happened many times before.
+
+### Actions
+
+-   I started writing my own `memmove` implementation.

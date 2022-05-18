@@ -17,3 +17,5 @@ There are tons of open problems that need to be resolved.
     other than to cause trouble.
 
     I need more sophisticated debugging tools to be able to deal with the whole multi-core ordeal.
+
+-   I should verify that my `memmove` implementations are working correctly.

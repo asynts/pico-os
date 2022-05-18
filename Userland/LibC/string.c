@@ -75,13 +75,7 @@ void* memcpy(void *dest, const void *src, size_t count)
 
 void* memmove(void *dest, const void *src, size_t count)
 {
-    // FIXME: Is it feasible to implement this without allocating?
-
-    void *tmp = malloc(count);
-    memcpy(tmp, src, count);
-    memcpy(dest, tmp, count);
-    free(tmp);
-
+    __aeabi_memmove(dest, src, count);
     return dest;
 }
 

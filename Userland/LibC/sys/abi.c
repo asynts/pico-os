@@ -49,3 +49,55 @@ void __aeabi_memclr(void *dest, size_t n)
 {
     __aeabi_memset(dest, n, 0);
 }
+
+// FIXME: This is completely untested.
+
+static uint8_t unaligned_read(uint8_t *source)
+{
+    uintptr_t source_ = (uintptr_t)source;
+
+    uint32_t *source_aligned = (uint32_t*)(source_ - source_ % 4);
+
+    return (*source_aligned >> (8 * (source_ % 4))) & 0xff;
+}
+
+static void unaligned_write(uint8_t *dest, uint8_t value)
+{
+    uintptr_t dest_ = (uintptr_t)dest;
+
+    uint32_t *dest_aligned = (uint32_t*)(dest_ - dest_ % 4);
+
+    if (dest_ % 4 == 0) {
+        *dest_aligned = *dest_aligned & 0xffffff00 | value;
+    } else if (dest_ % 4 == 1) {
+        *dest_aligned = *dest_aligned & 0xffff00ff | value << 8;
+    } else if (dest_ % 4 == 2) {
+        *dest_aligned = *dest_aligned & 0xff00ffff | value << 16;
+    } else if (dest_ % 4 == 2) {
+        *dest_aligned = *dest_aligned & 0x00ffffff | value << 24;
+    }
+}
+
+void __aeabi_memmove(void *dest, void *src, size_t n)
+{
+    uint8_t *dest_ = dest;
+    uint8_t *src_ = src;
+
+    if (dest <= src) {
+        // We can safely copy from left-to-right.
+
+        for (int i = 0; i < n; ++i) {
+            unaligned_write(dest_, unaligned_read(src_ + i));
+        }
+    } else {
+        // We can safely copy from right-to-left.
+
+        if (n == 0) {
+            return;
+        }
+
+        for (int i = n - 1; i >= 0; --i) {
+            unaligned_write(dest_, unaligned_read(src_ + i));
+        }
+    }
+}
