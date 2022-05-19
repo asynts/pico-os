@@ -2,6 +2,26 @@
 
 #### Next Version
 
+-   Add `SoftwareSpinLock` that uses a hardware spin lock but there can be more than actual hardware spin locks.
+    This is an active locking primitive that must only be used with interrupts disabled.
+    It should be simple to add deadlock detection here.
+
+-   Add `SoftwareMutex` that uses a `HardwareSpinLock` internally.
+    This is a passive locking primitive that must only be used with interrupts enabled.
+
+-   Add `WaitingThreadQueue` that keeps a list of threads that are waiting for some resource.
+    This must only be used with interrupts disabled and uses a `HardwareSpinLock` internally.
+
+-   Verify that all of these locking primitives are functional.
+
+-   Protect all the resources with these locking primitives.
+
+-   Schedule on both cores.
+
+### Old
+
+#### Next Version
+
 -   Group `PageRange`s together in `PageAllocator::deallocate`.
 
 -   Add passive locking primitives
