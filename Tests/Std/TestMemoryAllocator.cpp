@@ -53,7 +53,7 @@ TEST_CASE(memoryallocator_death_by_a_thousand_cuts)
     ASSERT(stats_middle.m_largest_continous_block < heap.size() / 4);
 
     // We want to deallocate in a random, but reproducible order
-    std::mt19937 prng { 3040088493306752707 };
+    std::mt19937 prng { static_cast<unsigned int>(3040088493306752707) };
     std::shuffle(allocations.begin(), allocations.end(), prng);
 
     for (u8 *allocation : allocations)

@@ -54,6 +54,7 @@ namespace Kernel
     }
 }
 
+/*
 void* operator new(usize size)
 {
     void *address = __builtin_return_address(0);
@@ -84,6 +85,7 @@ void operator delete[](void* pointer, usize)
     void *address = __builtin_return_address(0);
     return Kernel::GlobalMemoryAllocator::the().deallocate(reinterpret_cast<u8*>(pointer), true, address);
 }
+*/
 
 extern "C"
 void* malloc(usize size)

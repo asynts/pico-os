@@ -17,8 +17,10 @@ namespace Std
 {
     void dbgln_raw(StringView str)
     {
+#ifdef KERNEL
         if (Kernel::is_executing_in_handler_mode())
             return;
+#endif
 
 #ifdef KERNEL
         // FIXME: For multi-core support, we will need a mutex here.

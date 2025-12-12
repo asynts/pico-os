@@ -6,6 +6,8 @@ namespace Kernel
     ConsoleFile::ConsoleFile()
     {
         Interrupt::UART::the();
+        m_mode = ModeFlags::Device;
+        m_device_id = 0x00010001;
     }
 
     VirtualFile& ConsoleFileHandle::file() { return ConsoleFile::the(); }

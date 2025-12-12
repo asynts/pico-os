@@ -1,7 +1,5 @@
 ENTRY(_start);
 
-/* FIXME: Keep debugging information! */
-
 PHDRS {
     text PT_LOAD;
     data PT_LOAD;
@@ -48,4 +46,13 @@ SECTIONS
     .stack (NOLOAD) : {
         . += 0x1100;
     } :data
+
+    /* DWARF debug sections for GDB */
+    .debug_info     0 : { *(.debug_info) }
+    .debug_abbrev   0 : { *(.debug_abbrev) }
+    .debug_line     0 : { *(.debug_line) }
+    .debug_frame    0 : { *(.debug_frame) }
+    .debug_str      0 : { *(.debug_str) }
+    .debug_loc      0 : { *(.debug_loc) }
+    .debug_ranges   0 : { *(.debug_ranges) }
 }

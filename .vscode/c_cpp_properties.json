@@ -1,16 +1,29 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Pico-OS Kernel",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/common/pico_stdlib_headers/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/hardware_base/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2040/hardware_structs/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/hardware_claim/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/hardware_sync/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/hardware_sync_spin_lock/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/hardware_irq/include",
+                "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2_common/pico_platform/include",
+                "${workspaceFolder}/build/generated/pico_base"
             ],
-            "defines": [],
-            "compilerPath": "/usr/bin/clang",
+            "defines": [
+                "KERNEL",
+                "PICO_BOARD=\"pico\"",
+                "PICO_RP2040=1",
+                "PICO_32BIT=1"
+            ],
+            "compilerPath": "/usr/bin/clang++",
             "cStandard": "c11",
             "cppStandard": "c++20",
-            "intelliSenseMode": "clang-arm",
-            "compileCommands": "${workspaceFolder}/Build/compile_commands.json"
+            "intelliSenseMode": "macos-clang-arm64"
         }
     ],
     "version": 4

@@ -61,6 +61,8 @@ namespace Kernel
 
     class VirtualFileHandle {
     public:
+        virtual ~VirtualFileHandle() = default;
+
         virtual VirtualFile& file() = 0;
 
         virtual KernelResult<usize> read(Bytes) = 0;

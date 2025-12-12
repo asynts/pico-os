@@ -28,7 +28,8 @@ static void write_output_file(std::filesystem::path path, Elf::MemoryStream& str
 
 int main(int argc, char **argv)
 {
-    // FIXME: Parse command line arguments
+    // Hardcoded file list for embedded filesystem
+    // Usage: Run from build/Userland directory where ELF files are located
 
     Elf::Generator generator;
 

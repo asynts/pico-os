@@ -1,5 +1,5 @@
 #include <Std/Format.hpp>
-
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 #include <Kernel/Loader.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/HandlerMode.hpp>
@@ -158,8 +158,8 @@ namespace Kernel
             Scheduler::the().get_active_thread().m_privileged = false;
         }
 
-        // FIXME: Free old stack?!
-        // FIXME: Make sure to drop the corresponding region as well
+        // Ensure the stack pointer is 8-byte aligned for the entry point
+        stack.align(8);
 
         asm volatile("msr psp, %0;"
                      "msr control, %1;"
@@ -170,7 +170,7 @@ namespace Kernel
                      "mov r2, %6;"
                      "bx %3;"
             :
-            : "r"(stack.top()), // FIXME: This is wrong!
+            : "r"(stack.top()),
               "r"(0b11),
               "r"(executable.m_writable_base),
               "r"(executable.m_entry),

@@ -215,8 +215,7 @@ namespace Kernel
         if (debug_syscall)
             dbgln("Thread::sys$close");
 
-        // FIXME
-
+        m_process->close_file_handle(fd);
         return 0;
     }
 

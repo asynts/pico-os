@@ -36,7 +36,7 @@ TEST_CASE(stringview_equal)
     Std::StringView sv1 = "foo";
     Std::StringView sv2 = "bar";
     Std::StringView sv3 = sv2;
-    Std::StringView sv4 = "foobar" + 3;
+    Std::StringView sv4 = &"foobar"[3];
 
     ASSERT(sv1 != sv2);
     ASSERT(sv2 == sv3);

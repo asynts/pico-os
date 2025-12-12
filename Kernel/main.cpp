@@ -1,5 +1,8 @@
 #include <Std/Forward.hpp>
 #include <Std/Format.hpp>
+#include <Kernel/Synchronization/SoftwareSpinLock.hpp>
+#include <Kernel/Synchronization/HardwareSpinLock.hpp>
+#include <Kernel/KernelMutex.hpp>
 
 #include <Kernel/Loader.hpp>
 #include <Kernel/ConsoleDevice.hpp>
@@ -35,9 +38,21 @@ namespace Kernel
 
     void boot_with_scheduler();
 
+    // Hardware Spin Locks (RP2040 SIO Base 0xd0000000 + 0x100 offset)
+    static HardwareSpinLock s_sw_spinlock_hw_lock((volatile u32*)0xd0000100); // Lock 0
+    static HardwareSpinLock s_malloc_hw_lock((volatile u32*)0xd0000104);      // Lock 1
+    static HardwareSpinLock s_page_hw_lock((volatile u32*)0xd0000108);        // Lock 2
+    static HardwareSpinLock s_dbgln_hw_lock((volatile u32*)0xd000010c);       // Lock 3
+
     // Setup basic systems and run 'boot_with_scheduler' in a new thread
     void boot()
     {
+        // Initialize Synchronization Primitives
+        SoftwareSpinLock::initialize(s_sw_spinlock_hw_lock);
+        malloc_mutex.initialize(s_malloc_hw_lock);
+        page_allocator_mutex.initialize(s_page_hw_lock);
+        dbgln_mutex.initialize(s_dbgln_hw_lock);
+
         Kernel::PageAllocator::initialize();
         Kernel::PageAllocator::the().set_mutex_enabled(false);
 

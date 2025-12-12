@@ -3,10 +3,10 @@
 #include <Kernel/HandlerMode.hpp>
 
 
-extern "C" u8 __pico_ram_start[];
-extern "C" u8 __pico_ram_end[];
-extern "C" u8 __pico_boot_ram_start[];
-extern "C" u8 __pico_boot_ram_end[];
+#define __pico_ram_start ((u8*)0x20000000)
+#define __pico_ram_end ((u8*)(0x20000000 + 264 * 1024))
+#define __pico_boot_ram_start ((u8*)0x20000000)
+#define __pico_boot_ram_end ((u8*)(0x20000000 + 8 * 1024))
 
 namespace Kernel
 {
@@ -43,7 +43,6 @@ namespace Kernel
             VERIFY(bit_cast<uptr>(block) >= bit_cast<uptr>(__pico_boot_ram_end));
             VERIFY(bit_cast<uptr>(block) < bit_cast<uptr>(__pico_ram_end));
 
-            // FIXME: We appear to assert when we dereference this pointer.
             block->m_next = nullptr;
         }
     }

@@ -1,4 +1,5 @@
 #include <Kernel/Threads/Scheduler.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 #include <Kernel/Loader.hpp>
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/GlobalMemoryAllocator.hpp>
@@ -134,7 +135,7 @@ namespace Kernel
                 RefPtr<Thread> thread = m_dangling_threads.dequeue();
 
                 // At this point, we no longer need to synchronize, the cleanup can happen in parallel.
-                interrupt_guard.release();
+                interrupt_guard.release_early();
 
                 // I do not know, if this can happen, better check for it.
                 VERIFY(!dbgln_mutex.is_locked());

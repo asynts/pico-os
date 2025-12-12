@@ -1,3 +1,25 @@
+# Git LFS for large media files
 *.mkv filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 *.gif filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+
+# Line endings
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Binary files
+*.elf binary
+*.uf2 binary
+*.bin binary
+
+# Custom diff drivers
+*.c diff=c
+*.cpp diff=cpp
+*.h diff=c
+*.hpp diff=cpp
+*.S diff=asm
+
+# Linker scripts
+*.x text
+*.ld text

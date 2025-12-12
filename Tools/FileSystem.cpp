@@ -1,7 +1,7 @@
 #include <map>
 
 #include <sys/stat.h>
-#include <bsd/string.h>
+#include <string.h>
 #include <assert.h>
 
 #include <fmt/format.h>
@@ -10,7 +10,7 @@
 
 #include "FileSystem.hpp"
 
-// FIXME: This is a huge mess, I need to completely rewrite this
+// FileSystem generator for embedding files into the kernel ELF
 
 FileSystem::FileSystem(Elf::Generator& generator)
     : m_generator(generator)
@@ -32,7 +32,7 @@ FileSystem::~FileSystem()
 }
 uint32_t FileSystem::add_host_file(std::string_view path, Kernel::ModeFlags mode)
 {
-    // FIXME: We don't have to map the file into memory
+    // Memory-map file for efficient reading
     Elf::MemoryStream stream;
     stream.write_bytes(Elf::mmap_file(path));
 
@@ -99,7 +99,7 @@ uint32_t FileSystem::add_file(Elf::MemoryStream& stream, Kernel::ModeFlags mode,
     inode.st_uid = 0;
     inode.st_gid = 0;
 
-    // FIXME
+    // Block size/count not applicable for embedded flash filesystem
     inode.st_blksize = 0;
     inode.st_blocks = 0;
 

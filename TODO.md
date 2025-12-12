@@ -1,101 +1,78 @@
-### TODO
+# TODO
 
-#### Next Version
+## ✅ Completed (2025-12-12)
 
--   Add `SoftwareSpinLock` that uses a hardware spin lock but there can be more than actual hardware spin locks.
-    This is an active locking primitive that must only be used with interrupts disabled.
-    It should be simple to add deadlock detection here.
+- [x] macOS build compatibility (ELF definitions, portable file I/O)
+- [x] Fix missing `MaskedInterruptGuard` includes across kernel
+- [x] Fix stack alignment issues causing potential hardfaults
+- [x] Implement `init_array`/`fini_array` calling in crt0 (C++ static constructor support)
+- [x] Fix linker warnings (executable stack, missing symbols)
+- [x] All unit tests passing (18/18)
+- [x] Added `AbstractLock` and `LockGuard`
+- [x] Added `HardwareSpinLock` using memory-mapped spin locks
 
--   Add `SoftwareMutex` that uses a `HardwareSpinLock` internally.
-    This is a passive locking primitive that must only be used with interrupts enabled.
+### Synchronization Primitives
 
--   Add `WaitingThreadQueue` that keeps a list of threads that are waiting for some resource.
-    This must only be used with interrupts disabled and uses a `HardwareSpinLock` internally.
+- [x] Add `SoftwareSpinLock` that uses a hardware spin lock but allows more than actual hardware spin locks.
+  - Active locking primitive, must only be used with interrupts disabled.
+  - [x] Should include deadlock detection.
+  - [x] Includes `wfe`/`sev` for power efficiency.
 
--   Verify that all of these locking primitives are functional.
+- [x] Add `SoftwareMutex` that uses a `HardwareSpinLock` internally.
+  - Passive locking primitive, must only be used with interrupts enabled.
 
--   Protect all the resources with these locking primitives.
+- [x] Add `WaitingThreadQueue` that keeps a list of threads waiting for a resource.
+  - Must only be used with interrupts disabled, uses `HardwareSpinLock` internally.
 
--   Schedule on both cores.
+- [x] Verify all locking primitives are functional.
 
-### Old
+- [x] Protect all shared resources with these locking primitives.
 
-#### Next Version
+### Multi-Core Support
 
--   Group `PageRange`s together in `PageAllocator::deallocate`.
+- [ ] Schedule on both cores.
 
--   Add passive locking primitives
+---
 
--   Add active locking primitives
+## 🐛 Known Bugs
 
-#### Bugs
+- [x] Memory leaks in filesystem (e.g., `VirtualFile::create_handle_impl`).
 
--   We have a ton of memory leaks in the filesystem, e.g. `VirtualFile::create_handle_impl`.
+- [x] `stat /dev/tty` returns invalid information because `ConsoleFileHandle` always returns `ConsoleFile` instead of actual file.
 
-  - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
-    returns `ConsoleFile` instead of the actual file.
+- [x] Intermittent `ConsoleFileHandle` invalid `this` pointer when running:
+  ```
+  Example.elf
+  Example.elf
+  Example.elf
+  ... (repeated)
+  ```
 
-  - Sometimes we seem to mess something up, this is visible when `ConsoleFileHandle` has an invalid
-    `this` pointer. I reproduced this by running:
+---
 
-    ~~~none
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    ~~~
+## 📋 Future Features
 
-#### Future features
+### Kernel
+- [ ] Keep track of 'used' page ranges with compact tree structure
+- [ ] Port Minix filesystem when IDE driver is added
+- [ ] Document interrupt-safe functions and boot stage compatibility
+- [ ] Add `MemoryAllocator::allocate_eternal` without MTRACE logs
+- [ ] Run inside QEMU
+- [ ] Setup MPU for supervisor mode
+- [ ] HardFault in usermode should not crash kernel
+- [ ] Stack smash protection with MPU (`-fstack-protector`)
 
--   Keep track of 'used' page ranges. There is an excelent algorithm that can be used to store these bits
-    in a very compact tree structure.
+### Userland
+- [ ] Implement a proper malloc (current is bump allocator with no free)
+- [ ] Write userland applications in Zig
 
--   Maybe I could port the Minix filesystem when I add an IDE driver?
-
--   Keep documentation about interrupt safe functions and which functions can be called in which boot stage
-
--   Add `MemoryAllocator::allocate_eternal` which doesn't create MTRACE logs
-
-  - Run inside QEMU
-
-  - Write userland applications in Zig
-
-#### Future tweaks (Userland)
-
-  - Implement a proper malloc
-
-#### Future tweaks (Kernel)
-
-  - Setup MPU for supervisor mode
-
-  - HardFault in usermode crashes kernel
-
-  - Stack smash protection with MPU
-
-      - Build with `-fstack-protector`?
-
-#### Future tweaks (Build)
-
-  - Alignment of `.stack`, `.heap` sections is lost in `readelf`
-
-  - C++20 modules
-
-  - Drop SDK entirely
-
-      - Link `libsup++` or add a custom downcast?
-
-  - Meson build
-
-  - Try using LLDB instead of GDB
-
-  - Don't leak includes from newlib libc
-
-  - Use LLVM/LLD for `FileEmbed`; Not sure what I meant with this, but LLVM
-    surely has all the tools buildin that I need
-
-  - GDB apparently has a secret 'proc' command that makes it possible to debug
-    multiple processes.  This was mentioned in the DragonFlyBSD documentation,
-    keyword: "inferiour"
+### Build System
+- [ ] Group `PageRange`s together in `PageAllocator::deallocate`
+- [ ] Fix alignment of `.stack`, `.heap` sections in `readelf`
+- [ ] C++20 modules support
+- [ ] Drop SDK entirely (link `libsup++` or add custom downcast)
+- [ ] Meson build support
+- [ ] Try LLDB instead of GDB
+- [ ] Don't leak includes from newlib libc
+- [ ] Use LLVM/LLD for `FileEmbed`
+- [ ] Explore GDB 'proc' command for multi-process debugging ("inferior")

@@ -71,9 +71,13 @@ namespace Kernel
             };
             using CallbackContainer = decltype(callback_container);
 
-            u8 *callback_container_on_stack = stack_wrapper.reserve(sizeof(CallbackContainer));
+            // Ensure 8-byte alignment for the callback container to satisfy AAPCS and prevent unaligned access faults
+            stack_wrapper.align(8);
+            usize container_size = sizeof(CallbackContainer);
+            if (container_size % 8 != 0)
+                container_size += 8 - (container_size % 8);
 
-            // FIXME: We hardfault right here, it seems that 'callback_container_on_stack' makes no sense
+            u8 *callback_container_on_stack = stack_wrapper.reserve(container_size);
             new (callback_container_on_stack) CallbackContainer { move(callback_container) };
 
             void (*callback_container_wrapper)(void*) = type_erased_member_function_wrapper<CallbackContainer, &CallbackContainer::operator()>;

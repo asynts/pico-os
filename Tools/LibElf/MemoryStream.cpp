@@ -1,4 +1,5 @@
 #include <utility>
+#include <algorithm>
 
 #include <fcntl.h>
 #include <assert.h>
@@ -27,10 +28,7 @@ namespace Elf
     }
     MemoryStream::MemoryStream()
     {
-        int fd = memfd_create("MemoryStream", 0);
-        assert(fd >= 0);
-
-        m_file = fdopen(fd, "w");
+        m_file = tmpfile();
         assert(m_file != nullptr);
     }
     MemoryStream::~MemoryStream()
@@ -104,9 +102,24 @@ namespace Elf
     }
     void MemoryStream::copy_to_raw_fd(int fd)
     {
-        off_t input_offset = 0;
+        size_t current_offset = offset();
 
-        ssize_t retval = copy_file_range(fileno(m_file), &input_offset, fd, nullptr, size(), 0);
-        assert(retval == size());
+        seek(0);
+
+        char buffer[4096];
+        size_t bytes_to_copy = size();
+
+        while (bytes_to_copy > 0) {
+            size_t n = std::min(bytes_to_copy, sizeof(buffer));
+            size_t nread = fread(buffer, 1, n, m_file);
+            assert(nread > 0);
+
+            ssize_t nwritten = write(fd, buffer, nread);
+            assert(nwritten == (ssize_t)nread);
+
+            bytes_to_copy -= nread;
+        }
+
+        seek(current_offset);
     }
 }

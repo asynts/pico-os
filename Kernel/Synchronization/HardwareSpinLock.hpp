@@ -26,12 +26,21 @@ namespace Kernel
             MaskedInterruptGuard interrupt_guard;
 
             while (true) {
-                u32 value;
-                __atomic_load(m_spin_lock_pointer, &value, __ATOMIC_SEQ_CST);
+                // Reading from the spin lock register attempts to claim it.
+                // A non-zero value means we successfully claimed the lock (value is the lock bitmap).
+                // A zero value means the lock was already claimed by someone else.
+                u32 value = *m_spin_lock_pointer;
 
-                // We read non-zero, if the lock was aquired sucessfully.
-                if (value != 0)
-                    continue;
+                if (value != 0) {
+                    // We got the lock!
+                    // Full memory barrier to ensure subsequent operations verify against the lock acquisition.
+                    __sync_synchronize();
+                    return;
+                }
+
+                // We failed to get the lock.
+                // Wait for an event (SEV) from the other core to save power before retrying.
+                asm volatile("wfe");
             }
         }
 
@@ -40,9 +49,14 @@ namespace Kernel
             // We only want to synchronize with the other core, not with other threads.
             MaskedInterruptGuard interrupt_guard;
 
+            // Full memory barrier to ensure all operations finishing before we release the lock.
+            __sync_synchronize();
+
             // Writing anything will release the lock.
-            u32 value = 1;
-            __atomic_store(m_spin_lock_pointer, &value, __ATOMIC_SEQ_CST);
+            *m_spin_lock_pointer = 1;
+
+            // Signal the other core that the lock is free.
+            asm volatile("sev");
         }
     };
 }

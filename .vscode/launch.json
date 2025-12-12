@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug: Attach",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "executable": "${workspaceFolder}/build/Kernel.elf",
+            "configFiles": [
+                "interface/picoprobe.cfg",
+                "target/rp2040.cfg"
+            ],
+            "svdFile": "${workspaceFolder}/build/_deps/pico_sdk-src/src/rp2040/hardware_regs/rp2040.svd",
+            "runToEntryPoint": "main",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

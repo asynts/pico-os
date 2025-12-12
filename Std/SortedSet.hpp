@@ -148,11 +148,11 @@ namespace Std
                 return copy;
             }
 
-            bool operator==(InorderIterator& other) const
+            bool operator==(const InorderIterator& other) const
             {
                 return m_current == other.m_current;
             }
-            bool operator!=(InorderIterator& other) const
+            bool operator!=(const InorderIterator& other) const
             {
                 return !operator==(other);
             }
