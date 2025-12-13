@@ -50,3 +50,5 @@ _pc_base:
     subs r0, r0, r1
 
     bx lr
+
+.section .note.GNU-stack,"",%progbits

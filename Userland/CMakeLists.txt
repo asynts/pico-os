@@ -5,13 +5,11 @@ function(userland_executable name_)
     add_custom_target(${name_}.1.elf ALL
         COMMAND clang --target=arm-none-eabi -mcpu=cortex-m0plus
             -std=gnu11 -Og -g -static -nostdlib -fcolor-diagnostics
-            -fropi -frwpi
             -DUSERLAND
             -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
             -I ${CMAKE_SOURCE_DIR}
             -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
             -Xlinker --nmagic
-            --sysroot=/usr/local/arm-none-eabi
             ${LIBC_SOURCES}
             ${CMAKE_CURRENT_SOURCE_DIR}/${name_}.c
             -o ${CMAKE_CURRENT_BINARY_DIR}/${name_}.1.elf)
@@ -31,7 +29,7 @@ userland_executable(Example)
 userland_executable(Editor)
 
 add_custom_target(FileSystem.elf ALL
-    COMMAND ${ELF_EMBED_EXECUTABLE}
+    COMMAND ${ELF_EMBED_EXECUTABLE} FileSystem.elf Shell.elf Example.elf Editor.elf
     DEPENDS ${USERLAND_EXECUTABLES} ElfEmbed)
 
 add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)

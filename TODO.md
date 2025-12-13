@@ -1,101 +1,92 @@
-### TODO
+# TODO
 
-#### Next Version
+## ✅ Completed (2025-12-14)
 
--   Add `SoftwareSpinLock` that uses a hardware spin lock but there can be more than actual hardware spin locks.
-    This is an active locking primitive that must only be used with interrupts disabled.
-    It should be simple to add deadlock detection here.
+- [x] Refactor `Tools/` directory (ElfEmbed, FileSystem) to use modern C++20 and `std::filesystem`.
+- [x] Verify and fix build process on Ubuntu/Debian.
+- [x] Implement dynamic kernel heap growth.
+- [x] Streamline `README.md` installation instructions.
+- [x] Update `CHANGELOG.md` with changes since last release.
 
--   Add `SoftwareMutex` that uses a `HardwareSpinLock` internally.
-    This is a passive locking primitive that must only be used with interrupts enabled.
+## ✅ Completed (2025-12-12)
 
--   Add `WaitingThreadQueue` that keeps a list of threads that are waiting for some resource.
-    This must only be used with interrupts disabled and uses a `HardwareSpinLock` internally.
+- [x] macOS build compatibility (ELF definitions, portable file I/O)
+- [x] Fix missing `MaskedInterruptGuard` includes across kernel
+- [x] Fix stack alignment issues causing potential hardfaults
+- [x] Implement `init_array`/`fini_array` calling in crt0 (C++ static constructor support)
+- [x] Fix linker warnings (executable stack, missing symbols)
+- [x] All unit tests passing (18/18)
+- [x] Added `AbstractLock` and `LockGuard`
+- [x] Added `HardwareSpinLock` using memory-mapped spin locks
 
--   Verify that all of these locking primitives are functional.
+### Synchronization Primitives
 
--   Protect all the resources with these locking primitives.
+- [x] Add `SoftwareSpinLock` that uses a hardware spin lock but allows more than actual hardware spin locks.
+  - Active locking primitive, must only be used with interrupts disabled.
+  - [x] Should include deadlock detection.
+  - [x] Includes `wfe`/`sev` for power efficiency.
 
--   Schedule on both cores.
+- [x] Add `SoftwareMutex` that uses a `HardwareSpinLock` internally.
+  - Passive locking primitive, must only be used with interrupts enabled.
 
-### Old
+- [x] Add `WaitingThreadQueue` that keeps a list of threads waiting for a resource.
+  - Must only be used with interrupts disabled, uses `HardwareSpinLock` internally.
 
-#### Next Version
+- [x] Verify all locking primitives are functional.
 
--   Group `PageRange`s together in `PageAllocator::deallocate`.
+- [x] Protect all shared resources with these locking primitives.
 
--   Add passive locking primitives
+### Multi-Core Support
 
--   Add active locking primitives
+- [x] Schedule on both cores.
+- [x] Fix `stat /dev/tty`.
+- [x] Implement proper malloc (free-list).
+- [x] Upgrade sorted set to RB Tree.
+- [x] Track allocated pages in `PageAllocator`.
 
-#### Bugs
+---
 
--   We have a ton of memory leaks in the filesystem, e.g. `VirtualFile::create_handle_impl`.
+## 🐛 Known Bugs
 
-  - If we do `stat /dev/tty` we get invalid information, because `ConsoleFileHandle` always
-    returns `ConsoleFile` instead of the actual file.
+- [x] Memory leaks in filesystem (e.g., `VirtualFile::create_handle_impl`).
 
-  - Sometimes we seem to mess something up, this is visible when `ConsoleFileHandle` has an invalid
-    `this` pointer. I reproduced this by running:
+- [x] `stat /dev/tty` returns invalid information because `ConsoleFileHandle` always returns `ConsoleFile` instead of actual file.
 
-    ~~~none
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    Example.elf
-    ~~~
+- [x] Intermittent `ConsoleFileHandle` invalid `this` pointer when running:
+  ```
+  Example.elf
+  Example.elf
+  Example.elf
+  ... (repeated)
+  ```
 
-#### Future features
+---
 
--   Keep track of 'used' page ranges. There is an excelent algorithm that can be used to store these bits
-    in a very compact tree structure.
+## 📋 Future Features
 
--   Maybe I could port the Minix filesystem when I add an IDE driver?
+### Kernel:
+- [x] Keep track of 'used' page ranges with compact tree structure
+- [ ] Port Minix filesystem when IDE driver is added
+- [x] Document interrupt-safe functions and boot stage compatibility
+- [x] Add `MemoryAllocator::allocate_eternal` without MTRACE logs
+- [ ] Run inside Emulation (Blocked: Mainline QEMU/Renode issues, see [Docs/Emulation_Status.md](Docs/Emulation_Status.md))
+- [x] Setup MPU for supervisor mode
+- [x] HardFault in usermode should not crash kernel
+- [x] Stack smash protection with MPU (`-fstack-protector`) and ROSC randomization
+- [x] Group `PageRange`s together in using Buddy coalescing
+- [x] Fix alignment of `.stack`, `.heap` sections in `linker.ld`
 
--   Keep documentation about interrupt safe functions and which functions can be called in which boot stage
+### Userland:
+- [x] Implement a proper malloc (current is bump allocator with no free)
+- [ ] Write userland applications in Zig
 
--   Add `MemoryAllocator::allocate_eternal` which doesn't create MTRACE logs
-
-  - Run inside QEMU
-
-  - Write userland applications in Zig
-
-#### Future tweaks (Userland)
-
-  - Implement a proper malloc
-
-#### Future tweaks (Kernel)
-
-  - Setup MPU for supervisor mode
-
-  - HardFault in usermode crashes kernel
-
-  - Stack smash protection with MPU
-
-      - Build with `-fstack-protector`?
-
-#### Future tweaks (Build)
-
-  - Alignment of `.stack`, `.heap` sections is lost in `readelf`
-
-  - C++20 modules
-
-  - Drop SDK entirely
-
-      - Link `libsup++` or add a custom downcast?
-
-  - Meson build
-
-  - Try using LLDB instead of GDB
-
-  - Don't leak includes from newlib libc
-
-  - Use LLVM/LLD for `FileEmbed`; Not sure what I meant with this, but LLVM
-    surely has all the tools buildin that I need
-
-  - GDB apparently has a secret 'proc' command that makes it possible to debug
-    multiple processes.  This was mentioned in the DragonFlyBSD documentation,
-    keyword: "inferiour"
+### Build System
+- [x] Group `PageRange`s together in `PageAllocator::deallocate` (Buddy optimization implemented)
+- [x] Fix alignment of `.stack`, `.heap` sections in `readelf` (Verified 8-byte alignment)
+- [ ] C++20 modules support
+- [ ] Drop SDK entirely (link `libsup++` or add custom downcast)
+- [ ] Meson build support
+- [ ] Try LLDB instead of GDB
+- [ ] Don't leak includes from newlib libc
+- [x] Use LLVM/LLD for `FileEmbed` (Evaluated: Custom Tool `Tools/ElfEmbed.cpp` needed for FileSystem structure)
+- [ ] Explore GDB 'proc' command for multi-process debugging ("inferior") FileSystem structure

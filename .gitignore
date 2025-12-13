@@ -1,1 +1,44 @@
+# Build directories
 /Build/
+/build/
+/build-*/
+
+# IDE and editor files
+.vscode/*
+!.vscode/c_cpp_properties.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Compiled binaries
+*.o
+*.elf
+*.bin
+*.uf2
+*.hex
+*.dis
+*.map
+
+# CMake artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Temporary files
+*.tmp
+*.log
+cache/
+*.cache
+.cache/

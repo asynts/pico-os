@@ -1,5 +1,5 @@
 #include <Std/Forward.hpp>
-
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/ConsoleDevice.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>

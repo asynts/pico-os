@@ -1,4 +1,5 @@
 #pragma once
+#include <Kernel/HandlerMode.hpp>
 
 namespace Kernel
 {

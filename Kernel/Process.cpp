@@ -1,5 +1,5 @@
 #include <Std/OwnPtr.hpp>
-
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 #include <Kernel/Process.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Loader.hpp>
@@ -9,6 +9,33 @@
 
 namespace Kernel
 {
+    Process::~Process()
+    {
+        // Clean up file handles to prevent leaks
+        for (auto node : m_handles.iter()) {
+            VirtualFileHandle* handle = node.m_value.value();
+            delete handle;
+        }
+    }
+
+    i32 Process::add_file_handle(VirtualFileHandle& handle)
+    {
+        i32 handle_id = m_next_handle_id++;
+        m_handles.set(handle_id, &handle);
+
+        return handle_id;
+    }
+
+    void Process::close_file_handle(i32 fd)
+    {
+        auto* handle_ptr = m_handles.get(fd);
+        if (handle_ptr) {
+            VirtualFileHandle* handle = *handle_ptr;
+            m_handles.remove(fd);
+            delete handle;
+        }
+    }
+
     Process& Process::active()
     {
         auto& thread = Scheduler::the().get_active_thread();

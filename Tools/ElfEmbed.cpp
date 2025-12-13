@@ -1,8 +1,11 @@
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <map>
 #include <vector>
 
-#include <fcntl.h>
 #include <assert.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <fmt/format.h>
@@ -13,36 +16,66 @@
 
 #include "FileSystem.hpp"
 
-static void write_output_file(std::filesystem::path path, Elf::MemoryStream& stream)
-{
-    fmt::print("Writing output file {}\n", path.string());
+// Writes the generated ELF stream to the specified output path
+static void write_output_file(const std::filesystem::path &path,
+                              Elf::MemoryStream &stream) {
+  fmt::print("Writing output file {}\n", path.string());
 
-    int fd = creat(path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    assert(fd >= 0);
+  std::ofstream outfile(path,
+                        std::ios::binary | std::ios::out | std::ios::trunc);
+  if (!outfile.is_open()) {
+    fmt::print(stderr, "Error: Could not open {} for writing.\n",
+               path.string());
+    exit(1);
+  }
 
-    stream.copy_to_raw_fd(fd);
-
-    int retval = close(fd);
-    assert(retval == 0);
+  // Create a buffer to hold the data
+  stream.copy_to_stream(outfile);
+  outfile.close();
 }
 
-int main(int argc, char **argv)
-{
-    // FIXME: Parse command line arguments
+int main(int argc, char **argv) {
+  if (argc < 3) {
+    fmt::print(stderr,
+               "Usage: {} <output_file> <input_file1> [input_file2 ...]\n",
+               argv[0]);
+    return 1;
+  }
 
-    Elf::Generator generator;
+  std::filesystem::path output_path = argv[1];
+  std::vector<std::filesystem::path> input_files;
 
-    FileSystem fs { generator };
+  for (int i = 2; i < argc; ++i) {
+    input_files.emplace_back(argv[i]);
+  }
 
-    std::map<std::string, uint32_t> bin_files;
-    bin_files["Shell.elf"] = fs.add_host_file("Shell.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
-    bin_files["Example.elf"] = fs.add_host_file("Example.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
-    bin_files["Editor.elf"] = fs.add_host_file("Editor.elf", Kernel::ModeFlags::Regular | Kernel::ModeFlags::DefaultExecutablePermissions);
+  Elf::Generator generator;
+  FileSystem fs{generator};
 
-    fs.add_root_directory(bin_files);
+  std::map<std::string, uint32_t> bin_files;
 
-    fs.finalize();
+  for (const auto &file_path : input_files) {
+    if (!std::filesystem::exists(file_path)) {
+      fmt::print(stderr, "Error: Input file {} does not exist.\n",
+                 file_path.string());
+      return 1;
+    }
 
-    auto stream = generator.finalize();
-    write_output_file("FileSystem.elf", stream);
+    std::string filename = file_path.filename().string();
+    fmt::print("Embedding {}\n", filename);
+
+    // Add file to filesystem (executable permissions by default for these
+    // tools)
+    bin_files[filename] = fs.add_host_file(
+        file_path, Kernel::ModeFlags::Regular |
+                       Kernel::ModeFlags::DefaultExecutablePermissions);
+  }
+
+  fs.add_root_directory(bin_files);
+  fs.finalize();
+
+  auto stream = generator.finalize();
+  write_output_file(output_path, stream);
+
+  return 0;
 }

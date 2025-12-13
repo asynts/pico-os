@@ -16,18 +16,16 @@ namespace Kernel
             i32 m_status;
         };
 
+        ~Process();
+
         static Process& active();
 
         static Process& create(StringView name, ElfWrapper);
         static Process& create(StringView name, ElfWrapper, const Vector<ImmutableString>& arguments, const Vector<ImmutableString>& variables);
 
-        i32 add_file_handle(VirtualFileHandle& handle)
-        {
-            i32 handle_id = m_next_handle_id++;
-            m_handles.set(handle_id, &handle);
+        i32 add_file_handle(VirtualFileHandle& handle);
+        void close_file_handle(i32 fd);
 
-            return handle_id;
-        }
 
         VirtualFileHandle& get_file_handle(i32 fd)
         {

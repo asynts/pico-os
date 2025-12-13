@@ -63,12 +63,15 @@ constexpr void swap(T& lhs, T& rhs)
 }
 
 extern "C"
-inline void strlcpy(char *destination, const char *source, usize size) noexcept
+inline usize strlcpy(char *destination, const char *source, usize size) noexcept
 {
+    usize len = __builtin_strlen(source);
     if (size >= 1) {
-        __builtin_strncpy(destination, source, size - 1);
-        destination[size - 1] = 0;
+        usize n = (len < size - 1) ? len : (size - 1);
+        __builtin_memcpy(destination, source, n);
+        destination[n] = 0;
     }
+    return len;
 }
 extern "C"
 void* memcpy(void *destination, const void *source, usize count) noexcept;
