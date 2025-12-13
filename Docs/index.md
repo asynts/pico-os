@@ -20,6 +20,7 @@ Welcome to the documentation for **PicoOS**, a simple operating system designed 
 | [System Overview](architecture/system_overview.md) | Memory model, kernel/userland split, MPU |
 | [Scheduler](architecture/scheduler.md) | Preemptive round-robin, context switching |
 | [Synchronization](architecture/synchronization.md) | Multi-core locks: `SoftwareSpinLock`, `SoftwareMutex` |
+| [Memory & Security](architecture/memory.md) | Allocators, MPU, Stack Protection, Headers |
 | [FileSystem](architecture/filesystem.md) | VFS, `/dev`, Flash memory |
 
 ---

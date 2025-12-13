@@ -4,6 +4,7 @@
 
 - [x] Refactor `Tools/` directory (ElfEmbed, FileSystem) to use modern C++20 and `std::filesystem`.
 - [x] Verify and fix build process on Ubuntu/Debian.
+- [x] Implement dynamic kernel heap growth.
 - [x] Streamline `README.md` installation instructions.
 - [x] Update `CHANGELOG.md` with changes since last release.
 
@@ -63,27 +64,29 @@
 
 ## 📋 Future Features
 
-### Kernel
-- [ ] Keep track of 'used' page ranges with compact tree structure
+### Kernel:
+- [x] Keep track of 'used' page ranges with compact tree structure
 - [ ] Port Minix filesystem when IDE driver is added
-- [ ] Document interrupt-safe functions and boot stage compatibility
-- [ ] Add `MemoryAllocator::allocate_eternal` without MTRACE logs
-- [ ] Run inside QEMU
-- [ ] Setup MPU for supervisor mode
-- [ ] HardFault in usermode should not crash kernel
-- [ ] Stack smash protection with MPU (`-fstack-protector`)
+- [x] Document interrupt-safe functions and boot stage compatibility
+- [x] Add `MemoryAllocator::allocate_eternal` without MTRACE logs
+- [ ] Run inside Emulation (Blocked: Mainline QEMU/Renode issues, see [Docs/Emulation_Status.md](Docs/Emulation_Status.md))
+- [x] Setup MPU for supervisor mode
+- [x] HardFault in usermode should not crash kernel
+- [x] Stack smash protection with MPU (`-fstack-protector`) and ROSC randomization
+- [x] Group `PageRange`s together in using Buddy coalescing
+- [x] Fix alignment of `.stack`, `.heap` sections in `linker.ld`
 
-### Userland
-- [ ] Implement a proper malloc (current is bump allocator with no free)
+### Userland:
+- [x] Implement a proper malloc (current is bump allocator with no free)
 - [ ] Write userland applications in Zig
 
 ### Build System
-- [ ] Group `PageRange`s together in `PageAllocator::deallocate`
-- [ ] Fix alignment of `.stack`, `.heap` sections in `readelf`
+- [x] Group `PageRange`s together in `PageAllocator::deallocate` (Buddy optimization implemented)
+- [x] Fix alignment of `.stack`, `.heap` sections in `readelf` (Verified 8-byte alignment)
 - [ ] C++20 modules support
 - [ ] Drop SDK entirely (link `libsup++` or add custom downcast)
 - [ ] Meson build support
 - [ ] Try LLDB instead of GDB
 - [ ] Don't leak includes from newlib libc
-- [ ] Use LLVM/LLD for `FileEmbed`
-- [ ] Explore GDB 'proc' command for multi-process debugging ("inferior")
+- [x] Use LLVM/LLD for `FileEmbed` (Evaluated: Custom Tool `Tools/ElfEmbed.cpp` needed for FileSystem structure)
+- [ ] Explore GDB 'proc' command for multi-process debugging ("inferior") FileSystem structure

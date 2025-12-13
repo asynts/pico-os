@@ -82,6 +82,7 @@ target_compile_options(project_options INTERFACE
     -Wextra
     -Werror
     -O0
+    -fstack-protector-strong
     ${SDK_WARNINGS_OFF}
 )
 
@@ -125,6 +126,9 @@ target_link_libraries(Kernel.1
 target_compile_definitions(Kernel.1 PRIVATE
     KERNEL
 )
+
+# Use custom linker script with alignment fixes
+pico_set_linker_script(Kernel.1 ${CMAKE_CURRENT_SOURCE_DIR}/Kernel/linker.ld)
 
 # Generate .uf2, .bin, .hex outputs
 pico_add_extra_outputs(Kernel.1)

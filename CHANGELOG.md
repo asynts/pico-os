@@ -3,6 +3,35 @@
 ## [Unreleased] - 2025-12-14
 
 ### Added
+- **Final Polish Items**:
+    - `SoftwareSpinLock`: Active locking with deadlock detection and power efficiency (`wfe`/`sev`).
+    - `SoftwareMutex`: Passive locking using `HardwareSpinLock`.
+    - `WaitingThreadQueue`: For managing threads waiting on resources.
+- **Hardware Integration**:
+    - `HardwareSpinLock`: Memory-mapped spin lock support for RP2040.
+    - `sys$read`, `sys$write`: Basic system calls hooked to `ConsoleDevice`.
+    - **MPU**: Supervisor/User memory separation verified.
+- **Core Infrastructure**:
+    - `init_array`/`fini_array` support in crt0 for C++ static constructors.
+    - Stack alignment fixes to prevent hardfaults.
+    - **Exception Handling**: Implemented HardFault handler (Userland kill, Kernel panic).
+    - **Memory**: Added `allocate_eternal` for silent allocation.
+    - **QEMU**: Added launch script `Tools/run-qemu.sh`.
+
+### Refactoring & Core Improvements
+- **Kernel/StackProtector**: Implemented `init_stack_guard` using RP2040 ROSC for hardware-randomized stack canaries.
+- **Kernel/Exceptions**: Enhanced HardFault handlers with clearer register dumps and stack trace headers.
+- **Kernel/PageAllocator**: Added detailed comments on RP2040 RAM layout and Buddy System initialization.
+- **Kernel/GlobalMemoryAllocator**: Standardized mutex usage with `ScopedMutex` and added comments. Implemented dynamic heap growth.
+- **Kernel/StackWrapper**: Improved API docs and parameter naming.
+- **Tools**: Removed unstable QEMU/Renode scripts (emulation deferred).
+
+### System
+- **Synchronization**: `HardwareSpinLock` is now ISR-safe, storing/restoring interrupt state.
+- **MPU**: Setup for supervisor/user mode isolation.
+- **Build**: Linker script (`linker.ld`) enforces 8-byte alignment for stack/heap.
+- **Documentation**:
+    - Added `docs/InterruptSafety.md`.
 - **Multi-Core Support**: `Scheduler` now supports creating and scheduling threads on both cores of the RP2040. Integrated `HardwareSpinLock` for safe inter-core synchronization.
 - **Robust Data Structures**:
     - Replaced `Std::SortedSet`'s binary search tree with a **Red-Black Tree** implementation, guaranteeing O(log n) operations.

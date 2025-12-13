@@ -101,6 +101,7 @@ stateDiagram-v2
 | :--- | :--- | :--- |
 | Scheduler | Thread management and context switching | [scheduler.md](scheduler.md) |
 | Synchronization | Multi-core locking primitives | [synchronization.md](synchronization.md) |
+| Memory & Security | Allocators, MPU, Stack Protection | [memory.md](memory.md) |
 | FileSystem | VFS, DeviceFS, FlashFS | [filesystem.md](filesystem.md) |
 | System Calls | User/Kernel interface | [syscalls.md](../reference/syscalls.md) |
 

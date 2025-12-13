@@ -23,7 +23,9 @@ Full documentation is available in the [Docs/](Docs/index.md) directory.
     *   Round-robin Scheduler.
     *   Wait-state efficient Synchronization (`SoftwareSpinLock`, `SoftwareMutex`).
     *   Virtual File System (VFS) with `/dev` and Flash support.
-    *   MPU-based memory protection.
+    *   MPU-based memory protection (Supervisor/User isolation).
+    *   **Security**: Stack Smashing Protection (SSP) with Hardware RNG (ROSC).
+    *   **Memory**: Dynamic Kernel Heap, Buddy System Page Allocator.
 *   **Userland**:
     *   ELF Executable loading (`posix_spawn`).
     *   Basic Shell and Editor.
