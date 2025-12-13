@@ -1,98 +1,112 @@
 #pragma once
 
-#include <Std/Singleton.hpp>
 #include <Std/Array.hpp>
-#include <Std/Optional.hpp>
 #include <Std/Format.hpp>
+#include <Std/Optional.hpp>
+#include <Std/Singleton.hpp>
 
 #include <Kernel/Forward.hpp>
 
-namespace Kernel
-{
-    // This must not be turned on in early boot.
-    // We need to allocate some memory before we are able to produce output.
-    volatile inline bool debug_page_allocator = false;
+#include <Std/SortedSet.hpp>
 
-    struct PageRange {
-        usize m_power;
-        uptr m_base;
+namespace Kernel {
+// This must not be turned on in early boot.
+// We need to allocate some memory before we are able to produce output.
+volatile inline bool debug_page_allocator = false;
 
-        const u8* data() const { return reinterpret_cast<const u8*>(m_base); }
-        u8* data() { return reinterpret_cast<u8*>(m_base); }
+struct PageRange {
+  usize m_power;
+  uptr m_base;
 
-        usize size() const { return 1 << m_power; }
+  const u8 *data() const { return reinterpret_cast<const u8 *>(m_base); }
+  u8 *data() { return reinterpret_cast<u8 *>(m_base); }
 
-        ReadonlyBytes bytes() const { return { data(), size() }; }
-        Bytes bytes() { return { data(), size() }; }
-    };
+  usize size() const { return 1 << m_power; }
 
-    class OwnedPageRange {
-    public:
-        explicit OwnedPageRange(PageRange range)
-            : m_range(range)
-        {
-        }
-        OwnedPageRange(const OwnedPageRange&) = delete;
-        OwnedPageRange(OwnedPageRange&& other)
-        {
-            m_range = move(other.m_range);
-        }
-        ~OwnedPageRange();
+  ReadonlyBytes bytes() const { return {data(), size()}; }
+  Bytes bytes() { return {data(), size()}; }
 
-        OwnedPageRange& operator=(const OwnedPageRange&) = delete;
+  bool operator<(const PageRange &other) const { return m_base < other.m_base; }
+  bool operator>(const PageRange &other) const { return m_base > other.m_base; }
+  bool operator==(const PageRange &other) const {
+    return m_base == other.m_base;
+  }
+  bool operator!=(const PageRange &other) const {
+    return m_base != other.m_base;
+  }
+};
 
-        OwnedPageRange& operator=(OwnedPageRange&& other)
-        {
-            m_range = move(other.m_range);
-            return *this;
-        }
+class OwnedPageRange {
+public:
+  explicit OwnedPageRange(PageRange range) : m_range(range) {}
+  OwnedPageRange(const OwnedPageRange &) = delete;
+  OwnedPageRange(OwnedPageRange &&other) { m_range = move(other.m_range); }
+  ~OwnedPageRange();
 
-        usize size() const { return m_range->size(); }
+  OwnedPageRange &operator=(const OwnedPageRange &) = delete;
 
-        const u8* data() const { return m_range->data(); }
-        u8* data() { return m_range->data(); }
+  OwnedPageRange &operator=(OwnedPageRange &&other) {
+    m_range = move(other.m_range);
+    return *this;
+  }
 
-        ReadonlyBytes bytes() const { return m_range->bytes(); }
-        Bytes bytes() { return m_range->bytes(); }
+  usize size() const { return m_range->size(); }
 
-        Optional<PageRange> m_range;
-    };
+  const u8 *data() const { return m_range->data(); }
+  u8 *data() { return m_range->data(); }
 
-    class PageAllocator : public Singleton<PageAllocator> {
-    public:
-        static constexpr usize max_power = 19;
-        static constexpr usize stack_power = power_of_two(0x800);
+  ReadonlyBytes bytes() const { return m_range->bytes(); }
+  Bytes bytes() { return m_range->bytes(); }
 
-        Optional<OwnedPageRange> allocate(usize power);
-        void deallocate(OwnedPageRange&);
+  Optional<PageRange> m_range;
+};
 
-        // FIXME: Syncronize
-        void dump()
-        {
-            dbgln("[PageAllocator] blocks:");
-            for (usize power = 0; power < max_power; ++power) {
-                dbgln("  [{}]: {}", power, m_blocks[power]);
-            }
-        }
+class PageAllocator : public Singleton<PageAllocator> {
+public:
+  static constexpr usize max_power = 19;
+  static constexpr usize stack_power = power_of_two(0x800);
 
-        void set_mutex_enabled(bool enabled);
+  Optional<OwnedPageRange> allocate(usize power);
+  void deallocate(OwnedPageRange &);
 
-    private:
-        friend Singleton<PageAllocator>;
-        PageAllocator();
+  // FIXME: Syncronize
+  void dump() {
+    dbgln("[PageAllocator] blocks:");
+    for (usize power = 0; power < max_power; ++power) {
+      dbgln("  [{}]: {}", power, m_blocks[power]);
+    }
+    dbgln("[PageAllocator] allocated: {}", m_allocated_pages);
+  }
 
-        Optional<PageRange> allocate_locked(usize power);
-        void deallocate_locked(PageRange);
+  void set_mutex_enabled(bool enabled);
 
-        // There is quite a bit of trickery going on here:
-        //
-        //   - The address of this block is encoded indirectly in the address of this object
-        //
-        //   - The size of this block is encoded indirection in the index used to access m_blocks
-        struct Block {
-            Block *m_next;
-        };
+private:
+  friend Singleton<PageAllocator>;
+  PageAllocator();
 
-        Array<Block*, max_power + 1> m_blocks;
-    };
-}
+  Optional<PageRange> allocate_locked(usize power);
+  void deallocate_locked(PageRange);
+
+  // There is quite a bit of trickery going on here:
+  //
+  //   - The address of this block is encoded indirectly in the address of this
+  //   object
+  //
+  //   - The size of this block is encoded indirection in the index used to
+  //   access m_blocks
+  struct Block {
+    Block *m_next;
+  };
+
+  Array<Block *, max_power + 1> m_blocks;
+  SortedSet<PageRange> m_allocated_pages;
+};
+} // namespace Kernel
+
+namespace Std {
+template <> struct Formatter<Kernel::PageRange> {
+  static void format(StringBuilder &builder, const Kernel::PageRange &value) {
+    builder.appendf("[base={x}, power={}]", value.m_base, value.m_power);
+  }
+};
+} // namespace Std

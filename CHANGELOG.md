@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased] - 2025-12-14
+
+### Added
+- **Multi-Core Support**: `Scheduler` now supports creating and scheduling threads on both cores of the RP2040. Integrated `HardwareSpinLock` for safe inter-core synchronization.
+- **Robust Data Structures**:
+    - Replaced `Std::SortedSet`'s binary search tree with a **Red-Black Tree** implementation, guaranteeing O(log n) operations.
+    - Added `m_allocated_pages` to `PageAllocator` using `SortedSet` to explicitly track allocated memory ranges.
+- **Userland Allocator**: Implemented a free-list based `malloc`/`free`/`realloc`/`calloc` in `Userland/LibC`, replacing the previous bump allocator. This allows memory reuse and reduces fragmentation.
+- `Std::Formatter` specialization for `Kernel::PageRange`.
+
+### Changed
+- Refactored `ConsoleFileHandle` to store a reference to the specific `VirtualFile` instance, fixing an issue where `stat /dev/tty` returned incorrect device information.
+- Updated `Scheduler::dump()` to correctly iterate over core-specific thread arrays.
+- Enhanced `PageAllocator::dump()` to show detailed allocation tracking.
+
+### Fixed
+- `stat /dev/tty` listing incorrect file attributes by decoupling `ConsoleFileHandle` from the singleton.
+- Compilation errors in `Std/SortedSet.hpp` related to `HashTable` compatibility (relied on strict weak ordering `<` instead of `==`).
+
 ## [Unreleased] - 2025-12-12
 
 ### Fixed

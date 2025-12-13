@@ -2,51 +2,46 @@
 
 #include <Std/Forward.hpp>
 
-// FIXME: This is not safe for multiple cores or even multiple threads
+namespace Std {
+// Storage container to verify Type completeness on usage, not definition
+template <typename T> struct SingletonContainer {
+  static inline bool m_initialized = false;
+  alignas(T) static inline u8 m_instance_storage[sizeof(T)];
+};
 
-namespace Std
-{
-    template<typename T>
-    struct SingletonContainer
-    {
-        static inline bool m_initialized = false;
+// A singleton wrapper that manages the lifetime of a single instance.
+//
+// NOTE: This implementation is NOT thread-safe during initialization.
+// It is intended to be initialized during the single-threaded boot phase
+// of the kernel, before any secondary cores or interrupts are enabled.
+// Access via `the()` is safe provided initialization is complete and
+// the instance itself handles concurrency (or is immutable).
+template <typename T> class Singleton {
+public:
+  Singleton(const Singleton &) = delete;
+  Singleton(Singleton &&) = delete;
+  Singleton &operator=(const Singleton &) = delete;
+  Singleton &operator=(Singleton &&) = delete;
 
-        alignas(T)
-        static inline u8 m_instance[sizeof(T)];
-    };
+  Singleton() = default;
 
-    template<typename T>
-    class Singleton {
-    public:
-        Singleton(const Singleton&) = delete;
-        Singleton(Singleton&&) = delete;
+  template <typename... Parameters>
+  static void initialize(Parameters &&...parameters) {
+    VERIFY(!m_initialized);
+    // Construct in-place
+    new (SingletonContainer<T>::m_instance_storage)
+        T{forward<Parameters>(parameters)...};
+    m_initialized = true;
+  }
 
-        Singleton() = default;
+  static bool is_initialized() { return m_initialized; }
 
-        template<typename... Parameters>
-        static void initialize(Parameters&&... parameters)
-        {
-            VERIFY(!m_initialized);
+  static T &the() {
+    VERIFY(m_initialized);
+    return *reinterpret_cast<T *>(SingletonContainer<T>::m_instance_storage);
+  }
 
-            m_initialized = true;
-            new (m_instance) T { forward<Parameters>(parameters)... };
-        }
-
-        static bool is_initialized()
-        {
-            return m_initialized;
-        }
-
-        static T& the()
-        {
-            VERIFY(m_initialized);
-            return *m_instance;
-        }
-
-    private:
-        static inline bool& m_initialized = SingletonContainer<T>::m_initialized;
-
-        // FIXME: This is the incorrect type
-        static inline T (&m_instance)[] = reinterpret_cast<T(&)[]>(SingletonContainer<T>::m_instance);
-    };
-}
+private:
+  static inline bool &m_initialized = SingletonContainer<T>::m_initialized;
+};
+} // namespace Std

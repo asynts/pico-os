@@ -8,7 +8,7 @@
 
 </div>
 
-## 📖 Documentation
+## Documentation
 
 Full documentation is available in the [Docs/](Docs/index.md) directory.
 
@@ -31,61 +31,58 @@ Full documentation is available in the [Docs/](Docs/index.md) directory.
 
 ## 🚀 Quick Start
 
-1.  **Build**:
-    1. Install required packages:
+### 1. Prerequisites
 
-    ```none
-    pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt
-    ```
+You will need the following tools:
+*   **Toolchain**: `arm-none-eabi-gcc`, `newlib`
+*   **Build System**: `cmake`, `ninja`
+*   **Debug**: `gdb-multiarch` (or `arm-none-eabi-gdb`), `openocd`
+*   **Utilities**: `python3`, `tio` (serial terminal)
 
-    2. Install TIO from AUR:
+#### Ubuntu / Debian
+```bash
+sudo apt update
+sudo apt install build-essential cmake ninja-build python3-invoke \
+    gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
+    gdb-multiarch libfmt-dev \
+    automake autoconf texinfo libtool libftdi-dev libusb-1.0-0-dev # For OpenOCD
+```
 
-    ```none
-    cdm ~/src/aur.archlinux.org
-    git clone --depth 1 https://aur.archlinux.org/tio.git
-    cd tio
-    makepkg --install
-    ```
+#### Arch Linux
+```bash
+sudo pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb \
+    arm-none-eabi-newlib fmt ninja cmake openocd
+```
+*Note: For `tio`, install from AUR (e.g., `yay -S tio`).*
 
-    3. Build `openocd`:
+### 2. Build OpenOCD (Ubuntu/Debian)
+Arch Linux users can skip this if they installed the `openocd` package.
 
-    ```none
-    cdm ~/src/github.com/raspberrypi
-    git clone --branch picoprobe --depth 1 git@github.com:raspberrypi/openocd.git
-    cd openocd
-    ./bootstrap
-    CFLAGS=-Wno-error ./configure --enable-picoprobe
-    make -j24
-    sudo make install
-    ```
+```bash
+git clone https://github.com/raspberrypi/openocd.git --branch rpi-common --depth=1
+cd openocd
+git submodule update --init --recursive
+./bootstrap
+./configure --enable-picoprobe --enable-internal-jimtcl
+make -j$(nproc)
+sudo make install
+```
 
-    4. Build `pico-sdk`:
+### 3. Build PicoOS
+```bash
+mkdir build && cd build
+# PICO_SDK_FETCH_FROM_GIT=ON automatically downloads the SDK
+cmake .. -G Ninja -DPICO_SDK_FETCH_FROM_GIT=ON
+ninja
+```
+This generates `build/Kernel.1.uf2`.
 
-    ```none
-    cdm ~/dev
-    git clone --branch tweaks git@github.com:asynts/pico-sdk.git
-    ```
-
-    5. Build the project with:
-
-    ```none
-    cdm Build
-    cmake .. -GNinja -DPICO_SDK_PATH=~/dev/pico-sdk
-    ninja
-    ```
-
-    6. Connect Raspberry Pi Pico.  The scripts expect two Raspberry devices where
-    one is used for debugging and the other runs the operating system. There
-    needs to be a UART connection from the debugee to the debugger.
-    The debugger runs the picoprobe firmware.
-
-2.  **Flash**:
-    Connect Pico in BOOTSEL mode and run:
+### 4. Flash and Connect
+1.  **Flash**: Hold BOOTSEL on Pico, connect USB, and run:
     ```bash
     inv flash
     ```
-
-3.  **Connect**:
+2.  **Connect**:
     ```bash
     inv tty
     ```

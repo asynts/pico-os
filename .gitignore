@@ -39,3 +39,6 @@ __pycache__/
 # Temporary files
 *.tmp
 *.log
+cache/
+*.cache
+.cache/

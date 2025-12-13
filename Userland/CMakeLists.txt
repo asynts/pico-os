@@ -29,7 +29,7 @@ userland_executable(Example)
 userland_executable(Editor)
 
 add_custom_target(FileSystem.elf ALL
-    COMMAND ${ELF_EMBED_EXECUTABLE}
+    COMMAND ${ELF_EMBED_EXECUTABLE} FileSystem.elf Shell.elf Example.elf Editor.elf
     DEPENDS ${USERLAND_EXECUTABLES} ElfEmbed)
 
 add_library(LibEmbeddedFiles OBJECT IMPORTED GLOBAL)

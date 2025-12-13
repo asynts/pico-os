@@ -1,5 +1,12 @@
 # TODO
 
+## ✅ Completed (2025-12-14)
+
+- [x] Refactor `Tools/` directory (ElfEmbed, FileSystem) to use modern C++20 and `std::filesystem`.
+- [x] Verify and fix build process on Ubuntu/Debian.
+- [x] Streamline `README.md` installation instructions.
+- [x] Update `CHANGELOG.md` with changes since last release.
+
 ## ✅ Completed (2025-12-12)
 
 - [x] macOS build compatibility (ELF definitions, portable file I/O)
@@ -30,7 +37,11 @@
 
 ### Multi-Core Support
 
-- [ ] Schedule on both cores.
+- [x] Schedule on both cores.
+- [x] Fix `stat /dev/tty`.
+- [x] Implement proper malloc (free-list).
+- [x] Upgrade sorted set to RB Tree.
+- [x] Track allocated pages in `PageAllocator`.
 
 ---
 
