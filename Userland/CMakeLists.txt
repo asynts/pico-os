@@ -1,5 +1,4 @@
 file(GLOB_RECURSE LIBC_SOURCES CONFIGURE_DEPENDS LibC/*.c LibC/*.S)
-file(GLOB_RECURSE Example_SOURCES CONFIGURE_depends LibC/*.c LibC/*.S)
 
 function(userland_executable name_)
     add_custom_target(${name_}.1.elf ALL

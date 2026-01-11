@@ -49,7 +49,7 @@ The kernel has the following capabilities:
  1. Install required packages:
 
     ```none
-    pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt
+    pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt meson cmake
     ```
 
  2. Install TIO from AUR:
@@ -78,6 +78,7 @@ The kernel has the following capabilities:
     ```none
     cdm ~/dev
     git clone --branch tweaks git@github.com:asynts/pico-sdk.git
+    git submodule update --init
     ```
 
  4. Build the project with:

@@ -2,6 +2,16 @@
 .cpu cortex-m0plus
 .thumb
 
+// The CortexM0+ processor does not have a memory management unit (MMU).
+// Therefore, all userland executables need to be position independent.
+
+// Use 'r9' register as static base 'sb' register (-frwpi)
+.eabi_attribute Tag_ABI_PCS_R9_use, 1
+// Mutable data must be accessed relative to 'sb' register (-frwpi)
+.eabi_attribute Tag_ABI_PCS_RW_data, 2
+// Immuatable data must be accessed relative to program counter (-fropi)
+.eabi_attribute Tag_ABI_PCS_RO_data, 1
+
 // void _init(void)
 .extern _init
 

@@ -1,0 +1,183 @@
+commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
+
+### Notes
+
+-   After building the project for the first time in a long time, I get the following linking error:
+    ```none
+    /usr/bin/arm-none-eabi-ld: error: /tmp/crt0-a6b71d.o: conflicting use of R9
+    /usr/bin/arm-none-eabi-ld: failed to merge target specific data of file /tmp/crt0-a6b71d.o
+    ```
+    There are several other warnings, but this seems to be the actual problem.
+
+    -   However, it seems that this register isn't actually used in this file?
+
+    -   I did find a mention of this error message here, even with the register R9:
+        https://cdn.kernel.org/pub/tools/crosstool/files/patches/binutils-2.30-nds32.diff
+        `elf32_arm_merge_eabi_attributes (bfd *ibfd, struct bfd_link_info *info)`
+
+    -   It seems that BFD stands for binary file descriptor and is used for mainpulation of object files:
+        https://en.wikipedia.org/wiki/Binary_File_Descriptor_library
+
+    -   I did find the code location here:
+        https://github.com/bminor/binutils-gdb/blob/d320649e1805e5330a09b103d4ca890a12815f56/bfd/elf32-arm.c#L13933-L13940
+
+    -   According to this document, there was a breaking change in the assembler command line options:
+        https://documentation-service.arm.com/static/5e7b64627158f500bd5bcb1e?token=
+
+        -   It seems that for "read-write position independent" code, you need to set some attributes in the assembly file
+            ```none
+            .eabi_attribute Tag_ABI_PCS_R9_use, 1
+            .eabi_attribute Tag_ABI_PCS_RW_data, 2
+            ```
+            However, I have no clue what this actually means.
+
+        -   I didn't use the `--apcs` option before, but maybe it was active implicitly?
+
+        -   According to the dates, this migration should have happend a long time ago before I did the project.
+            I don't think that I was working with an outdated version of the compiler.
+
+    -   I found a reference to it in the addenda of the ABI specification:
+        https://github.com/ARM-software/abi-aa/blob/a78fa26d95a094264233114e49f5c4e1636df7b2/addenda32/addenda32.rst#336procedure-call-related-attributes
+
+-   This is the command that is causing issues:
+    ```shell
+    clang \
+        --target=arm-none-eabi \
+        -mcpu=cortex-m0plus \
+        -std=gnu11 \
+        -Og -g \
+        -static \
+        -nostdlib \
+        -fcolor-diagnostics \
+        -fropi \
+        -frwpi \
+        -DUSERLAND \
+        -I /home/me/dev/pico-os/Userland/LibC \
+        -I /home/me/dev/pico-os \
+        -T /home/me/dev/pico-os/Userland/Userland.x \
+        -Xlinker --nmagic \
+        --sysroot=/usr/local/arm-none-eabi \
+        /home/me/dev/pico-os/Userland/LibC/assert.c \
+        /home/me/dev/pico-os/Userland/LibC/ctype.c \
+        /home/me/dev/pico-os/Userland/LibC/dirent.c \
+        /home/me/dev/pico-os/Userland/LibC/errno.c \
+        /home/me/dev/pico-os/Userland/LibC/fcntl.c \
+        /home/me/dev/pico-os/Userland/LibC/malloc.c \
+        /home/me/dev/pico-os/Userland/LibC/readline/readline.c \
+        /home/me/dev/pico-os/Userland/LibC/spawn.c \
+        /home/me/dev/pico-os/Userland/LibC/stdio.c \
+        /home/me/dev/pico-os/Userland/LibC/stdlib.c \
+        /home/me/dev/pico-os/Userland/LibC/string.c \
+        /home/me/dev/pico-os/Userland/LibC/sys/abi.c \
+        /home/me/dev/pico-os/Userland/LibC/sys/crt0.S \
+        /home/me/dev/pico-os/Userland/LibC/sys/crt0.c \
+        /home/me/dev/pico-os/Userland/LibC/sys/stat.c \
+        /home/me/dev/pico-os/Userland/LibC/sys/system.c \
+        /home/me/dev/pico-os/Userland/LibC/sys/wait.c \
+        /home/me/dev/pico-os/Userland/LibC/unistd.c \
+        /home/me/dev/pico-os/Userland/Example.c \
+        -o /home/me/dev/pico-os/Build/Userland/Example.1.elf
+    ```
+    I am trying to reduce it:
+    ```shell
+    clang \
+        --target=arm-none-eabi \
+        -mcpu=cortex-m0plus \
+        -std=gnu11 \
+        -Og -g \
+        -static \
+        -nostdlib \
+        -fcolor-diagnostics \
+        -fropi \
+        -frwpi \
+        -DUSERLAND \
+        -I /home/me/dev/pico-os/Userland/LibC \
+        -I /home/me/dev/pico-os \
+        -T /home/me/dev/pico-os/Userland/Userland.x \
+        -Xlinker --nmagic \
+        --sysroot=/usr/local/arm-none-eabi \
+        /home/me/dev/pico-os/Userland/LibC/sys/crt0.S \
+        /home/me/dev/pico-os/Userland/Example.c \
+        -o /home/me/dev/pico-os/Build/Userland/Example.1.elf
+    ```
+
+-   Unfortunately, the register names are not documented for the GNU assembler:
+    https://sourceware.org/binutils/docs/as/ARM_002dRegs.html
+
+-   However, the registers are documented in the ABI:
+    https://github.com/ARM-software/abi-aa/blob/main/aapcs32/aapcs32.rst#611core-registers
+
+-   I am reading the metadata from the `.eabi_attributes` back and comparing them:
+    ```none
+    $ arm-none-eabi-readelf --arch-specific ./crt0.o
+    Attribute Section: aeabi
+    File Attributes
+    Tag_CPU_name: "cortex-m0plus"
+    Tag_CPU_arch: v6S-M
+    Tag_CPU_arch_profile: Microcontroller
+    Tag_ARM_ISA_use: No
+    Tag_THUMB_ISA_use: Thumb-1
+    Tag_CPU_unaligned_access: None
+    ~/dev/pico-os/Build (me)
+    $ arm-none-eabi-readelf --arch-specific ./Example.o
+    Attribute Section: aeabi
+    File Attributes
+    Tag_conformance: "2.09"
+    Tag_CPU_name: "cortex-m0plus"
+    Tag_CPU_arch: v6S-M
+    Tag_CPU_arch_profile: Microcontroller
+    Tag_ARM_ISA_use: No
+    Tag_THUMB_ISA_use: Thumb-1
+    Tag_ABI_PCS_R9_use: SB
+    Tag_ABI_PCS_RW_data: SB-relative
+    Tag_ABI_PCS_RO_data: PC-relative
+    Tag_ABI_PCS_GOT_use: direct
+    Tag_ABI_PCS_wchar_t: 4
+    Tag_ABI_FP_denormal: Needed
+    Tag_ABI_FP_exceptions: Unused
+    Tag_ABI_FP_number_model: IEEE 754
+    Tag_ABI_align_needed: 8-byte
+    Tag_ABI_align_preserved: 8-byte, except leaf SP
+    Tag_ABI_enum_size: int
+    Tag_ABI_optimization_goals: Prefer Speed
+    Tag_CPU_unaligned_access: None
+    Tag_ABI_FP_16bit_format: IEEE 754
+    ```
+
+-   I need to add the following tags:
+    Tag_conformance: "2.09"
+    Tag_ABI_PCS_R9_use: SB
+    Tag_ABI_PCS_RW_data: SB-relative
+    Tag_ABI_PCS_RO_data: PC-relative
+    Tag_ABI_PCS_GOT_use: direct
+    Tag_ABI_PCS_wchar_t: 4
+    Tag_ABI_FP_denormal: Needed
+    Tag_ABI_FP_exceptions: Unused
+    Tag_ABI_FP_number_model: IEEE 754
+    Tag_ABI_align_needed: 8-byte
+    Tag_ABI_align_preserved: 8-byte, except leaf SP
+    Tag_ABI_enum_size: int
+    Tag_ABI_optimization_goals: Prefer Speed
+    Tag_ABI_FP_16bit_format: IEEE 754
+
+-   Documentation about the ARM assember:
+    https://documentation-service.arm.com/static/5f3e8d48b13d4764d4613a13
+
+-   The first issue seems to be resolved with the additional `.abi_attribute` directives.
+    However, I still get the other error: `dangerous relocation: unsupported relocation`
+
+## Theories
+
+## Tasks
+
+-   Look at the tags in C and figure out if they are accurate, then replicate in assembly
+
+-   Add test to ensure this doesn't change
+
+## Delayed Tasks
+
+-   Create a question on StackOverflow and answer it myself.
+
+-   Figure out what is going on with the `rewrite` branch
+
+-   Delete all the old `backup` and `bits` tags in GitHub
