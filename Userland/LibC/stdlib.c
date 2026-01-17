@@ -16,10 +16,12 @@ _Noreturn void exit(int status)
     printf("How did we get here?\n");
 }
 
-static char __env_PATH[] = "/bin";
+static char __libc_environment_PATH[] = "/bin";
+#define environment_PATH access_mutable_global(__libc_environment_PATH, char*)
+
 
 char* getenv(const char *name)
 {
     assert(strcmp(name, "PATH") == 0);
-    return __env_PATH;
+    return environment_PATH;
 }

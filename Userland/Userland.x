@@ -30,19 +30,20 @@ SECTIONS
     } :text
     . = ALIGN(4);
     .data : {
+        __libc_static_base = .;
         *(.data*)
     } :data
     . = ALIGN(4);
     .bss (NOLOAD) : {
-        __bss_start__ = .;
+        __libc_bss_start = .;
         *(.bss*)
-        __bss_end__ = .;
+        __libc_bss_end = .;
     } :data
     . = ALIGN(4);
     .heap (NOLOAD) : {
-        __heap_start__ = .;
+        __libc_heap_start = .;
         . += 0x1000;
-        __heap_end__ = .;
+        __libc_heap_end = .;
     } :data
     . = ALIGN(8);
     .stack (NOLOAD) : {

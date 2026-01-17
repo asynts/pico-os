@@ -1,6 +1,9 @@
 #pragma once
 
-extern int errno;
+#include <sys/system.h>
+
+extern int __libc_errno;
+#define errno access_mutable_global(__libc_errno, int)
 
 char* strerror(int error);
 

@@ -4,11 +4,9 @@
 
 // The CortexM0+ processor does not have a memory management unit (MMU).
 // Therefore, all userland executables need to be position independent.
+// Unfortunately, the '-frwpi' functionality is not working with the clang linker.
+// We still access mutable data relative to program counter, but we can't declare this here
 
-// Use 'r9' register as static base 'sb' register (-frwpi)
-.eabi_attribute Tag_ABI_PCS_R9_use, 1
-// Mutable data must be accessed relative to 'sb' register (-frwpi)
-.eabi_attribute Tag_ABI_PCS_RW_data, 2
 // Immuatable data must be accessed relative to program counter (-fropi)
 .eabi_attribute Tag_ABI_PCS_RO_data, 1
 
@@ -41,21 +39,21 @@ _syscall:
     svc #0
     bx lr
 
-// u32 _static_base()
-.global _static_base
+// u32 sys$get_writable_base()
+.global sys$get_writable_base
 .thumb_func
-_static_base:
+sys$get_writable_base:
     mov r0, sb
     bx lr
 
-// u32 _pc_base()
-.global _pc_base
+// u32 sys$get_readonly_base()
+.global sys$get_readonly_base
 .thumb_func
-_pc_base:
+sys$get_readonly_base:
     mov r0, pc
     subs r0, r0, #3
 
-    ldr r1, =_pc_base
+    ldr r1, =sys$get_readonly_base
 
     subs r0, r0, r1
 

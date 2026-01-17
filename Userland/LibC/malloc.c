@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <sys/system.h>
 
-extern char __heap_start__[];
-extern char __heap_end__[];
+extern char __libc_heap_start[];
+#define heap_start access_mutable_global(__libc_heap_start, char*)
+
+extern char __libc_heap_end[];
+#define heap_end access_mutable_global(__libc_heap_start, char*)
 
 // FIXME: Implement a proper malloc.
 
@@ -12,7 +16,8 @@ void free(void *pointer)
 {
 }
 
-static char *heap;
+static char *__libc_heap;
+#define heap access_mutable_global(__libc_heap, char*)
 
 static size_t round_to_word(size_t size)
 {
@@ -24,14 +29,14 @@ static size_t round_to_word(size_t size)
 void* malloc(size_t size)
 {
     if (heap == NULL)
-        heap = __heap_start__;
+        heap = heap_start;
 
     size = round_to_word(size);
 
     heap += size;
 
     char *pointer = heap - size;
-    assert(pointer <= __heap_end__);
+    assert(pointer <= heap_end);
     return pointer;
 }
 

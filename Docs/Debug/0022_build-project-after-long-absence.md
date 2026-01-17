@@ -166,18 +166,104 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 -   The first issue seems to be resolved with the additional `.abi_attribute` directives.
     However, I still get the other error: `dangerous relocation: unsupported relocation`
 
+    -   This is caused by the `-frwpi` command line option
+
+    -   This script reproduces the issue:
+        ```sh
+        cd /home/me/dev/pico-os/Build/Userland
+
+        clang \
+            --target=arm-none-eabi \
+            -mcpu=cortex-m0plus \
+            -std=gnu11 \
+            -Og -g \
+            -static \
+            -nostdlib \
+            -fcolor-diagnostics \
+            -DUSERLAND \
+            -I /home/me/dev/pico-os/Userland/LibC \
+            -I /home/me/dev/pico-os \
+            -frwpi \
+            --sysroot=/usr/local/arm-none-eabi \
+            /home/me/dev/pico-os/Userland/Example.c \
+            -c
+
+        arm-none-eabi-ld \
+            --sysroot=/usr/local/arm-none-eabi \
+            -Bstatic \
+            -m armelf \
+            -EL \
+            -T /home/me/dev/pico-os/Userland/Userland.x \
+            -L/usr/local/arm-none-eabi/lib \
+            -L/usr/lib/clang/21/lib/arm-unknown-none-eabi \
+            -L/usr/local/arm-none-eabi/lib \
+            --nmagic \
+            -z noexecstack \
+            ./Example.o \
+            --target2=rel \
+            -o ./Example.1.elf
+        ```
+
+    -   This is a minimal example:
+        ```c
+        int bar;
+
+        void baz()
+        {
+            bar = 0;
+        }
+
+        void _start() { }
+        ```
+        ```sh
+        clang \
+            --target=arm-none-eabi \
+            -mcpu=cortex-m0plus \
+            -frwpi \
+            /home/me/dev/pico-os/Userland/LibC/sys/stat.c \
+            -c
+
+        arm-none-eabi-ld \
+            ./stat.o \
+            -o ./Example.1.elf
+        ```
+        ```none
+        ./stat.o: in function `_start':
+        stat.c:(.text+0xc): dangerous relocation: unsupported relocation
+        ```
+
+-   It seems that `-frwpi` emits a relocation that is not supported?
+    ```none
+    $ arm-none-eabi-readelf --relocs ./stat.o
+
+    Relocation section '.rel.text' at offset 0x11c contains 1 entry:
+    Offset     Info    Type            Sym.Value  Sym. Name
+    0000000c  00000609 R_ARM_SBREL32     00000000   bar
+
+    Relocation section '.rel.ARM.exidx' at offset 0x124 contains 1 entry:
+    Offset     Info    Type            Sym.Value  Sym. Name
+    00000000  0000022a R_ARM_PREL31      00000000   .text
+    ```
+
+-   The supported relocations are documented here:
+    https://github.com/ARM-software/abi-aa/blob/576740d263827afdbb40ae1f01af6b76d4163b4b/aaelf32/aaelf32.rst#5612relocation-types
+
+-   I found this line in binutils:
+    ```none
+    RD(SBREL32           , STATIC  , N, DATA , ((S + A) | T) - B(S)   ,  N, -1, N)
+    ```
+
+-   The problem seems to be, that it's not handled in the switch of `elf32_arm_final_link_relocate`
+
+    -   I asked a question on StackOverflow go get some help:
+        https://stackoverflow.com/questions/79870509/dangerous-relocation-unsupported-relocation-r-arm-sbrel32
+
+    -   It seems that the `-fropi` isn't working either in `strerror`?
+
 ## Theories
+
+-   Theory: The linker needs to know where the writable segment starts
 
 ## Tasks
 
--   Look at the tags in C and figure out if they are accurate, then replicate in assembly
-
--   Add test to ensure this doesn't change
-
-## Delayed Tasks
-
--   Create a question on StackOverflow and answer it myself.
-
--   Figure out what is going on with the `rewrite` branch
-
--   Delete all the old `backup` and `bits` tags in GitHub
+-   Create a workaround without the `-frwpi` using static base helper

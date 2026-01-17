@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/system.h>
 
 #define rom_table_code(code1, code2) ((code2) << 8 | (code1))
 
@@ -9,10 +10,11 @@
 #define ROM_MEMSET 1
 #define ROM_MAX 2
 
-static uint32_t rom_functions[] = {
+static uint32_t __libc_rom_functions[] = {
     [ROM_MEMCPY] = rom_table_code('M', 'C'),
     [ROM_MEMSET] = rom_table_code('M', 'S'),
 };
+#define rom_functions access_mutable_global(__libc_rom_functions, uint32_t*)
 
 void rom_functions_init()
 {

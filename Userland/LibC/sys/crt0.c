@@ -1,8 +1,12 @@
 #include <stdint.h>
 #include <string.h>
+#include <sys/system.h>
 
-extern uint8_t __bss_start__[];
-extern uint8_t __bss_end__[];
+extern uint8_t __libc_bss_start[];
+#define bss_start access_mutable_global(__libc_bss_start, uint8_t*)
+
+extern uint8_t __libc_bss_end__[];
+#define bss_end access_mutable_global(__libc_bss_start, uint8_t*)
 
 void rom_functions_init();
 
@@ -10,7 +14,7 @@ void _init()
 {
     rom_functions_init();
 
-    memset(__bss_start__, 0, __bss_end__ - __bss_start__);
+    memset(bss_start, 0, bss_end - bss_start);
 
     // FIXME: Call preinit array
 
