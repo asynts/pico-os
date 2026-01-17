@@ -9,7 +9,8 @@ function(userland_executable name_)
             -I ${CMAKE_CURRENT_SOURCE_DIR}/LibC
             -I ${CMAKE_SOURCE_DIR}
             -T ${CMAKE_CURRENT_SOURCE_DIR}/Userland.x
-            -Xlinker --nmagic
+            -Wl,--nmagic
+            -Wl,-z,noexecstack
             --sysroot=/usr/local/arm-none-eabi
             ${LIBC_SOURCES}
             ${CMAKE_CURRENT_SOURCE_DIR}/${name_}.c
