@@ -10,13 +10,12 @@
 
 #include "FileSystem.hpp"
 
-// FIXME: This is a huge mess, I need to completely rewrite this
-
 FileSystem::FileSystem(Elf::Generator& generator)
     : m_generator(generator)
 {
     m_data_index = m_generator.create_section(".embed", SHT_PROGBITS, SHF_ALLOC);
-    m_data_relocs.emplace(m_generator, ".embed", generator.symtab().symtab_index(), *m_data_index);
+    m_data_relocs.emplace(".embed", generator.symtab().section_index(), *m_data_index);
+    m_data_relocs.value().initialize(generator);
 
     m_base_symbol = m_generator.symtab().add_symbol("__flash_base", Elf32_Sym {
         .st_value = 0,
@@ -145,6 +144,6 @@ void FileSystem::finalize()
     assert(!m_finalized);
     m_finalized = true;
 
-    m_data_relocs->finalize();
+    m_data_relocs->finalize(m_generator);
     m_generator.write_section(m_data_index.value(), m_data_stream);
 }

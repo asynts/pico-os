@@ -17,9 +17,8 @@ namespace Elf
         ~Generator();
 
         Elf32_Shdr& section(size_t index) { return m_sections[index]; }
-        SymbolTable& symtab() { return m_symtab.value(); }
+        SymbolTable& symtab() { return m_symtab_section.value(); }
 
-        size_t append_section(std::string_view name, MemoryStream& stream, Elf32_Word type, Elf32_Word flags);
         size_t create_section(std::string_view name, Elf32_Word type, Elf32_Word flags);
         void write_section(size_t section_index, MemoryStream&);
 
@@ -28,15 +27,15 @@ namespace Elf
     private:
         void create_undefined_section();
 
-        void encode_sections(size_t& section_offset, size_t& shstrtab_section_index);
-        void encode_header(size_t section_offset, size_t shstrtab_section_index);
+        void encode_sections(size_t& section_offset);
+        void encode_header(size_t section_offset);
 
         MemoryStream m_stream;
 
         bool m_finalized = false;
         std::vector<Elf32_Shdr> m_sections;
 
-        std::optional<StringTable> m_shstrtab;
-        std::optional<SymbolTable> m_symtab;
+        std::optional<StringTable> m_shstrtab_section;
+        std::optional<SymbolTable> m_symtab_section;
     };
 }

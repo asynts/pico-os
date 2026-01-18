@@ -13,28 +13,27 @@ namespace Elf
 
     class SymbolTable {
     public:
-        SymbolTable(Generator&, std::string_view name_suffix);
+        SymbolTable(std::string_view name_suffix);
         ~SymbolTable();
 
-        size_t add_symbol(std::string_view name, Elf32_Sym);
-        size_t add_undefined_symbol(std::string_view name, Elf32_Sym);
+        size_t add_symbol(std::string_view name, Elf32_Sym symbol);
+        size_t add_undefined_symbol(std::string_view name, Elf32_Sym symbol);
 
-        void finalize();
-    
-        size_t symtab_index() { return m_symtab_index.value(); }
+        void initialize(Generator& generator);
+        void finalize(Generator& generator);
+
+        std::string_view name() const { return m_name; }
+        size_t section_index() const { return m_section_index.value(); }
 
     private:
         void create_undefined_symbol();
 
-        Generator& m_generator;
         bool m_finalized = false;
-
-        StringTable m_string_table;
-        MemoryStream m_symtab_stream;
-
-        std::string_view m_name_suffix;
         size_t m_next_index = 0;
 
-        std::optional<size_t> m_symtab_index;
+        StringTable m_string_table;
+        MemoryStream m_stream;
+        std::string m_name;
+        std::optional<size_t> m_section_index;
     };
 }

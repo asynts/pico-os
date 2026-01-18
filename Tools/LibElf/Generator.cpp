@@ -12,8 +12,11 @@ namespace Elf
 
         create_undefined_section();
 
-        m_shstrtab.emplace(*this, ".shstrtab");
-        m_symtab.emplace(*this, "");
+        m_shstrtab_section.emplace(".shstrtab");
+        m_symtab_section.emplace("");
+
+        m_shstrtab_section->initialize(*this);
+        m_symtab_section->initialize(*this);
     }
     Generator::~Generator()
     {
@@ -34,12 +37,6 @@ namespace Elf
         shdr.sh_type = SHT_NULL;
         m_sections.push_back(shdr);
     }
-    size_t Generator::append_section(std::string_view name, MemoryStream& stream, Elf32_Word type, Elf32_Word flags)
-    {
-        size_t index = create_section(name, type, flags);
-        write_section(index, stream);
-        return index;
-    }
     size_t Generator::create_section(std::string_view name, Elf32_Word type, Elf32_Word flags)
     {
         Elf32_Shdr shdr;
@@ -49,11 +46,11 @@ namespace Elf
         shdr.sh_flags = flags;
         shdr.sh_info = 0;
         shdr.sh_link = 0;
-        shdr.sh_name = m_shstrtab->add_entry(name);
+        shdr.sh_name = m_shstrtab_section->add_entry(name);
         shdr.sh_offset = 0;
         shdr.sh_size = 0;
         shdr.sh_type = type;
-        
+
         size_t index = m_sections.size();
         m_sections.push_back(shdr);
         return index;
@@ -74,32 +71,29 @@ namespace Elf
         m_finalized = true;
 
         size_t section_offset;
-        size_t shstrtab_section_index;
-        encode_sections(section_offset, shstrtab_section_index);
-        encode_header(section_offset, shstrtab_section_index);
+        encode_sections(section_offset);
+        encode_header(section_offset);
 
         m_stream.seek(0);
         return std::move(m_stream);
     }
-    void Generator::encode_sections(size_t& section_offset, size_t& shstrtab_section_index)
+    void Generator::encode_sections(size_t& section_offset)
     {
-        m_symtab->finalize();
-        m_shstrtab->finalize();
-
-        shstrtab_section_index = m_shstrtab->strtab_index();
+        m_symtab_section->finalize(*this);
+        m_shstrtab_section->finalize(*this);
 
         section_offset = m_stream.offset();
 
         for (const Elf32_Shdr& section : m_sections)
             m_stream.write_object(section);
     }
-    void Generator::encode_header(size_t section_offset, size_t shstrtab_section_index)
+    void Generator::encode_header(size_t section_offset)
     {
         Elf32_Ehdr ehdr;
         ehdr.e_ehsize = sizeof(Elf32_Ehdr);
         ehdr.e_entry = 0;
         ehdr.e_flags = 0x05000000;
-        
+
         memcpy(ehdr.e_ident, ELFMAG, SELFMAG);
         ehdr.e_ident[EI_CLASS] = ELFCLASS32;
         ehdr.e_ident[EI_DATA] = ELFDATA2LSB;
@@ -114,7 +108,7 @@ namespace Elf
         ehdr.e_shentsize = sizeof(Elf32_Shdr);
         ehdr.e_shnum = m_sections.size();
         ehdr.e_shoff = section_offset;
-        ehdr.e_shstrndx = shstrtab_section_index;
+        ehdr.e_shstrndx = m_shstrtab_section->section_index();
         ehdr.e_type = ET_REL;
         ehdr.e_version = EV_CURRENT;
 

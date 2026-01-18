@@ -260,10 +260,54 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 
     -   It seems that the `-fropi` isn't working either in `strerror`?
 
-## Theories
+    -   I created a workaround where we essentially do the same thing the linker should do, just without a relocation.
 
--   Theory: The linker needs to know where the writable segment starts
+-   There seems to be another problem with the `ElfEmbed` tool.
+    It seems there was some undefined behavior in there that just worked before:
+
+    -   `Generator::Generator` will call `StringTable::StringTable` to initialize `m_shstrtab`
+
+    -   `StringTable::StringTable` then calls `Generator::create_section` which assumes that `m_shstrtab` is already initialized
+
+    -   The solution would be to untangle this circular dependency somehow.
+        This could be done by adding another overload for `Generator::create_section` that is called after the members are initialized
+
+-   I resolved the circular dependency issue, but I immediatelly got the next issue:
+    ```none
+    ElfEmbed: /home/me/dev/pico-os/Tools/LibElf/MemoryStream.cpp:110: void Elf::MemoryStream::copy_to_raw_fd(int): Assertion `retval == size()' failed.
+    ```
+
+-   In theory, it should be possible to get everything working with GCC:
+    `-msingle-pic-base`
+    `-mpic-register=r9`
+    `-mpic-data-is-text-relative`
+    https://discourse.llvm.org/t/clang-and-fdpic-on-arm/87181
+    This is not something I will attempt now, because it seems to work at the moment
+
+-   I get another error when building the file system:
+    ```none
+    arm-none-eabi-objdump -d Kernel.1.elf >>Kernel.1.dis && cd /home/me/dev/pico-os/Build && /home/me/dev/pico-os/Build/elf2uf2/elf2uf2 Kernel.1.elf Kernel.1.uf2
+    ld: Userland/FileSystem.elf: bad reloc symbol index (0x1201 >= 0xb) for offset 0x1db4 in section `.embed'
+    ld: Userland/FileSystem.elf: error adding symbols: bad value
+    collect2: error: ld returned 1 exit status
+    ```
+    Seems like some symbol is generated incorrectly?
+
+    -   ChatGPT thinks that REL is not supported and that RELA needs to be used?
+        However, I found documentation that contradicts that:
+        https://github.com/ARM-software/abi-aa/blob/576740d263827afdbb40ae1f01af6b76d4163b4b/aaelf32/aaelf32.rst#561relocation-codes
+
+    -   It seems that I did not initialize the variable that was used to write the index.
+        Seems like a bug from the refactoring.
+
+## Theories
 
 ## Tasks
 
--   Create a workaround without the `-frwpi` using static base helper
+-   Invesitgate the `copy_to_raw_fd` issue
+
+## Delayed Tasks
+
+-   Add documentation that static variables are only partially supported
+
+-   There is something called FDPIC in GCC which could be used to implement proper shared libraries?
