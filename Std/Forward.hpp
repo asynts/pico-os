@@ -63,14 +63,6 @@ constexpr void swap(T& lhs, T& rhs)
 }
 
 extern "C"
-inline void strlcpy(char *destination, const char *source, usize size) noexcept
-{
-    if (size >= 1) {
-        __builtin_strncpy(destination, source, size - 1);
-        destination[size - 1] = 0;
-    }
-}
-extern "C"
 void* memcpy(void *destination, const void *source, usize count) noexcept;
 
 template<typename T>

@@ -316,14 +316,64 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
     ld: Userland/FileSystem.elf: error adding symbols: bad value
     ```
 
+    -   This was caused by an uninitialized value that was used as the symbol offset
+
+-   Now, it seems to work but I still get some linker warnings:
+    ```none
+    ld: libg.a(libc_a-closer.o): in function `_close_r': newlib/libc/reent/closer.c:47:(.text._close_r+0xc):
+        warning: _close is not implemented and will always fail
+    ld: libg.a(libc_a-closer.o):
+        note: the message above does not take linker garbage collection into account
+    ```
+
+    -   This seems to be caused by a toolchain upgrade:
+        https://stackoverflow.com/q/73742774/8746648
+
+    -   This seems to be a bug that was fixed a while ago:
+        https://github.com/raspberrypi/pico-sdk/issues/1029
+
+-   I am trying to update the pico-sdk:
+
+    -   Previously, I removed the weak `_exit` symbol, but the underlying code changed.
+        I don't know how to migrate that change because I don't understand it.
+        I will discard the change for now.
+
+    -   The second tweak was to disable the `new` and `delete` definitions.
+        However, this appears to be supported by this compiler flag now:
+        `PICO_CXX_DISABLE_ALLOCATION_OVERRIDES=1`
+
+    -   It seems that a similar option exists to make `printf` optional:
+        `LIB_PICO_PRINTF_NONE`
+        For now, I am skipping this commit, even though it may contain useful changes
+
 ## Theories
 
 ## Tasks
 
--   Figure out if this is caused by `clang` and `gcc` incompatibility?
+-   Investigate the warning `arm-none-eabi-objcopy: Kernel.elf: section .heap lma 0x10023a30 adjusted to 0x100243a8`
+
+-   Figure out if it's safe to use `LLD` instead?
+
+-   Check if any of my changes are necessary.
+    Otherwise, try to get rid of the tweaks
 
 ## Delayed Tasks
 
 -   Add documentation that static variables are only partially supported
 
 -   There is something called FDPIC in GCC which could be used to implement proper shared libraries?
+
+## Answer (https://stackoverflow.com/q/79870509/8746648)
+
+I suspect, that I was using a different linker before.  In my case it's detected automatically by CMake and it's possible that id made a different choice before.
+
+If I use `arm-none-eabi-ld.gold` instead, it gives a different error message:
+```none
+$ arm-none-eabi-ld.gold ./stat.o -o Example.1.elf
+./stat.o:stat.c:function baz:(.text+0xc): error: cannot relocate unimplemented reloc R_ARM_SBREL32 in object file
+```
+
+If I use `ld.lld` instead, it seems to work, but I am not sure if this is actually doing the correct thing, because it's not from the arm-none-eabi toolchain:
+```none
+$ ld.lld ./stat.o -o ./Example.1.elf
+```

@@ -52,14 +52,28 @@ The kernel has the following capabilities:
     pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt meson cmake
     ```
 
- 2. Install TIO from AUR:
+ 2. Install packages from AUR:
 
-    ```none
-    cdm ~/src/aur.archlinux.org
-    git clone --depth 1 https://aur.archlinux.org/tio.git
-    cd tio
-    makepkg --install
-    ```
+     1. ```none
+        cdm ~/src/aur.archlinux.org
+        git clone --depth 1 https://aur.archlinux.org/tio.git
+        cd tio
+        makepkg --install
+        ```
+
+     2. ```none
+        cdm ~/src/aur.archlinux.org
+        git clone --depth 1 https://aur.archlinux.org/pico-sdk.git
+        cd pico-sdk
+        makepkg --install
+        ```
+
+     3. ```none
+        cdm ~/src/aur.archlinux.org
+        git clone --depth 1 https://aur.archlinux.org/picotool.git
+        cd picotool
+        makepkg --install
+        ```
 
  3. Build `openocd`:
 

@@ -9,11 +9,15 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 find_package(Tools MODULE)
 
-include(CMake/pico_sdk_import.cmake)
+# TODO Use '/usr/share/pico-sdk/pico_sdk_init.cmake' when patch is no longer necessary
+include(/home/me/dev/pico-sdk/pico_sdk_init.cmake)
 
 project(Pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
+
+set(PICO_BOARD pico)
+set(PICO_PLATFORM rp2040)
 
 pico_sdk_init()
 
@@ -23,6 +27,7 @@ set(DISABLE_CXX_WARNINGS -Wno-reorder -Wno-ignored-qualifiers)
 
 add_library(project_options INTERFACE)
 target_compile_options(project_options INTERFACE -fdiagnostics-color=always -Wall ${DISABLE_WARNINGS} -Wextra -Werror -O0)
+target_compile_definitions(project_options INTERFACE PICO_CXX_DISABLE_ALLOCATION_OVERRIDES=1 LIB_PICO_PRINTF_NONE=1)
 target_compile_options(project_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-frtti ${DISABLE_CXX_WARNINGS}>)
 target_include_directories(project_options INTERFACE ${CMAKE_SOURCE_DIR})
 
