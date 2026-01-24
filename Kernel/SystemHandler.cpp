@@ -9,6 +9,7 @@
 #include <Kernel/GlobalMemoryAllocator.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
 #include <Kernel/Threads/Thread.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 
 namespace Kernel
 {

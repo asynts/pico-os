@@ -5,6 +5,7 @@
 
 #include <Kernel/Forward.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 
 namespace Kernel
 {

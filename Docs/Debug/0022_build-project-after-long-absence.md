@@ -306,11 +306,21 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
     -   It seems that I did not initialize the variable that was used to write the index.
         Seems like a bug from the refactoring.
 
+-   There are several other build errors that do not make any sense.
+    How was I able to compile and run the application in this state?
+    Maybe I messed something up during a merge?
+
+-   There are several other linker issues:
+    ```none
+    ld: Userland/FileSystem.elf: bad reloc symbol index (0x8a690d >= 0xb) for offset 0x1db4 in section `.embed'
+    ld: Userland/FileSystem.elf: error adding symbols: bad value
+    ```
+
 ## Theories
 
 ## Tasks
 
--   Invesitgate the `copy_to_raw_fd` issue
+-   Figure out if this is caused by `clang` and `gcc` incompatibility?
 
 ## Delayed Tasks
 

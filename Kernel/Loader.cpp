@@ -5,6 +5,7 @@
 #include <Kernel/HandlerMode.hpp>
 #include <Kernel/PageAllocator.hpp>
 #include <Kernel/Threads/Scheduler.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 
 namespace Kernel
 {

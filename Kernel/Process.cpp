@@ -6,6 +6,7 @@
 #include <Kernel/Interface/System.hpp>
 #include <Kernel/FileSystem/FlashFileSystem.hpp>
 #include <Kernel/FileSystem/MemoryFileSystem.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 
 namespace Kernel
 {

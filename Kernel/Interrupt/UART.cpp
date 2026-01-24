@@ -1,5 +1,6 @@
 #include <Kernel/Interrupt/UART.hpp>
 #include <Kernel/HandlerMode.hpp>
+#include <Kernel/Synchronization/MaskedInterruptGuard.hpp>
 
 #include <hardware/irq.h>
 #include <hardware/uart.h>
