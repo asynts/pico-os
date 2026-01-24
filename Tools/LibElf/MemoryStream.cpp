@@ -1,4 +1,8 @@
 #include <utility>
+#include <stdexcept>
+#include <algorithm>
+
+#include <fmt/format.h>
 
 #include <fcntl.h>
 #include <assert.h>
@@ -104,9 +108,35 @@ namespace Elf
     }
     void MemoryStream::copy_to_raw_fd(int fd)
     {
-        off_t input_offset = 0;
+        // It's tempting to use 'copy_file_range' here, but it could return 'EXDEV'
+        // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
 
-        ssize_t retval = copy_file_range(fileno(m_file), &input_offset, fd, nullptr, size(), 0);
-        assert(retval == size());
+        uint8_t buffer[4096];
+
+        off_t copy_offset = 0;
+        ssize_t copy_size = size();
+
+        while (copy_offset < copy_size)
+        {
+            ssize_t retval = pread(fileno(m_file), buffer, sizeof(buffer), copy_offset);
+            if (retval < 0)
+                throw std::system_error{errno, std::system_category()};
+            if (retval == 0)
+            {
+                throw std::runtime_error{fmt::format("failed to copy all data to target: retval={}, copy_offset={}, copy_size={}",
+                    retval, copy_offset, copy_size)};
+            }
+
+            ssize_t copy_actual = std::min(retval, copy_size - copy_offset);
+
+            retval = write(fd, buffer, copy_actual);
+            if (retval < 0)
+                throw std::system_error{errno, std::system_category()};
+            if (retval < copy_actual)
+                throw std::runtime_error{fmt::format("failed to copy all data to target: retval={}, copy_actual={}",
+                    retval, copy_actual)};
+
+            copy_offset += retval;
+        }
     }
 }

@@ -276,6 +276,12 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
     ```none
     ElfEmbed: /home/me/dev/pico-os/Tools/LibElf/MemoryStream.cpp:110: void Elf::MemoryStream::copy_to_raw_fd(int): Assertion `retval == size()' failed.
     ```
+    After adding an exception handler, I've discovered the cause:
+    ```none
+    error: Invalid cross-device link
+    ```
+    It seems like `memfd_create` is not compatible with `copy_file_range`.
+    It seems that this was a breaking change in the Linux kernel.
 
 -   In theory, it should be possible to get everything working with GCC:
     `-msingle-pic-base`
