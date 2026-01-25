@@ -84,7 +84,7 @@ namespace Kernel
             }
 
             VERIFY(__builtin_popcount(executable.m_writable_size) == 1);
-            VERIFY(executable.m_writable_base % executable.m_writable_size == 0);
+            VERIFY(executable.m_writable_base % PageAllocator::page_size == 0);
             auto& ram_region = thread->m_regions.append({});
             ram_region.rbar.region = 0;
             ram_region.rbar.valid = 0;

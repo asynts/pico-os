@@ -353,9 +353,77 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 
     -   I just removed the `objcopy`, not sure what I was doing there.
 
+-   I am now able to run the kernel on real hardware again, but there are errors:
+    ```none
+    #0  Std::crash (format=0x100192d0 "VERIFY(%condition)\n%file:%line\n", condition=0x10019448 "elf.segments()[2].p_type == PT_ARM_EXIDX",
+            file=0x10019404 "/home/me/dev/pico-os/Kernel/Loader.cpp", line=18)
+        at /home/me/dev/pico-os/Std/Forward.cpp:82
+    #1  0x10006bd4 in Kernel::load_executable_into_memory (elf=..., thread=...)
+        at /home/me/dev/pico-os/Kernel/Loader.cpp:18
+    ```
+
+    -   I think this is what the `objcopy` was for.
+        However, I feel like a it would be a better approach to find the sections by name.
+
+    -   Actually, that doesn't really make sense.
+        The `objcopy` was for the kernel and not the userland executables.
+
+    -   The executable looks fine, only the order of the sections is different.
+        That's probablly a change to the linker script that wasn't synchronized
+
+-   The backtrace looks incomplete and contains the `__flash_data_3` symbol
+    This seems to be the reason for objcopy
+
+-   There is another error which seems like an incorrect assertion:
+    ```none
+    #0  Std::crash (format=0x10019dfc "VERIFY(%condition)\n%file:%line\n", condition=0x1001a230 "executable.m_writable_base % executable.m_writable_size == 0",
+            file=0x1001a1d4 "/home/me/dev/pico-os/Kernel/Process.cpp", line=87)
+        at /home/me/dev/pico-os/Std/Forward.cpp:82
+    #1  0x1000910e in operator() (__closure=0x20032bcc) at /home/me/dev/pico-os/Kernel/Process.cpp:87
+    ```
+
+    -   Maybe there was a good reason for this?
+
+    -   The fault seems to occur in `hand_over_to_loaded_executable` in the assembly:
+        ```none
+        r8 = 0x20037cfc
+        msr PSP, r8
+
+        r10 = 0x00000003
+        msr CONTROL, r10
+
+        isb sy
+
+        r3 = 0x20035c00
+        mov r9, r3
+
+        r5 = 0x00000001
+        adds r0, r5, #0
+
+        r6 = 0x20037d00
+        adds r1, r6, #0
+
+        r12 = 0x20037cfc
+        mov r2, r12
+
+        r4 = 0x1001dd6d
+        bx r4
+        ```
+
+    -   I actually added a print statement when loading the executable, this is extremely useful
+
+    -   It seems that we transfer control correctly, but we fault in `rom_functions_init`
+
 ## Theories
 
 ## Tasks
+
+-   Investigate the cause for the `.heap` section alignment issues:
+    `arm-none-eabi-objcopy: Kernel.elf: section .heap lma 0x100236a0 adjusted to 0x10024018`
+
+-   Figure out why `inv dbg` is not working.
+
+    -   Running the commands manually seems to work
 
 -   Try to run on the actual kernel
 
@@ -363,6 +431,8 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
     If necessary update my page allocator to remove alignment constraint.
 
 ## Delayed Tasks
+
+-   I should reorganize the kernel files into folders to avoid clutter
 
 -   Try to merge blocks together in `PageAllocator::deallocate_locked`
 

@@ -17,8 +17,8 @@ def dbg(c, gdb="arm-none-eabi-gdb", port=3333):
 
     # FIXME: This is really ugly.
     init_script.write(f"""\
-target extended-remote localhost:{port}
 file Kernel.elf
+target extended-remote localhost:{port}
 
 define dis_here
     x/20i ($pc -20)

@@ -15,13 +15,13 @@ namespace Kernel
         executable.m_host_path = elf.m_host_path;
 
         VERIFY(elf.header()->e_phnum == 3);
-        VERIFY(elf.segments()[2].p_type == PT_ARM_EXIDX);
+        VERIFY(elf.segments()[0].p_type == PT_ARM_EXIDX);
 
-        auto& readonly_segment = elf.segments()[0];
+        auto& readonly_segment = elf.segments()[1];
         VERIFY(readonly_segment.p_type == PT_LOAD);
         VERIFY(readonly_segment.p_flags == (PF_R | PF_X));
 
-        auto& writable_segment = elf.segments()[1];
+        auto& writable_segment = elf.segments()[2];
         VERIFY(writable_segment.p_type == PT_LOAD);
         VERIFY(writable_segment.p_flags == (PF_R | PF_W));
 
