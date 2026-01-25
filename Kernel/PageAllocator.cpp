@@ -18,37 +18,24 @@ namespace Kernel
         page_allocator_mutex.set_enabled(enabled);
     }
 
-    void PageAllocator::initialize_blocks_recursively(uptr area_start, uptr area_end, usize block_power)
+    void PageAllocator::discover_blocks(uptr area_start, uptr area_end)
     {
-        dbgln("[PageAllocator::initialize_blocks_recursively] area_start={}, area_end={}, block_power={}",
-            area_start, area_end, block_power);
+        // We need to align the start address which ensures the alignment of all blocks
+        // Because the block size is a multiple of the page size
+        area_start = round_to_alignment(area_start, page_size);
 
-        usize block_size = 1 << block_power;
-        uptr block_start = round_to_alignment(area_start, block_size);
-        uptr block_end = block_start + block_size;
-
-        if (block_size < sizeof(Block))
-            return;
-
-        if (block_end <= area_end)
+        for (usize block_power = max_power; block_power >= page_power; --block_power)
         {
-            VERIFY(block_start % block_size == 0);
-            deallocate_locked(PageRange{block_power, block_start});
+            usize block_size = 1 << block_power;
+            uptr block_start = area_start;
+            uptr block_end = area_start + block_size;
 
-            // Try to find another smaller block in the area that was skipped during alignment
-            // No block of equal size can be found there, since that block would have been found instead
-            initialize_blocks_recursively(area_start, block_start, block_power - 1);
-
-            // Try to find another smaller block in the area after the block
-            // Note that this would make a block of 'block_power+1'
-            // At first glance that should have been handled by the caller
-            // However, it's possible that this larger chunk was not aligned properly
-            initialize_blocks_recursively(block_end, area_end, block_power);
-        }
-        else
-        {
-            // Try to find a smaller block in the same area
-            initialize_blocks_recursively(area_start, area_end, block_power - 1);
+            if (block_end <= area_end)
+            {
+                VERIFY(block_start % (1 << page_power) == 0);
+                deallocate_locked(PageRange{ .m_power = block_power, .m_base = block_start });
+                area_start = block_end;
+            }
         }
     }
 
@@ -65,24 +52,18 @@ namespace Kernel
 
                 block = block->m_next;
             }
-
         }
     }
 
     PageAllocator::PageAllocator()
     {
-        // By default all blocks are uninitialized
         for (auto& block : m_blocks.span().iter()) {
             block = nullptr;
         }
 
-        // Discover suitable blocks and initialize them
-        initialize_blocks_recursively(
+        discover_blocks(
             reinterpret_cast<uptr>(__heap_start),
-            reinterpret_cast<uptr>(__heap_end),
-            max_power);
-
-        dump();
+            reinterpret_cast<uptr>(__heap_end));
     }
 
     Optional<OwnedPageRange> PageAllocator::allocate(usize power)
@@ -154,5 +135,7 @@ namespace Kernel
         auto *block_ptr = reinterpret_cast<Block*>(range.m_base);
         block_ptr->m_next = m_blocks[range.m_power];
         m_blocks[range.m_power] = block_ptr;
+
+        // TODO Try to merge blocks back together
     }
 }

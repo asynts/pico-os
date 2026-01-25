@@ -61,7 +61,13 @@ namespace Kernel
     class PageAllocator : public Singleton<PageAllocator> {
     public:
         static constexpr usize max_power = 19;
-        static constexpr usize stack_power = power_of_two(0x800);
+
+        static constexpr usize stack_size = 0x800;
+        static constexpr usize stack_power = power_of_two(stack_size);
+
+        // Both FLASH and MPU only allow addressing in multiples of page size
+        static constexpr usize page_size = 256;
+        static constexpr usize page_power = power_of_two(page_size);
 
         Optional<OwnedPageRange> allocate(usize power);
         void deallocate(OwnedPageRange&);
@@ -72,7 +78,7 @@ namespace Kernel
         friend Singleton<PageAllocator>;
         PageAllocator();
 
-        void initialize_blocks_recursively(uptr area_start, uptr area_end, usize block_power);
+        void discover_blocks(uptr area_start, uptr area_end);
         Optional<PageRange> allocate_locked(usize power);
         void deallocate_locked(PageRange);
 

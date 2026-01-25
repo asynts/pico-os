@@ -364,6 +364,8 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 
 ## Delayed Tasks
 
+-   Try to merge blocks together in `PageAllocator::deallocate_locked`
+
 -   Try to avoid all remaining patches to Pico SDK
 
 -   Add documentation that static variables are only partially supported
