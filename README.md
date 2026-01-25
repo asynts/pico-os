@@ -46,13 +46,13 @@ The kernel has the following capabilities:
 
 ### Development Environment
 
- 1. Install required packages:
+ 1. Install packages:
 
     ```none
     pacman -S --needed python-invoke arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib fmt meson cmake
     ```
 
- 2. Install packages from AUR:
+ 2. Install additional packages from AUR:
 
      1. ```none
         cdm ~/src/aur.archlinux.org
@@ -87,19 +87,11 @@ The kernel has the following capabilities:
     sudo make install
     ```
 
- 4. Build `pico-sdk`:
-
-    ```none
-    cdm ~/dev
-    git clone --branch tweaks git@github.com:asynts/pico-sdk.git
-    git submodule update --init
-    ```
-
  4. Build the project with:
 
     ```none
     cdm Build
-    cmake .. -GNinja -DPICO_SDK_PATH=~/dev/pico-sdk
+    cmake .. -GNinja
     ninja
     ```
 

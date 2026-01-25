@@ -20,80 +20,88 @@ void operator delete(void*);
 void operator delete[](void*);
 #endif
 
-template<typename T>
-struct RemoveReference {
-    using Type = T;
-};
-template<typename T>
-struct RemoveReference<T&> {
-    using Type = T;
-};
-
-template<typename T>
-constexpr typename RemoveReference<T>::Type&& move(T&& value)
+namespace Std
 {
-    return static_cast<typename RemoveReference<T>::Type&&>(value);
-}
+    template<typename T>
+    struct RemoveReference {
+        using Type = T;
+    };
+    template<typename T>
+    struct RemoveReference<T&> {
+        using Type = T;
+    };
 
-template<typename T>
-constexpr T&& forward(typename RemoveReference<T>::Type& value)
-{
-    return static_cast<T&&>(value);
-}
-template<typename T>
-constexpr T&& forward(typename RemoveReference<T>::Type&& value)
-{
-    return static_cast<T&&>(value);
-}
+    template<typename T>
+    constexpr typename RemoveReference<T>::Type&& move(T&& value)
+    {
+        return static_cast<typename RemoveReference<T>::Type&&>(value);
+    }
 
-template<typename T, typename U = T>
-constexpr T exchange(T& obj, U&& new_value)
-{
-    T old_value = move(obj);
-    obj = forward<U>(new_value);
-    return move(old_value);
-}
+    template<typename T>
+    constexpr T&& forward(typename RemoveReference<T>::Type& value)
+    {
+        return static_cast<T&&>(value);
+    }
+    template<typename T>
+    constexpr T&& forward(typename RemoveReference<T>::Type&& value)
+    {
+        return static_cast<T&&>(value);
+    }
 
-template<typename T>
-constexpr void swap(T& lhs, T& rhs)
-{
-    T value = move(lhs);
-    lhs = move(rhs);
-    rhs = move(value);
-}
+    template<typename T, typename U = T>
+    constexpr T exchange(T& obj, U&& new_value)
+    {
+        T old_value = move(obj);
+        obj = forward<U>(new_value);
+        return move(old_value);
+    }
 
-extern "C"
-void* memcpy(void *destination, const void *source, usize count) noexcept;
+    template<typename T>
+    constexpr void swap(T& lhs, T& rhs)
+    {
+        T value = move(lhs);
+        lhs = move(rhs);
+        rhs = move(value);
+    }
 
-template<typename T>
-constexpr T max(T a, T b)
-{
-    return a >= b ? a : b;
-}
+    extern "C"
+    void* memcpy(void *destination, const void *source, usize count) noexcept;
 
-template<typename T>
-constexpr T min(T a, T b)
-{
-    return a <= b ? a : b;
-}
+    template<typename T>
+    constexpr T max(T a, T b)
+    {
+        return a >= b ? a : b;
+    }
 
-inline usize round_to_power_of_two(usize value)
-{
-    return 1 << (32 - __builtin_clz(value));
-}
+    template<typename T>
+    constexpr T min(T a, T b)
+    {
+        return a <= b ? a : b;
+    }
 
-constexpr usize power_of_two(usize value)
-{
-    return __builtin_ctzl(value);
-}
+    // Return up to ensure alignment
+    constexpr uptr round_to_alignment(uptr value, usize alignment)
+    {
+        return (value - 1u + alignment) & -alignment;
+    }
 
-template<typename T, void (T::*Method)()>
-static void type_erased_member_function_wrapper(void *object)
-{
-    (reinterpret_cast<T*>(object)->*Method)();
-}
+    // Round up to next power of two
+    constexpr usize round_to_power_of_two(usize value)
+    {
+        return 1 << (32 - __builtin_clz(value));
+    }
 
-namespace Std {
+    constexpr usize power_of_two(usize value)
+    {
+        return __builtin_ctzl(value);
+    }
+
+    template<typename T, void (T::*Method)()>
+    static void type_erased_member_function_wrapper(void *object)
+    {
+        (reinterpret_cast<T*>(object)->*Method)();
+    }
+
     enum class IterationDecision {
         Continue,
         Break,

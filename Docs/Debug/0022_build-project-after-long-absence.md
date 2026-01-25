@@ -346,22 +346,31 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
         `LIB_PICO_PRINTF_NONE`
         For now, I am skipping this commit, even though it may contain useful changes
 
+-   Investigate the warning `arm-none-eabi-objcopy: Kernel.elf: section .heap lma 0x10023a30 adjusted to 0x100243a8`
+
+    -   I thought this  happened because of my custom build SDK.
+        However, that does not appear to be the case.
+
+    -   I just removed the `objcopy`, not sure what I was doing there.
+
 ## Theories
 
 ## Tasks
 
--   Investigate the warning `arm-none-eabi-objcopy: Kernel.elf: section .heap lma 0x10023a30 adjusted to 0x100243a8`
+-   Try to run on the actual kernel
 
--   Figure out if it's safe to use `LLD` instead?
-
--   Check if any of my changes are necessary.
-    Otherwise, try to get rid of the tweaks
+-   Investigate how bad the alignment issue is.
+    If necessary update my page allocator to remove alignment constraint.
 
 ## Delayed Tasks
+
+-   Try to avoid all remaining patches to Pico SDK
 
 -   Add documentation that static variables are only partially supported
 
 -   There is something called FDPIC in GCC which could be used to implement proper shared libraries?
+
+-   Figure out if it's safe to use `LLD` instead?
 
 ## Answer (https://stackoverflow.com/q/79870509/8746648)
 

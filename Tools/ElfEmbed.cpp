@@ -15,8 +15,6 @@
 
 static void write_output_file(std::filesystem::path path, Elf::MemoryStream& stream)
 {
-    fmt::print("Writing output file {}\n", path.string());
-
     int fd = creat(path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(fd >= 0);
 

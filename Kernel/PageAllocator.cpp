@@ -2,11 +2,8 @@
 #include <Kernel/KernelMutex.hpp>
 #include <Kernel/HandlerMode.hpp>
 
-
-extern "C" u8 __pico_ram_start[];
-extern "C" u8 __pico_ram_end[];
-extern "C" u8 __pico_boot_ram_start[];
-extern "C" u8 __pico_boot_ram_end[];
+extern "C" u8 __heap_start[];
+extern "C" u8 __heap_end[];
 
 namespace Kernel
 {
@@ -21,31 +18,71 @@ namespace Kernel
         page_allocator_mutex.set_enabled(enabled);
     }
 
+    void PageAllocator::initialize_blocks_recursively(uptr area_start, uptr area_end, usize block_power)
+    {
+        dbgln("[PageAllocator::initialize_blocks_recursively] area_start={}, area_end={}, block_power={}",
+            area_start, area_end, block_power);
+
+        usize block_size = 1 << block_power;
+        uptr block_start = round_to_alignment(area_start, block_size);
+        uptr block_end = block_start + block_size;
+
+        if (block_size < sizeof(Block))
+            return;
+
+        if (block_end <= area_end)
+        {
+            VERIFY(block_start % block_size == 0);
+            deallocate_locked(PageRange{block_power, block_start});
+
+            // Try to find another smaller block in the area that was skipped during alignment
+            // No block of equal size can be found there, since that block would have been found instead
+            initialize_blocks_recursively(area_start, block_start, block_power - 1);
+
+            // Try to find another smaller block in the area after the block
+            // Note that this would make a block of 'block_power+1'
+            // At first glance that should have been handled by the caller
+            // However, it's possible that this larger chunk was not aligned properly
+            initialize_blocks_recursively(block_end, area_end, block_power);
+        }
+        else
+        {
+            // Try to find a smaller block in the same area
+            initialize_blocks_recursively(area_start, area_end, block_power - 1);
+        }
+    }
+
+    void PageAllocator::dump()
+    {
+        for (usize block_power = 0; block_power < max_power; ++block_power)
+        {
+            Block *block = m_blocks[block_power];
+
+            while (block != nullptr)
+            {
+                dbgln("[PageAllocator::print_blocks] block_power={}, block={}",
+                    block_power, block);
+
+                block = block->m_next;
+            }
+
+        }
+    }
+
     PageAllocator::PageAllocator()
     {
+        // By default all blocks are uninitialized
         for (auto& block : m_blocks.span().iter()) {
             block = nullptr;
         }
 
-        // My custom linker script will allocate the first 8 KiB of RAM for statup.
-        // The rest can be managed by this page allocator.
+        // Discover suitable blocks and initialize them
+        initialize_blocks_recursively(
+            reinterpret_cast<uptr>(__heap_start),
+            reinterpret_cast<uptr>(__heap_end),
+            max_power);
 
-        m_blocks[power_of_two(128 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 128 * KiB);
-        m_blocks[power_of_two(64 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 64 * KiB);
-        m_blocks[power_of_two(32 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 32 * KiB);
-        m_blocks[power_of_two(16 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 16 * KiB);
-        m_blocks[power_of_two(8 * KiB)] = reinterpret_cast<Block*>(__pico_ram_start + 8 * KiB);
-
-        for (auto& block : m_blocks.span().iter()) {
-            if (block == nullptr)
-                continue;
-
-            VERIFY(bit_cast<uptr>(block) >= bit_cast<uptr>(__pico_boot_ram_end));
-            VERIFY(bit_cast<uptr>(block) < bit_cast<uptr>(__pico_ram_end));
-
-            // FIXME: We appear to assert when we dereference this pointer.
-            block->m_next = nullptr;
-        }
+        dump();
     }
 
     Optional<OwnedPageRange> PageAllocator::allocate(usize power)

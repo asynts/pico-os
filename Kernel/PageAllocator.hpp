@@ -65,22 +65,14 @@ namespace Kernel
 
         Optional<OwnedPageRange> allocate(usize power);
         void deallocate(OwnedPageRange&);
-
-        // FIXME: Syncronize
-        void dump()
-        {
-            dbgln("[PageAllocator] blocks:");
-            for (usize power = 0; power < max_power; ++power) {
-                dbgln("  [{}]: {}", power, m_blocks[power]);
-            }
-        }
-
+        void dump();
         void set_mutex_enabled(bool enabled);
 
     private:
         friend Singleton<PageAllocator>;
         PageAllocator();
 
+        void initialize_blocks_recursively(uptr area_start, uptr area_end, usize block_power);
         Optional<PageRange> allocate_locked(usize power);
         void deallocate_locked(PageRange);
 
