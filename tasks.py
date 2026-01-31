@@ -3,16 +3,16 @@ import os
 import tempfile
 
 @invoke.task
-def probe(c, debug=False):
+def probe(context: invoke.context.Context, debug=False):
     if debug:
         debug_flags = "--debug=3"
     else:
         debug_flags = ""
 
-    c.sudo(f"openocd {debug_flags} -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True)
+    context.sudo(f"openocd {debug_flags} -f interface/picoprobe.cfg -f target/rp2040.cfg", pty=True, echo=True)
 
 @invoke.task
-def dbg(c, gdb="arm-none-eabi-gdb", port=3333):
+def dbg(context: invoke.context.Context, gdb="arm-none-eabi-gdb", port=3333):
     init_script = tempfile.NamedTemporaryFile(suffix=".gdb")
 
     # FIXME: This is really ugly.
@@ -43,17 +43,17 @@ set history remove-duplicates 1
 """.encode())
     init_script.flush()
 
-    c.run(f"{gdb} -q -x {init_script.name}", pty=True)
+    context.run(f"{gdb} -q -x {init_script.name}", pty=True, echo=True)
 
 @invoke.task
-def tty(c):
+def tty(context: invoke.context.Context):
     if not os.path.exists("/dev/ttyACM0"):
         print("Can not find serial device '/dev/ttyACM0'.")
         exit(1)
 
-    c.sudo("stty -F /dev/ttyACM0 115200 igncr")
-    c.sudo("tio /dev/ttyACM0", pty=True)
+    context.sudo("stty -F /dev/ttyACM0 115200 igncr", echo=True)
+    context.sudo("tio /dev/ttyACM0", pty=True, echo=True)
 
 @invoke.task
-def backup(c):
-    c.run("~/dev/scripts/backup.rb --name 'pico-os' --url 'git@github.com:asynts/os' --upload 's3://backup.asynts.com/git/pico-os'")
+def backup(context: invoke.context.Context):
+    context.run("~/dev/scripts/backup.rb --name 'pico-os' --url 'git@github.com:asynts/os' --upload 's3://backup.asynts.com/git/pico-os'", echo=True)

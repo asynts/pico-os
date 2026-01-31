@@ -5,10 +5,10 @@
 #include <sys/system.h>
 
 extern char __libc_heap_start[];
-#define heap_start access_mutable_global(__libc_heap_start, char*)
+#define heap_start access_mutable_global_array(__libc_heap_start, char)
 
 extern char __libc_heap_end[];
-#define heap_end access_mutable_global(__libc_heap_start, char*)
+#define heap_end access_mutable_global_array(__libc_heap_start, char)
 
 // FIXME: Implement a proper malloc.
 

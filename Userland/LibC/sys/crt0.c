@@ -3,10 +3,10 @@
 #include <sys/system.h>
 
 extern uint8_t __libc_bss_start[];
-#define bss_start access_mutable_global(__libc_bss_start, uint8_t*)
+#define bss_start access_mutable_global_array(__libc_bss_start, uint8_t)
 
 extern uint8_t __libc_bss_end__[];
-#define bss_end access_mutable_global(__libc_bss_start, uint8_t*)
+#define bss_end access_mutable_global_array(__libc_bss_start, uint8_t)
 
 void rom_functions_init();
 

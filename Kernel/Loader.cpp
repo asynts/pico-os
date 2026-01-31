@@ -83,7 +83,8 @@ namespace Kernel
         dbgln("  m_readonly_base={}", executable.m_readonly_base);
         dbgln("  m_writable_base={}", executable.m_writable_base);
 
-        dbgln("GDB: add-symbol-file {} -s .text {} -s .data {} -s .bss {}",
+        // Can be used to load symbols in GDB
+        dbgln("add-symbol-file {} -s .text {} -s .data {} -s .bss {}",
             executable.m_host_path,
             executable.m_text_base,
             executable.m_data_base,

@@ -39,3 +39,8 @@ extern void __libc_static_base;
 // Therefore, we need to compute the relocation manually
 #define access_mutable_global(variable_name, variable_type) \
     (*(variable_type*)(sys$get_writable_base() + ((void*)&variable_name - (void*)&__libc_static_base)))
+
+// The 'R_ARM_SBREL32' relocation does not appear to be supported by the linker
+// Therefore, we need to compute the relocation manually
+#define access_mutable_global_array(variable_name, variable_type) \
+    (*(variable_type(*)[])(sys$get_writable_base() + ((void*)&variable_name - (void*)&__libc_static_base)))

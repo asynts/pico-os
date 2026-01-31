@@ -17,8 +17,7 @@ _Noreturn void exit(int status)
 }
 
 static char __libc_environment_PATH[] = "/bin";
-#define environment_PATH access_mutable_global(__libc_environment_PATH, char*)
-
+#define environment_PATH access_mutable_global_array(__libc_environment_PATH, char)
 
 char* getenv(const char *name)
 {

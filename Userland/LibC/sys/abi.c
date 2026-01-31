@@ -14,7 +14,7 @@ static uint32_t __libc_rom_functions[] = {
     [ROM_MEMCPY] = rom_table_code('M', 'C'),
     [ROM_MEMSET] = rom_table_code('M', 'S'),
 };
-#define rom_functions access_mutable_global(__libc_rom_functions, uint32_t*)
+#define rom_functions access_mutable_global_array(__libc_rom_functions, uint32_t)
 
 void rom_functions_init()
 {

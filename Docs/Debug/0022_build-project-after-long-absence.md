@@ -418,6 +418,28 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
     The cause was that I updated packages (including the kernel) and disappeared after reboot
     `Can not find serial device '/dev/ttyACM0'.`
 
+-   I am looking into the issue with `rom_functions_init`:
+
+    -   It seems that the address is calculated as expected.
+        I verified it in multiple steps, it really should work.
+
+    -   Nevermind, something seems to be wrong with the macro after all.
+        The result pointer is the value at that address which is obviously wrong
+
+    -   This is what is expanded from the macro:
+        `&(*(uint32_t**)(sys$get_writable_base() + ((void*)&__libc_rom_functions - (void*)&__libc_static_base))[i]`
+
+    -   I guess this makes sense, the variable isn't of type `uint32_t*`, it's of type `uint32_t[]`
+
+    -   Using `uint32_t[]` doesn't work either, because it would expand to `uint32_t[]*` which is invalid:
+        https://stackoverflow.com/a/41473922/8746648
+
+-   It seems that the invoke command is not working correctly with the TTY:
+
+    -   Neither the `inv dbg` nor the `inv tty` commands seem to forward input correctly
+
+    -   When I try to run the tty manually, it seems to mess up the newlines?
+
 ## Theories
 
 ## Tasks
@@ -428,6 +450,8 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 -   Figure out why `inv dbg` is not working.
 
     -   Running the commands manually seems to work
+
+    -   The same thing is for inv tty
 
 -   Try to run on the actual kernel
 
