@@ -414,6 +414,10 @@ commitid 7bf4e3c38c1f3a72d0639c7ab15920f850325a5f
 
     -   It seems that we transfer control correctly, but we fault in `rom_functions_init`
 
+-   I had an issue where it couldn't detect the `/dev/ttyACM0`.
+    The cause was that I updated packages (including the kernel) and disappeared after reboot
+    `Can not find serial device '/dev/ttyACM0'.`
+
 ## Theories
 
 ## Tasks

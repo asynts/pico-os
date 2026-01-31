@@ -106,6 +106,7 @@ The kernel has the following capabilities:
  6. Run `inv tty`, this will be the shell into the target system.
 
  7. Run `inv dbg`, this will be used for debugging and to load the application.
+    (Currently, that doesn't work, the workaround is `../debug.sh`)
 
 ### Running the System
 
