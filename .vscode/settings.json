@@ -14,4 +14,12 @@
     "editor.minimap.enabled": false,
     "C_Cpp.errorSquiggles": "Disabled",
     "cmake.configureOnOpen": false,
+    "cSpell.words": [
+        "JTAG",
+        "pico",
+        "RAMDAC",
+        "UART",
+        "VBUS",
+        "VSYS"
+    ],
 }
