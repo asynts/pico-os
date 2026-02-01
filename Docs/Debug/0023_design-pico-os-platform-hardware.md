@@ -349,16 +349,27 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
 
         -   This seems perfect, but I don't think it's possible to join for a few months only.
 
+-   I can't drive the 5V inputs from the device directly.
+    It's fine for the receiver since 3.3V is still a logical 1.
+    However, when the transfer direction is inverted, it would fry the MCU.
+
+    -   I found this video about BJT transistors:
+        https://www.youtube.com/watch?v=WRm2oUw4owE
+
+    -   I've solved the issue with a voltage divider and diode on one side.
+        For the other side, there is a pull up with n-type mosfet to pull the line low.
+
 ### Tasks
 
--   Driving the 5V PS/2 input from the pins directly is not safe.
-    It's not possible to set the pins to not-connected.
+-   Choose and order all components to create prototype
+
+    -   Need to by additional instances of the micro-controllers
+
+    -   Consider buying a chip with headers for first iteration
 
 ### Deferred Tasks
 
 -   Perfboard:
-
-    -   Order all components to create prototype
 
     -   Do not solder the micro-controllers (only header pins)
 
