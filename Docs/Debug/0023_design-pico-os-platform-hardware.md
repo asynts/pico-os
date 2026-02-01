@@ -301,22 +301,58 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
 
         -   We need access to the 5V and 3.3V.
 
+-   I should be able to connect VSYS together right?
+    That should be relatively close to 5V as well?
+
+    -   In the debug-probe setup, they connect VSYS together.
+
+    -   I don't think I can do that, because XIAO doesn't expose VSYS?
+
+    -   Alternatively, I could manually boost the voltage to 5V.
+        However, that would use just as much space.
+
+    -   I stumbled on this alternative probe:
+        https://thepihut.com/products/the-iprobe
+        It doesn't expose VSYS either.
+
+    -   I think the fundamental problem is that I need to have a shared ground.
+        If I have that, then everything else should be fine.
+
+        -   This talks about this exact problem:
+            https://electronics.stackexchange.com/q/339530/223577
+
+    -   As far as I understand, there is simple and safe way of allowing two powered USB ports.
+        I can simply put a fuse on it and require that only one USB port is used.
+
+    -   Strictly speaking, I don't need to power the debug chip when the main chip is powered.
+        I will simply use a diode from VBUS to VSYS and leave the other chip unpowered.
+
+        -   I found this video that explains diodes:
+            https://www.youtube.com/watch?v=fiAjo93NUP4
+
+        -   This means that my 5V power will be slightly less, which should be okay?
+
+        -   We need 4.5V for the PS/2 interface:
+            https://web.archive.org/web/20161116003545/http://computer-engineering.org/ps2protocol/
+
+        -   Nothing else requires 5V, therefore, we should be fine.
+
+-   I am thinking about visiting some sort of maker-space to do the soldering.
+
+    -   The big advantage would be, that I could use SMD components.
+
+    -   This seems to be for students only?
+        https://www.makerlab-hannover.de
+
+    -   This one seems to have hot air soldering?
+        https://leinelab.org/raum:inventar:handwerkzeuge:start
+
+        -   This seems perfect, but I don't think it's possible to join for a few months only.
+
 ### Tasks
-
--   Setup a blink program.
-    Connect the debugger to a powered USB cable without data.
-    Does the blinking happen?
-    If yes, we can keep the debugger passively powered.
-
--   Is it safe to connect VBUS together if both USB ports are powered?
 
 -   Driving the 5V PS/2 input from the pins directly is not safe.
     It's not possible to set the pins to not-connected.
-
--   Schematic:
-
-    -   Setup simulation model?
-        To which extend can this be validated by the software?
 
 ### Deferred Tasks
 

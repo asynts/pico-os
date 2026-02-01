@@ -20,8 +20,11 @@
         "Perfboard",
         "pico",
         "RAMDAC",
+        "schottky",
         "UART",
+        "unpowered",
         "VBUS",
-        "VSYS"
+        "VSYS",
+        "XIAO"
     ],
 }
