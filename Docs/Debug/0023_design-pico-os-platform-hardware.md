@@ -244,15 +244,59 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
     -   It seems that the pico can handle
         Input 1.8V-3.3V range
 
+-   I am trying to verify the VGA interface:
+
+    -   I just realized that I have the resistors, but no voltage source?
+        I guess the pins provide something, but where would the voltage drop occur?
+
+    -   If one of the output is high and the other is low, that would cause current to flow?
+        That does not make much sense.
+
+    -   It seems that the monitor has a 75 ohm resistor to ground and measures the voltage over it.
+
+    -   We divide the 0.7V range into 4 sections: 0.000V, 0.233V, 0.467V, 0.700V
+
+    -   Then we use resistors to approximate this: 0.000V, 0.237V, 0.474V, 0.711V
+        That seems like a pretty good approximation.
+
+    -   The current draws are as follows: 0mA, 3.736mA, 6.893mA, 9.474mA
+        That seems pretty reasonable
+
+-   I am trying to add a status led array:
+
+    -   My original idea was to use DMA or PIO to do this.
+        However, it seems that DMA can not do this and I do not have any PIO devices left.
+
+    -   However, since this needs to be done very infrequently, it can be done by a kernel thread.
+
+    -   This chip seems like a suitable shift register:
+        https://www.ti.com/lit/ds/symlink/sn74ahct595.pdf
+
+    -   It seems that may LEDs use a crazy amount of current?
+
+    -   Seems that there are different kinds of LEDs, this uses 2mA which seems more reasonable:
+        https://www.reichelt.de/de/de/shop/produkt/led_3_mm_bedrahtet_rot_80_mcd_50_-391941
+
 ### Tasks
 
 -   Schematic:
 
-    -   Add status led with shift register?
+    -   Setup simulation model?
+        To which extend can this be validated by the software?
 
 ### Deferred Tasks
 
+-   Perfboard:
+
+    -   Order all components to create prototype
+
+    -   Do not solder the micro-controllers (only header pins)
+
+    -   Maybe I will even do this on a breadboard instead?
+
 -   PCB:
+
+    -   What board parameters are easy to manufacture?
 
     -   The footprint for pico should be compatible with pico-1, pico-1-w, pico-2 and pico-2-w
 
