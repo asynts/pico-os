@@ -277,7 +277,41 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
     -   Seems that there are different kinds of LEDs, this uses 2mA which seems more reasonable:
         https://www.reichelt.de/de/de/shop/produkt/led_3_mm_bedrahtet_rot_80_mcd_50_-391941
 
+-   I just found a problem, it seems that the PS/2 keyboard can draw up to 275mA.
+    If it actually uses this much, it would exceed the maximum.
+
+    -   I did find another keyboard that uses only 50mA:
+        https://web.archive.org/web/20121024124447/http://h18000.www1.hp.com/products/quickspecs/11880_na/11880_na.HTML
+
+    -   It's a design requirement, that you don't plug anything in that uses more than 50mA.
+
+-   I am unsure how to setup the power pins:
+
+    -   It would be better if the debug probe were not enabled?
+        I would expect it to behave passively on power up.
+
+    -   This seems to be exactly what I want but it was unanswered:
+        https://forums.raspberrypi.com/viewtopic.php?t=362588
+
+    -   There is a chapter "Powering Pico" in the datasheet which goes into great detail.
+
+    -   Requirements:
+
+        -   It needs to be possible to power the system through either USB port.
+
+        -   We need access to the 5V and 3.3V.
+
 ### Tasks
+
+-   Setup a blink program.
+    Connect the debugger to a powered USB cable without data.
+    Does the blinking happen?
+    If yes, we can keep the debugger passively powered.
+
+-   Is it safe to connect VBUS together if both USB ports are powered?
+
+-   Driving the 5V PS/2 input from the pins directly is not safe.
+    It's not possible to set the pins to not-connected.
 
 -   Schematic:
 

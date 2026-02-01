@@ -15,6 +15,7 @@
     "C_Cpp.errorSquiggles": "Disabled",
     "cmake.configureOnOpen": false,
     "cSpell.words": [
+        "datasheet",
         "JTAG",
         "Perfboard",
         "pico",
