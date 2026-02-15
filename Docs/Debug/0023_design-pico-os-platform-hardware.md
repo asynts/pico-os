@@ -359,6 +359,24 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
     -   I've solved the issue with a voltage divider and diode on one side.
         For the other side, there is a pull up with n-type mosfet to pull the line low.
 
+-   I am trying to buy the components:
+
+    -   Finding a VGA breakout seems challenging:
+
+        -   This is similar, but not quite what I want:
+            https://elabbay.myshopify.com/products/copy-of-d15-f-bo-v1as-db15-female-breakout-board-d-sub-15pin-elabguy?shpxid=ea3a2a58-e35a-44c5-bbcf-667077d3bb69
+            https://www.digikey.de/de/products/detail/chip-quik-inc/CN0032/9834614?gclsrc=aw.ds&gad_source=1&gad_campaignid=20184147116&gbraid=0AAAAADrbLljfr4Ts0pOqAy0lchjz8l2cW&gclid=CjwKCAiA-sXMBhAOEiwAGGw6LBAZnRRdeD2rqUAA5ctXJ3EtnUnPuJZuIJFGEu3jIovFpFzIDI7bARoCXfcQAvD_BwE
+            https://www.electromaker.io/shop/product/d-sub-panel-screw-db15p-f-conn-f-pin?srsltid=AfmBOoocZwLcsYRR0BaHAHnN9mGZi17hsST9MHoHIUmBcXoAOHTWmIQP_as
+
+        -   There are many items listed here:
+            https://www.mouser.de/c/connectors/d-sub-connectors/d-sub-high-density-connectors/?gender=Female&number%20of%20positions=15%20Position&number%20of%20rows=3%20Row&srsltid=AfmBOoqnuNop72JXbrL7UALXap1Iwoq40GSAnsfknelPgjgv7hN6oK2Z
+
+            -   The order times are ridiculous.
+
+        -   This seems suitable:
+            https://www.nflrage.com/product-p-407271.html
+            https://www.mouser.de/ProductDetail/NorComp/189-H15-513R497?qs=MLItCLRbWsyiS03XmW%2FJHw%3D%3D
+
 ### Tasks
 
 -   Choose and order all components to create prototype
