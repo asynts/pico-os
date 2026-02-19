@@ -377,13 +377,63 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
             https://www.nflrage.com/product-p-407271.html
             https://www.mouser.de/ProductDetail/NorComp/189-H15-513R497?qs=MLItCLRbWsyiS03XmW%2FJHw%3D%3D
 
+-   I've started to receive the components, unfortunately, I made a few mistakes:
+
+    -   Correct:
+
+        -   Raspberry Pi Pico 2W with headers
+
+        -   Mosfet
+
+        -   Buttons
+
+        -   Resistors:
+
+            -   10k
+
+            -   1.2k
+
+        -   Schottky diodes
+
+        -   Regular diodes
+
+        -   Shift registers
+
+        -   LEDs
+
+    -   Incorrect for prototyping:
+
+        -   Forgot debug cable
+
+        -   Forgot perfboard
+
+        -   PS/2 connector does not fit on perfboard
+
+            -   I was unable to find any component with a 2.54 spacing
+
+        -   VGA connector does not fit on perfboard
+
+            -   I was unable to find any component with a 2.54 spacing
+
+    -   Incorrect for final product:
+
+        -   Resistors are too large because higher wattage:
+
+            -   470
+
+            -   820
+
+            -   560
+
+-   Based on the results, it makes no sense to create a perfboard prototype.
+
+    -   I can test the basics on a breadboard.
+
+    -   Then I can immediately move to a proper PCB
+
 ### Tasks
 
--   Choose and order all components to create prototype
-
-    -   Need to by additional instances of the micro-controllers
-
-    -   Consider buying a chip with headers for first iteration
+-   Wait for other components to arrive
 
 ### Deferred Tasks
 
