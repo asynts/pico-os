@@ -407,13 +407,21 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
 
         -   Forgot perfboard
 
+        -   SD card
+
         -   PS/2 connector does not fit on perfboard
 
             -   I was unable to find any component with a 2.54 spacing
 
+            -   Maybe it's possible to bend them?
+
         -   VGA connector does not fit on perfboard
 
             -   I was unable to find any component with a 2.54 spacing
+
+            -   Maybe it's possible to bend them?
+
+        -   Forgot USB-C cable
 
     -   Incorrect for final product:
 
@@ -424,6 +432,8 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
             -   820
 
             -   560
+
+        -   Micro SD SMD component
 
 -   Based on the results, it makes no sense to create a perfboard prototype.
 
@@ -463,3 +473,5 @@ commitid 0411690acbad429b547ba2256ea25b1074d2f573
     -   Maybe workaround is possible by defining `BOARD_PICO_H_` manually?
 
     -   It's possible to do this using `--include=my-custom-config.h` then it can define the guard
+
+-   Design simple website to calculate resistors and transistors
