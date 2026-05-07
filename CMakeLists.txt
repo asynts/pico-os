@@ -9,7 +9,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 find_package(Tools MODULE)
 
-include(/usr/share/pico-sdk/pico_sdk_init.cmake)
+include(pico_sdk_import.cmake)
 
 project(Pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
